@@ -1,0 +1,28 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+*.db
+*.sqlite
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# pytest cache and other test-related files
+*.log
+*.coverage
+nosetests.xml
+coverage.xml
+*.hypothesis/
+
+# System files
+.DS_Store
+Thumbs.db
