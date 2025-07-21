@@ -23,77 +23,113 @@ export function Footer() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-12">
+      {/* Main Footer */}
+      <footer className="bg-white border-t border-gray-100 py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-xl font-light tracking-wider text-black">Πνοή</h3>
-              <p className="text-gray-600 text-sm font-light leading-relaxed">
-                Εκλεπτυσμένα κοσμήματα που συνδυάζουν παράδοση και σύγχρονο design.
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {/* Company Info */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-light tracking-wider text-black mb-3">Πνοή</h3>
+                <p className="text-gray-600 text-sm font-light leading-relaxed mb-4">
+                  Εκλεπτυσμένα κοσμήματα που συνδυάζουν παράδοση και σύγχρονο design.
+                </p>
+                <p className="text-gray-600 text-sm font-light">pnoi@yahoo.gr</p>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-black tracking-wide">ΣΥΛΛΟΓΕΣ</h4>
-              <div className="space-y-2">
+            {/* Navigation */}
+            <div className="space-y-6">
+              <h4 className="text-lg font-medium text-black tracking-wide">ΠΛΟΗΓΗΣΗ</h4>
+              <div className="space-y-3">
+                <Link href="/" className="block text-sm text-gray-600 hover:text-black transition-colors font-light">
+                  ΚΟΣΜΗΜΑΤΑ
+                </Link>
+                <Link
+                  href="/collections"
+                  className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
+                >
+                  ΠΟΙΟΙ ΕΙΜΑΣΤΕ
+                </Link>
                 <Link
                   href="/rings"
                   className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
                 >
-                  Δαχτυλίδια
-                </Link>
-                <Link
-                  href="/necklaces"
-                  className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
-                >
-                  Κολιέ
-                </Link>
-                <Link
-                  href="/earrings"
-                  className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
-                >
-                  Σκουλαρίκια
+                  ΕΠΙΚΟΙΝΩΝΙΑ
                 </Link>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-black tracking-wide">ΥΠΗΡΕΣΙΕΣ</h4>
-              <div className="space-y-2">
+           
+
+            {/* Legal & Policies */}
+            <div className="space-y-6">
+              <h4 className="text-lg font-medium text-black tracking-wide">ΠΛΗΡΟΦΟΡΙΕΣ</h4>
+              <div className="space-y-3">
                 <Link
-                  href="/contact"
+                  href="/privacy-policy"
                   className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
                 >
-                  Επικοινωνία
+                  Πολιτική Απορρήτου
                 </Link>
                 <Link
-                  href="/shipping"
+                  href="/terms-conditions"
                   className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
                 >
-                  Αποστολές
+                  Όροι & Προϋποθέσεις
                 </Link>
                 <Link
                   href="/returns"
                   className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
                 >
-                  Επιστροφές
+                  Πολιτική Επιστροφών
                 </Link>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-black tracking-wide">ΕΠΙΚΟΙΝΩΝΙΑ</h4>
-              <div className="space-y-2 text-sm text-gray-600 font-light">
-                <p>info@pnoe.gr</p>
-                <p>+30 210 123 4567</p>
-                <p>Αθήνα, Ελλάδα</p>
+                <Link
+                  href="/shipping"
+                  className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
+                >
+                  Τρόποι Αποστολής
+                </Link>
+                <Link
+                  href="/payments"
+                  className="block text-sm text-gray-600 hover:text-black transition-colors font-light"
+                >
+                  Τρόποι Πληρωμής
+                </Link>
+                <div className="pt-4 space-y-2">
+                  <p className="text-sm text-gray-600 font-light">
+                    <strong>Τηλέφωνο:</strong>
+                    <br />
+                    +30 210 123 4567
+                  </p>
+                  <p className="text-sm text-gray-600 font-light">
+                    <strong>Διεύθυνση:</strong>
+                    <br />
+                    Οδός Ιωάννου Δροσοπούλου 63, 
+                    <br />
+                    Κυψέλη, Αθήνα
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-100 mt-12 pt-8 text-center">
-            <p className="text-sm text-gray-600 font-light">© 2025 Πνοή. All rights reserved.</p>
+          {/* Bottom Section */}
+          <div className="border-t border-gray-100 mt-16 pt-8">
+            <div className="flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
+              <div className="text-sm text-gray-600 font-light">© 2025 Πνοή. Όλα τα δικαιώματα διατηρούνται.</div>
+
+              {/* Payment Methods */}
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600 font-light">Δεχόμαστε:</span>
+                <div className="flex items-center space-x-2">
+                  <div className="bg-gray-100 px-3 py-1 rounded text-xs font-medium text-gray-700">VISA</div>
+                  <div className="bg-gray-100 px-3 py-1 rounded text-xs font-medium text-gray-700">MASTERCARD</div>
+                  <div className="bg-gray-100 px-3 py-1 rounded text-xs font-medium text-gray-700">PAYPAL</div>
+                  <div className="bg-gray-100 px-3 py-1 rounded text-xs font-medium text-gray-700">APPLE PAY</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
