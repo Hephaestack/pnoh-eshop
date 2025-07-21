@@ -1,23 +1,23 @@
 export default function ReturnsPage() {
   return (
-    <div className="bg-white">
+    <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-black mb-4">Πολιτική Επιστροφών</h1>
-          <div className="w-16 h-px bg-gray-400 mx-auto mb-6"></div>
-          <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+      <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
+        <div className="container px-4 mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Πολιτική Επιστροφών</h1>
+          <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
+          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
             Όλα όσα πρέπει να γνωρίζετε για τις επιστροφές και αλλαγές
           </p>
         </div>
       </section>
 
       {/* Content Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+      <section className="py-16 bg-[#18181b]">
+        <div className="container px-4 mx-auto">
           <div className="max-w-4xl mx-auto">
-            <div className="prose prose-lg max-w-none">
-              <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+            <div className="prose prose-lg max-w-none prose-invert">
+              <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                 <p>
                   Οποιαδήποτε επιστροφή προϊόντων γίνεται δεκτή μόνο και εφόσον το προϊόν επιστραφεί μέσα σε διάστημα 15
                   ημερών από την ημέρα παραλαβής του, στην αρχική του κατάσταση, δεν έχει χρησιμοποιηθεί, χτυπηθεί,

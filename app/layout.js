@@ -1,6 +1,6 @@
+
 import "./globals.css"
-import { Header } from "@/components/Header"
-import { Footer } from "@/components/Footer"
+import ClientLayout from "@/components/ClientLayout"
 
 export const metadata = {
   title: "Πνοή - Jewelry E-Shop",
@@ -11,10 +11,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="el">
-      <body className="min-h-screen bg-white">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+      <body className="min-h-screen bg-[#18181b]">
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )

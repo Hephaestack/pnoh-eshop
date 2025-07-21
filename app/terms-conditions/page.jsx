@@ -1,27 +1,27 @@
 export default function TermsConditionsPage() {
   return (
-    <div className="bg-white">
+    <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-black mb-4">Όροι & Προϋποθέσεις</h1>
-          <div className="w-16 h-px bg-gray-400 mx-auto mb-6"></div>
-          <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto leading-relaxed">
+      <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
+        <div className="container px-4 mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Όροι & Προϋποθέσεις</h1>
+          <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
+          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
             Οι όροι χρήσης του ηλεκτρονικού μας καταστήματος
           </p>
         </div>
       </section>
 
       {/* Content Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+      <section className="py-16 bg-[#18181b]">
+        <div className="container px-4 mx-auto">
           <div className="max-w-4xl mx-auto">
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none prose-invert">
               {/* Section 1 - Γενικά */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">1. Γενικά</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">1. Γενικά</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Ο δικτυακός τόπος pnoikosmima.com αποτελεί ιδιοκτησία της εταιρείας με την επωνυμία "ΠΝΟΗ
                     χειροποίητο κόσμημα", η οποία εδρεύει στην Κυψέλη, στην Οδό Ιωάννου Δροσοπούλου 63, με ΑΦΜ
@@ -41,12 +41,12 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 2 - Ρητή αποδοχή */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">
                   2. Ρητή αποδοχή και ειδική συναίνεση
                 </h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Διατηρούμε το δικαίωμα μονομερώς να τροποποιούμε ή να ανανεώνουμε τους όρους της παρούσας. Τυχόν
                     μεταβολές στην πολιτική μας σε ότι αφορά στην προστασία των προσωπικών δεδομένων, θα καταγράφονται
@@ -76,12 +76,12 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 3 - Πνευματική Ιδιοκτησία */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">
                   3. Δικαιώματα πνευματικής ιδιοκτησίας
                 </h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Οι εικόνες, λογότυπα, γραφικά, φωτογραφίες, κείμενα κλπ είναι πνευματική ιδιοκτησία μας και
                     προστατεύονται κατά τις σχετικές διατάξεις του ελληνικού δικαίου και των διεθνών συμβάσεων. Κάποια
@@ -98,10 +98,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 4 - Ασφάλεια */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">4. Ασφάλεια</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">4. Ασφάλεια</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Σεβόμενοι το απόρρητο των προσωπικών σας δεδομένων, έχουμε λάβει μέτρα για την διασφάλιση και
                     προστασία τους.
@@ -119,10 +119,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 5 - Προστασία Δεδομένων */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">5. Προστασία Προσωπικών Δεδομένων</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">5. Προστασία Προσωπικών Δεδομένων</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Κατά τη συμπλήρωση της φόρμας παραγγελίας αλλά και την υποβολή της σε εμάς, σας ζητούνται στοιχεία
                     προσωπικών δεδομένων (π.χ. ονοματεπώνυμο, πλήρης διεύθυνση, στοιχεία επικοινωνίας, κλπ). Μας
@@ -137,10 +137,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 6 - Δηλώσεις και αποποιήσεις */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">6. Δηλώσεις και αποποιήσεις</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">6. Δηλώσεις και αποποιήσεις</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     <strong>6.1.</strong> Οι χρήστες συμφωνούν ότι η χρήση του δικτυακού τόπου γίνεται αποκλειστικά με
                     δική τους ευθύνη. Η pnoikosmima.com προσφέρει τα προϊόντα και το περιεχόμενο αυτού «ΩΣ ΕΧΕΙ» για
@@ -161,10 +161,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 7 - Εφαρμοστέο Δίκαιο */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">7. Εφαρμοστέο Δίκαιο</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">7. Εφαρμοστέο Δίκαιο</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     <strong>7.1.</strong> Οι Όροι Χρήσης, καθώς και οποιαδήποτε τροποποίησή τους διέπεται από το
                     ελληνικό δίκαιο, το δίκαιο της Ευρωπαϊκής Ένωσης και από τις σχετικές διεθνείς συνθήκες. Οποιαδήποτε
@@ -180,10 +180,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Section 8 - Λοιποί Όροι */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">8. Λοιποί Όροι</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">8. Λοιποί Όροι</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     <strong>8.1.</strong> Οι παρόντες Όροι Χρήσης και οποιαδήποτε δικαιώματα που περιέχονται σε αυτούς
                     αποτελούν τη συνολική συμφωνία μεταξύ της pnoikosmima.com και των χρηστών της ιστοσελίδας και
@@ -208,10 +208,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Πολιτική Επιστροφών */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">Πολιτική Επιστροφών</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-4 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Πολιτική Επιστροφών</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
                     Οποιαδήποτε επιστροφή προϊόντων γίνεται δεκτή μόνο και εφόσον το προϊόν επιστραφεί μέσα σε διάστημα
                     15 ημερών από την ημέρα παραλαβής του, στην αρχική του κατάσταση, δεν έχει χρησιμοποιηθεί, χτυπηθεί,
@@ -246,19 +246,19 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Τρόποι Αποστολής */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">Τρόποι Αποστολής</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-6 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Τρόποι Αποστολής</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-6 text-[#bfc1c6] font-light leading-relaxed">
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">Box Now</h3>
+                    <h3 className="mb-2 text-lg font-medium text-white">Box Now</h3>
                     <p>
                       Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Box Now
                       εντός 1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 2€
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">Γενική Ταχυδρομική</h3>
+                    <h3 className="mb-2 text-lg font-medium text-white">Γενική Ταχυδρομική</h3>
                     <p>
                       Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Γενική
                       ταχυδρομική εντός 1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 10€.
@@ -274,19 +274,19 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Τρόποι Πληρωμής */}
-              <div className="mb-12">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">Τρόποι Πληρωμής</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-6 text-gray-600 font-light leading-relaxed">
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Τρόποι Πληρωμής</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-6 text-[#bfc1c6] font-light leading-relaxed">
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">Χρεωστική/Πιστωτική Κάρτα</h3>
+                    <h3 className="mb-2 text-lg font-medium text-white">Χρεωστική/Πιστωτική Κάρτα</h3>
                     <p>
                       Μπορείς να εξοφλήσεις την παραγγελία σου μέσω πιστωτικής ή χρεωστικής κάρτας Visa, MasterCard,
                       Maestro, Diners Club και Discover.
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">Ασφάλεια Συναλλαγών</h3>
+                    <h3 className="mb-2 text-lg font-medium text-white">Ασφάλεια Συναλλαγών</h3>
                     <p>
                       Όλες οι πληρωμές που πραγματοποιούνται με χρήση κάρτας διεκπεραιώνονται μέσω της πλατφόρμας
                       ηλεκτρονικών συναλλαγών "Nexi E-Commerce" της Nexi Payments Greece S.A. και χρησιμοποιεί
@@ -296,16 +296,16 @@ export default function TermsConditionsPage() {
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">PayPal</h3>
+                    <h3 className="mb-2 text-lg font-medium text-white">PayPal</h3>
                     <p>
                       Μπορείς να εξοφλήσεις την παραγγελία σου μέσω του ασφαλούς περιβάλλοντος πληρωμών PayPal
                       χρησιμοποιώντας τον λογαριασμό σου.
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium text-black mb-2">Κατάθεση σε Τραπεζικό Λογαριασμό</h3>
+                    <h3 className="mb-2 text-xl font-medium text-white">Κατάθεση σε Τραπεζικό Λογαριασμό</h3>
                     <p>Μπορείς να εξοφλήσεις την παραγγελία σου μέσω κατάθεσης στον παρακάτω τραπεζικό λογαριασμό:</p>
-                    <div className="bg-gray-50 p-4 rounded-lg mt-2">
+                    <div className="p-4 mt-2 bg-[#23232a] rounded-lg">
                       <p>
                         <strong>Δικαιούχος:</strong> ΣΕΡΒΟΣ ΜΙΧΑΗΛ
                       </p>
@@ -329,10 +329,10 @@ export default function TermsConditionsPage() {
               </div>
 
               {/* Contact */}
-              <div className="bg-gray-50 p-8 rounded-lg">
-                <h2 className="text-2xl font-light tracking-wide text-black mb-6">Επικοινωνία</h2>
-                <div className="w-12 h-px bg-gray-400 mb-6"></div>
-                <div className="space-y-2 text-gray-600 font-light">
+              <div className="bg-[#23232a] p-8 rounded-lg text-center">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Επικοινωνία</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto"></div>
+                <div className="space-y-2 text-[#bfc1c6] font-light">
                   <p>Για οποιαδήποτε ερώτηση σχετικά με τους όρους και προϋποθέσεις, επικοινωνήστε μαζί μας:</p>
                   <p>
                     <strong>Email:</strong> pnoi@yahoo.gr
