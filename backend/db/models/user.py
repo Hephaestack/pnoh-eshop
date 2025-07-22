@@ -29,9 +29,8 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Athens")))
     updated_at = Column(DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Athens")), onupdate=lambda: datetime.now(ZoneInfo("Europe/Athens")))
 
-    # Relationships to other models
-    shipping_address = relationship("Address", back_populates="user", uselist=False)
-    billing_address = relationship("Address", back_populates="user", uselist=False)
+    shipping_address = relationship("Address", back_populates="user", uselist=False, primaryjoin="Address.address_type == 'shipping'")
+    billing_address = relationship("Address", back_populates="user", uselist=False, primaryjoin="Address.address_type == 'billing'")
     orders = relationship("Order", back_populates="user")
     wishlist = relationship("Wishlist", back_populates="user")
     cart = relationship("Cart", back_populates="user")
