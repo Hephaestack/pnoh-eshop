@@ -6,11 +6,27 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ShoppingBag, Search, User, Menu, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+
+import { useState, useEffect, useRef } from "react"
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const [jewelryOpen, setJewelryOpen] = useState(false)
+  const jewelryRef = useRef(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!jewelryOpen) return;
+    function handleClick(e) {
+      if (jewelryRef.current && !jewelryRef.current.contains(e.target)) {
+        setJewelryOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [jewelryOpen]);
 
   // Hide mobile menu if resizing to desktop
   useEffect(() => {
@@ -26,12 +42,12 @@ export function Header() {
     if (mobileMenuOpen) {
       const originalOverflow = document.body.style.overflow;
       const originalOverflowX = document.body.style.overflowX;
-      document.body.style.overflow = 'hidden';
-      document.body.style.overflowX = 'hidden';
-      return () => {
+      document.body.style.overflow = 'hidden';      return () => {
         document.body.style.overflow = originalOverflow;
         document.body.style.overflowX = originalOverflowX;
       };
+  const [jewelryOpen, setJewelryOpen] = useState(false)
+  const jewelryRef = useRef(null)
     }
     document.body.style.overflow = '';
     document.body.style.overflowX = '';
@@ -39,22 +55,49 @@ export function Header() {
 
   return (
     <header className="border-b border-[#bcbcbc] sticky top-0 bg-[#18181b] z-50 shadow-[0_2px_8px_0_rgba(180,180,180,0.04)]">
-      <div className="px-2 py-4 mx-auto max-w-7xl sm:px-6">
+      <div className="px-2 py-1 mx-auto max-w-7xl sm:px-6 min-h-[56px]">
         <div className="grid items-center w-full grid-cols-3">
           {/* Logo Left */}
           <div className="flex items-center min-w-0">
-            <Link href="/" className="text-2xl font-light tracking-wider text-[#e5e5e5] drop-shadow-[0_1px_2px_#bcbcbc55] border-b-2 border-[#bcbcbc] pb-1 px-2 rounded-sm hover:bg-[#232326] transition whitespace-nowrap">
-              Πνοή
+            <Link href="/" className="flex items-center">
+              <img
+                src="/logo.webp"
+                alt="Πνοή logo"
+                className="h-20 w-auto object-contain drop-shadow-[0_1px_2px_#bcbcbc55] md:h-24 lg:h-26"
+                style={{ maxWidth: '150px' }}
+                priority="true"
+              />
             </Link>
           </div>
           {/* Centered Menu (hidden placeholder on mobile to keep grid layout) */}
-          <nav className="items-center justify-center hidden min-w-0 mx-auto space-x-8 md:flex">
-            <Link href="/earrings" className="text-sm font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5">
-              ΚΟΣΜΗΜΑΤΑ
-            </Link>
+          <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 md:flex">
             <Link href="/about" className="text-sm font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5">
               ΠΟΙΟΙ ΕΙΜΑΣΤΕ
             </Link>
+            <div className="relative" ref={jewelryRef}>
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={jewelryOpen}
+                onClick={() => setJewelryOpen((v) => !v)}
+                className={`text-sm font-light transition-colors border-b border-transparent pb-0.5 flex items-center gap-1 focus:outline-none ${jewelryOpen ? 'text-white border-[#bcbcbc]' : 'text-[#bcbcbc] hover:text-[#f8f8f8] hover:border-[#bcbcbc]'}`}
+              >
+                ΚΟΣΜΗΜΑΤΑ
+                <svg className={`w-3 h-3 ml-1 transition-transform ${jewelryOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div
+                className={`absolute left-1/2 -translate-x-1/2 top-full mt-2 min-w-[200px] bg-[#18181b] border border-[#bcbcbc] rounded-xl shadow-2xl ring-1 ring-[#23232a]/40 z-40 transition-all duration-200 ${jewelryOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'} origin-top`}
+                style={{boxShadow:'0 8px 32px 0 #23232a55'}} 
+                role="menu"
+                tabIndex={-1}
+              >
+                <Link href="/collections" className="block px-6 py-3 text-sm text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] border-b border-[#23232a] transition-colors rounded-t-xl" role="menuitem" onClick={()=>setJewelryOpen(false)}>Όλα τα Κοσμήματα</Link>
+                <Link href="/rings" className="block px-6 py-3 text-sm text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] border-b border-[#23232a] transition-colors" role="menuitem" onClick={()=>setJewelryOpen(false)}>Δαχτυλίδια</Link>
+                <Link href="/bracelets" className="block px-6 py-3 text-sm text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] border-b border-[#23232a] transition-colors" role="menuitem" onClick={()=>setJewelryOpen(false)}>Βραχιόλια</Link>
+                <Link href="/necklaces" className="block px-6 py-3 text-sm text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] border-b border-[#23232a] transition-colors" role="menuitem" onClick={()=>setJewelryOpen(false)}>Κολιέ</Link>
+                <Link href="/earrings" className="block px-6 py-3 text-sm text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] transition-colors rounded-b-xl" role="menuitem" onClick={()=>setJewelryOpen(false)}>Σκουλαρίκια</Link>
+              </div>
+            </div>
             <Link href="/contact" className="text-sm font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5">
               EΠΙΚΟΙΝΩΝΙΑ
             </Link>
@@ -116,24 +159,21 @@ export function Header() {
                   <X className="w-7 h-7 text-[#bcbcbc]" />
                 </Button>
               </div>
-              <Link href="/collections" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
-                ΣΥΛΛΟΓΕΣ
-              </Link>
-              <Link href="/rings" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
-                ΔΑΧΤΥΛΙΔΙΑ
-              </Link>
-              <Link href="/necklaces" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
-                ΚΟΛΙΕ
-              </Link>
-              <Link href="/earrings" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
-                ΣΚΟΥΛΑΡΙΚΙΑ
-              </Link>
+           
+              {/* ΚΟΣΜΗΜΑΤΑ Dropdown for mobile */}
+              <MobileDropdownNav />
               <Link href="/about" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
-                ΣΧΕΤΙΚΑ
+                ΠΟΙΟΙ ΕΙΜΑΣΤΕ
+              </Link>
+              <Link href="/contact" className="text-lg font-light hover:text-[#f8f8f8] text-[#bcbcbc] transition-colors border-b border-transparent hover:border-[#bcbcbc] pb-0.5" onClick={() => setMobileMenuOpen(false)}>
+                ΕΠΙΚΟΙΝΩΝΙΑ
               </Link>
             </motion.nav>
           )}
         </AnimatePresence>
+
+
+
         {/* Search Bar */}
         {isSearchOpen && (
           <div className="mt-4 border-t border-[#bcbcbc] pt-4">
@@ -152,4 +192,39 @@ export function Header() {
       </div>
     </header>
   )
+}
+
+function MobileDropdownNav() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-transparent">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full flex items-center justify-between text-lg font-light text-[#bcbcbc] hover:text-[#f8f8f8] transition-colors pb-0.5 focus:outline-none`}
+      >
+        <span>ΚΟΣΜΗΜΑΤΑ</span>
+        <svg className={`w-4 h-4 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      <div className={`pl-2 mt-1 flex flex-col gap-1 transition-all duration-200 ${open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'} overflow-hidden`}>
+        <Link href="/collections" className="block py-2 pl-4 text-base text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+          Όλα τα Κοσμήματα
+        </Link>
+        <Link href="/rings" className="block py-2 pl-4 text-base text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+          Δαχτυλίδια
+        </Link>
+        <Link href="/bracelets" className="block py-2 pl-4 text-base text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+          Βραχιόλια
+        </Link>
+        <Link href="/necklaces" className="block py-2 pl-4 text-base text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+          Κολιέ
+        </Link>
+        <Link href="/earrings" className="block py-2 pl-4 text-base text-[#bcbcbc] hover:text-[#f8f8f8] hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+          Σκουλαρίκια
+        </Link>
+      </div>
+    </div>
+  );
 }

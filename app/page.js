@@ -17,43 +17,38 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">Επιλεγμένες Συλλογές</h2>
             <div className="w-16 h-px bg-[#bfc1c6] mx-auto"></div>
           </div>
-
-          <div className="grid justify-center grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-3">
             {[
-              { title: "Δαχτυλίδια", subtitle: "Κλασικά & Σύγχρονα", image: "/placeholder.svg?height=400&width=300" },
-              { title: "Κολιέ", subtitle: "Εκλεπτυσμένα Σχέδια", image: "/placeholder.svg?height=400&width=300" },
-              {
-                title: "Σκουλαρίκια",
-                subtitle: "Διαχρονική Κομψότητα",
-                image: "/placeholder.svg?height=400&width=300",
-              },
+              { title: "Δαχτυλίδια", subtitle: "Κλασικά & Σύγχρονα", image: "/images/test2.jpg" },
+              { title: "Κολιέ", subtitle: "Εκλεπτυσμένα Σχέδια", image: "/images/test2.jpg" },
+              { title: "Σκουλαρίκια", subtitle: "Διαχρονική Κομψότητα", image: "/images/test2.jpg" },
             ].map((collection, index) => (
-              <Card
+              <div
                 key={index}
-                className="group cursor-pointer border border-[#23232a] shadow-none hover:shadow-[0_0_16px_#bfc1c6] transition-all duration-500 bg-[#18181b]"
+                className="group bg-[#18181b] border border-[#23232a] rounded-2xl shadow-lg transition-all duration-400 flex flex-col overflow-hidden cursor-pointer hover:shadow-[0_8px_40px_0_#bfc1c6] hover:scale-[1.025]"
               >
-                <CardContent className="flex flex-col items-center p-0">
-                  <div className="relative flex justify-center w-full overflow-hidden">
-                    <Image
-                      src={collection.image || "/placeholder.svg"}
-                      alt={collection.title}
-                      width={300}
-                      height={400}
-                      className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700 grayscale-[30%]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-[#23232a]/30 transition-all duration-300"></div>
-                  </div>
-                  <div className="flex flex-col items-center p-6 text-center">
+                <div className="relative w-full aspect-[4/3] bg-[#23232a] rounded-t-2xl overflow-hidden">
+                  <Image
+                    src={collection.image || "/placeholder.svg"}
+                    alt={collection.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover object-center w-full h-full group-hover:scale-105 transition-transform duration-700 grayscale-[20%]"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-[#23232a]/30 transition-all duration-300 pointer-events-none rounded-t-2xl"></div>
+                </div>
+                <div className="flex flex-col justify-between flex-1 px-6 py-6 text-center">
+                  <div>
                     <h3 className="text-xl font-light text-[#e5e7eb] mb-2 tracking-wide">{collection.title}</h3>
                     <p className="text-[#bfc1c6] text-sm font-light">{collection.subtitle}</p>
-                    <div className="mt-4 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-                      <span className="text-xs tracking-widest text-[#bfc1c6] border-b border-[#bfc1c6] pb-1">
-                        ΔΕΙΤΕ ΠΕΡΙΣΣΟΤΕΡΑ
-                      </span>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="mt-6 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <span className="inline-block text-xs tracking-widest text-[#bfc1c6] border-b border-[#bfc1c6] pb-1">
+                      ΔΕΙΤΕ ΠΕΡΙΣΣΟΤΕΡΑ
+                    </span>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -74,22 +69,17 @@ export default function HomePage() {
                 Κάθε δημιουργία μας φτιάχνεται με προσοχή στη λεπτομέρεια, χρησιμοποιώντας μόνο τα καλύτερα υλικά για να
                 εξασφαλίσουμε την ποιότητα και τη διαρκεια.
               </p>
-              <Button
-                variant="outline"
-                className="border-[#bfc1c6] text-[#bfc1c6] hover:bg-[#23232a] hover:text-white hover:border-white transition-all duration-300 bg-transparent"
-              >
-                ΜΑΘΕΤΕ ΠΕΡΙΣΣΟΤΕΡΑ
-              </Button>
             </div>
-            <div className="relative flex justify-center lg:justify-end">
+            <div className="relative w-full h-[420px] sm:h-[500px] md:h-[600px] lg:h-[650px] xl:h-[700px] flex items-stretch justify-center lg:justify-end">
               <Image
-                src="/placeholder.svg?height=500&width=400"
+                src="/images/test2.jpg"
                 alt="Jewelry crafting"
-                width={400}
-                height={500}
-                className="w-full h-96 object-cover grayscale-[30%]"
+                fill
+                sizes="(max-width: 1024px) 100vw, 700px"  
+                className="object-cover object-center w-full h-full grayscale-[30%] rounded-xl shadow-xl"
+                priority
               />
-              <div className="absolute -bottom-4 -right-4 w-full h-full border border-[#bfc1c6] -z-10"></div>
+              <div className="absolute -bottom-4 -right-4 w-full h-full border border-[#bfc1c6] rounded-xl -z-10"></div>
             </div>
           </div>
         </div>
@@ -97,11 +87,11 @@ export default function HomePage() {
 
       {/* Features */}
       <section className="py-16 bg-[#23232a] border-t-2 border-[#bfc1c6]">
-        <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="container flex justify-center px-4 mx-auto">
+          <div className="grid w-full max-w-xl grid-cols-1 gap-8 md:grid-cols-2">
             {[
               { icon: Truck, title: "Δωρεάν Αποστολή", subtitle: "Για παραγγελίες άνω των 50€" },
-              { icon: Shield, title: "Εγγύηση Ποιότητας", subtitle: "2 χρόνια εγγύηση σε όλα τα προϊόντα" },
+             
               { icon: RotateCcw, title: "Εύκολες Επιστροφές", subtitle: "30 ημέρες για επιστροφή" },
             ].map((feature, index) => (
               <div key={index} className="space-y-4 text-center">
