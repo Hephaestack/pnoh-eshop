@@ -14,12 +14,12 @@ class Product(Base):
     price = Column(Float, nullable=False)
     stock_quantity = Column(Integer, nullable=False, default=0)
     category = Column(String(100), nullable=True)
+    sub_category = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(), nullable=False)
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.utcnow, nullable=False)
 
     wishlist_items = relationship("Wishlist", back_populates="product")
-    order_items = relationship("OrderItem", back_populates="product")
 
     class Config:
         orm_mode = True

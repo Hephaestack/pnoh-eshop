@@ -33,7 +33,7 @@ class User(Base):
     billing_address = relationship("Address", back_populates="user", uselist=False, primaryjoin="Address.address_type == 'billing'")
     orders = relationship("Order", back_populates="user")
     wishlist = relationship("Wishlist", back_populates="user")
-    cart = relationship("Cart", back_populates="user")
+    # cart = relationship("Cart", back_populates="user")
 
     class Config:
         orm_mode = True
