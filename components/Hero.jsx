@@ -2,25 +2,28 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+
+import { useTranslation } from "react-i18next";
+
 const items = [
   {
     id: 1,
-    title: "Diamond Ring",
+    title: "hero_diamond_ring",
     img: "/images/test2.jpg",
   },
   {
     id: 2,
-    title: "Emerald Necklace",
+    title: "hero_emerald_necklace",
     img: "/images/test2.jpg",
   },
   {
     id: 3,
-    title: "Luxury Watch",
+    title: "hero_luxury_watch",
     img: "/images/test2.jpg",
   },
   {
     id: 4,
-    title: "Sapphire Earrings",
+    title: "hero_sapphire_earrings",
     img: "/images/test2.jpg",
   },
 ];
@@ -29,6 +32,7 @@ const items = [
 
 
 export function Hero() {
+  const { t } = useTranslation();
   const [centerIdx, setCenterIdx] = useState(1);
   const intervalRef = useRef();
   const touchStartX = useRef(null);
@@ -106,10 +110,10 @@ export function Hero() {
         transition={{ delay: 0.2, duration: 0.7 }}
       >
         <h1 className="mb-4 text-4xl font-light tracking-wide text-gray-100 md:text-6xl goth-title">
-          Τα κοσμήματα μας
+          {t('our_jewelry')}
         </h1>
         <p className="text-lg font-light tracking-wide text-gray-300 md:text-xl">
-          η τέχνη σας
+          {t('your_art')}
         </p>
       </motion.div>
       <motion.div
@@ -189,7 +193,7 @@ export function Hero() {
                     {/* Content area */}
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <h3 className="mb-2 text-xl font-semibold tracking-wide text-gray-100 goth-title">
-                        {item.title}
+                        {t(item.title)}
                       </h3>
                       <div className="w-12 h-0.5 bg-gradient-to-r from-gray-400/60 to-transparent" />
                     </div>

@@ -1,20 +1,24 @@
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { MapPin, Phone, Mail, Clock } from "lucide-react"
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Επικοινωνία</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('contact_title')}</h1>
           <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
           <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
-            Είμαστε εδώ για να σας βοηθήσουμε. Επικοινωνήστε μαζί μας για οποιαδήποτε ερώτηση σχετικά με τα κοσμήματά μας.
+            {t('contact_intro')}
           </p>
         </div>
       </section>
@@ -26,10 +30,10 @@ export default function ContactPage() {
             {/* Contact Form */}
             <div className="space-y-8 flex flex-col items-center lg:items-start w-full lg:w-[520px] xl:w-[600px] mx-auto">
               <div>
-                <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">Στείλτε μας Μήνυμα</h2>
+                <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('contact_form_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6"></div>
                 <p className="text-[#bfc1c6] font-light">
-                  Συμπληρώστε τη φόρμα παρακάτω και θα επικοινωνήσουμε μαζί σας το συντομότερο δυνατό.
+                  {t('contact_form_desc')}
                 </p>
               </div>
 
@@ -37,78 +41,78 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                      Όνομα *
+                      {t('first_name_label')}
                     </label>
                     <Input
                       id="firstName"
                       type="text"
                       required
                       className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors"
-                      placeholder="Το όνομά σας"
+                      placeholder={t('first_name_placeholder')}
                     />
                   </div>
                   <div>
                     <label htmlFor="lastName" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                      Επώνυμο *
+                      {t('last_name_label')}
                     </label>
                     <Input
                       id="lastName"
                       type="text"
                       required
                       className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors"
-                      placeholder="Το επώνυμό σας"
+                      placeholder={t('last_name_placeholder')}
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                    Email *
+                    {t('email_label')}
                   </label>
                   <Input
                     id="email"
                     type="email"
                     required
                     className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors"
-                    placeholder="email@example.com"
+                    placeholder={t('email_placeholder')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                    Τηλέφωνο
+                    {t('phone_label_simple')}
                   </label>
                   <Input
                     id="phone"
                     type="tel"
                     className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors"
-                    placeholder="+30 210 123 4567"
+                    placeholder={t('phone_placeholder')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                    Θέμα *
+                    {t('subject_label')}
                   </label>
                   <Input
                     id="subject"
                     type="text"
                     required
                     className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors"
-                    placeholder="Θέμα μηνύματος"
+                    placeholder={t('subject_placeholder')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-[#e5e7eb] mb-2">
-                    Μήνυμα *
+                    {t('message_label')}
                   </label>
                   <Textarea
                     id="message"
                     required
                     rows={6}
                     className="border-[#23232a] bg-[#23232a] text-[#e5e7eb] focus:border-[#bfc1c6] placeholder-[#bfc1c6] transition-colors resize-none"
-                    placeholder="Γράψτε το μήνυμά σας εδώ..."
+                    placeholder={t('message_placeholder')}
                   />
                 </div>
 
@@ -117,7 +121,7 @@ export default function ContactPage() {
                   size="lg"
                   className="bg-[#23232a] text-[#e5e7eb] hover:bg-[#18181b] border border-[#bfc1c6] px-8 py-3 text-sm font-light tracking-wide transition-all duration-300"
                 >
-                  ΑΠΟΣΤΟΛΗ ΜΗΝΥΜΑΤΟΣ
+                  {t('send_message')}
                 </Button>
               </form>
             </div>
@@ -125,10 +129,10 @@ export default function ContactPage() {
             {/* Contact Information */}
             <div className="flex flex-col items-center w-full lg:items-start">
               <div className="w-full">
-                <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">Στοιχεία Επικοινωνίας</h2>
+                <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('contact_info_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6"></div>
                 <p className="text-[#bfc1c6] font-light mb-2">
-                  Επισκεφθείτε το κατάστημά μας ή επικοινωνήστε μαζί μας με έναν από τους παρακάτω τρόπους.
+                  {t('contact_info_desc')}
                 </p>
               </div>
 
@@ -140,13 +144,13 @@ export default function ContactPage() {
                         <MapPin className="w-6 h-6 text-[#bfc1c6]" />
                       </div>
                       <div className="text-center sm:text-left">
-                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">Διεύθυνση</h3>
+                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('address')}</h3>
                         <p className="text-[#bfc1c6] font-light">
-                          Οδός Παραδείγματος 123
+                          {t('address_line1')}
                           <br />
-                          10678 Αθήνα
+                          {t('address_line2')}
                           <br />
-                          Ελλάδα
+                          {t('address_country')}
                         </p>
                       </div>
                     </div>
@@ -160,11 +164,11 @@ export default function ContactPage() {
                         <Phone className="w-6 h-6 text-[#bfc1c6]" />
                       </div>
                       <div className="text-center sm:text-left">
-                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">Τηλέφωνο</h3>
+                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('phone')}</h3>
                         <p className="text-[#bfc1c6] font-light">
-                          +30 210 123 4567
+                          {t('phone1')}
                           <br />
-                          +30 694 123 4567
+                          {t('phone2')}
                         </p>
                       </div>
                     </div>
@@ -178,11 +182,11 @@ export default function ContactPage() {
                         <Mail className="w-6 h-6 text-[#bfc1c6]" />
                       </div>
                       <div className="text-center sm:text-left">
-                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">Email</h3>
+                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('email')}</h3>
                         <p className="text-[#bfc1c6] font-light">
-                          info@pnoe.gr
+                          {t('email1')}
                           <br />
-                          orders@pnoe.gr
+                          {t('email2')}
                         </p>
                       </div>
                     </div>
@@ -196,11 +200,11 @@ export default function ContactPage() {
                         <Clock className="w-6 h-6 text-[#bfc1c6]" />
                       </div>
                       <div className="text-center sm:text-left">
-                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">Ώρες Λειτουργίας</h3>
+                        <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('opening_hours')}</h3>
                         <div className="text-[#bfc1c6] font-light space-y-1">
-                          <p>Δευτέρα - Παρασκευή: 10:00 - 20:00</p>
-                          <p>Σάββατο: 10:00 - 18:00</p>
-                          <p>Κυριακή: Κλειστά</p>
+                          <p>{t('monday_friday')}: 10:00 - 20:00</p>
+                          <p>{t('saturday')}: 10:00 - 18:00</p>
+                          <p>{t('sunday')}: {t('closed')}</p>
                         </div>
                       </div>
                     </div>
@@ -216,7 +220,7 @@ export default function ContactPage() {
       <section className="py-16 bg-[#23232a]">
         <div className="container px-4 mx-auto">
           <div className="mb-12 text-center">
-            <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">Βρείτε μας</h2>
+            <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('find_us')}</h2>
             <div className="w-12 h-px bg-[#bfc1c6] mx-auto"></div>
           </div>
 
@@ -236,5 +240,5 @@ export default function ContactPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -1,27 +1,31 @@
+"use client"
+  
 import Hero from "@/components/Hero"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Truck, Shield, RotateCcw } from "lucide-react"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 export default function HomePage() {
+  const { t } = useTranslation();
   return (
     <div className="bg-[#18181b] min-h-screen">
       {/* Hero Section */}
-    <Hero />
+      <Hero />
 
       {/* Featured Collections */}
       <section className="py-20 bg-[#23232a]">
         <div className="container px-4 mx-auto">
           <div className="mb-16 text-center">
-            <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">Επιλεγμένες Συλλογές</h2>
+            <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('featured_collections')}</h2>
             <div className="w-16 h-px bg-[#bfc1c6] mx-auto"></div>
           </div>
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-3">
             {[
-              { title: "Δαχτυλίδια", subtitle: "Κλασικά & Σύγχρονα", image: "/images/test2.jpg" },
-              { title: "Κολιέ", subtitle: "Εκλεπτυσμένα Σχέδια", image: "/images/test2.jpg" },
-              { title: "Σκουλαρίκια", subtitle: "Διαχρονική Κομψότητα", image: "/images/test2.jpg" },
+              { title: t('rings'), subtitle: t('rings_subtitle'), image: "/images/test2.jpg" },
+              { title: t('necklaces'), subtitle: t('necklaces_subtitle'), image: "/images/test2.jpg" },
+              { title: t('earrings'), subtitle: t('earrings_subtitle'), image: "/images/test2.jpg" },
             ].map((collection, index) => (
               <div
                 key={index}
@@ -44,7 +48,7 @@ export default function HomePage() {
                   </div>
                   <div className="mt-6 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
                     <span className="inline-block text-xs tracking-widest text-[#bfc1c6] border-b border-[#bfc1c6] pb-1">
-                      ΔΕΙΤΕ ΠΕΡΙΣΣΟΤΕΡΑ
+                      {t('see_more')}
                     </span>
                   </div>
                 </div>
@@ -59,15 +63,13 @@ export default function HomePage() {
         <div className="container px-4 mx-auto">
           <div className="grid items-center justify-center grid-cols-1 gap-16 text-center lg:grid-cols-2 lg:text-left">
             <div className="flex flex-col items-center space-y-6 lg:items-start">
-              <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb]">Η Τέχνη της Κοσμηματοποιίας</h2>
+              <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb]">{t('jewelry_art_title')}</h2>
               <div className="w-16 h-px bg-[#bfc1c6]"></div>
               <p className="text-[#bfc1c6] leading-relaxed font-light">
-                Στην Πνοή, κάθε κόσμημα είναι μια μοναδική έκφραση τέχνης και κομψότητας. Συνδυάζουμε παραδοσιακές
-                τεχνικές με σύγχρονο design για να δημιουργήσουμε κομμάτια που ξεχωρίζουν.
+                {t('jewelry_art_desc1')}
               </p>
               <p className="text-[#bfc1c6] leading-relaxed font-light">
-                Κάθε δημιουργία μας φτιάχνεται με προσοχή στη λεπτομέρεια, χρησιμοποιώντας μόνο τα καλύτερα υλικά για να
-                εξασφαλίσουμε την ποιότητα και τη διαρκεια.
+                {t('jewelry_art_desc2')}
               </p>
             </div>
             <div className="relative w-full h-[420px] sm:h-[500px] md:h-[600px] lg:h-[650px] xl:h-[700px] flex items-stretch justify-center lg:justify-end">
@@ -90,9 +92,8 @@ export default function HomePage() {
         <div className="container flex justify-center px-4 mx-auto">
           <div className="grid w-full max-w-xl grid-cols-1 gap-8 md:grid-cols-2">
             {[
-              { icon: Truck, title: "Δωρεάν Αποστολή", subtitle: "Για παραγγελίες άνω των 50€" },
-             
-              { icon: RotateCcw, title: "Εύκολες Επιστροφές", subtitle: "30 ημέρες για επιστροφή" },
+              { icon: Truck, title: t('free_shipping'), subtitle: t('free_shipping_desc') },
+              { icon: RotateCcw, title: t('easy_returns'), subtitle: t('easy_returns_desc') },
             ].map((feature, index) => (
               <div key={index} className="space-y-4 text-center">
                 <div className="flex justify-center">

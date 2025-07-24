@@ -1,13 +1,17 @@
+"use client"
+import { useTranslation } from "react-i18next";
+
 export default function PrivacyPolicyPage() {
+  const { t } = useTranslation();
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Πολιτική Απορρήτου</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('privacy_policy_title')}</h1>
           <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
           <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
-            Η προστασία των προσωπικών σας δεδομένων είναι σημαντική για εμάς
+            {t('privacy_policy_intro')}
           </p>
         </div>
       </section>
@@ -20,48 +24,40 @@ export default function PrivacyPolicyPage() {
               {/* Last Updated */}
               <div className="bg-[#23232a] p-6 rounded-lg mb-8 text-center">
                 <p className="text-sm text-[#bfc1c6] font-light mb-0">
-                  <strong>Τελευταία ενημέρωση:</strong> Ιανουάριος 2024
+                  <strong>{t('privacy_last_update_label')}:</strong> {t('privacy_last_update_date')}
                 </p>
               </div>
 
               {/* Introduction */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Εισαγωγή</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_intro_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>
-                   Η εταιρεία "ΠΝΟΗ χειροποίητο κόσμημα" με έδρα στην Κυψέλη, Οδός Ιωάννου Δροσοπούλου 63, ΑΦΜ
-                    129517325, δεσμεύεται για την προστασία των προσωπικών δεδομένων των χρηστών του ιστότοπου
-                    pnoikosmima.com.
-                  </p>
-                  <p>
-                    Η παρούσα Πολιτική Απορρήτου περιγράφει τον τρόπο με τον οποίο συλλέγουμε, χρησιμοποιούμε,
-                    αποθηκεύουμε και προστατεύουμε τα προσωπικά σας δεδομένα σύμφωνα με τον Γενικό Κανονισμό Προστασίας
-                    Δεδομένων (GDPR) και την ελληνική νομοθεσία.
-                  </p>
+                  <p>{t('privacy_intro_company')}</p>
+                  <p>{t('privacy_intro_description')}</p>
                 </div>
               </div>
 
               {/* Section 1 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">1. Συλλογή Προσωπικών Δεδομένων</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section1_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>Συλλέγουμε προσωπικά δεδομένα όταν:</p>
+                  <p>{t('privacy_section1_collect_when')}</p>
                   <ul className="space-y-2">
-                    <li>1. Δημιουργείτε λογαριασμό στον ιστότοπό μας</li>
-                    <li>2. Πραγματοποιείτε παραγγελία</li>
-                    <li>3. Εγγράφεστε στο newsletter μας</li>
-                    <li>4. Επικοινωνείτε μαζί μας μέσω φόρμας επικοινωνίας</li>
+                    <li>{t('privacy_section1_collect_1')}</li>
+                    <li>{t('privacy_section1_collect_2')}</li>
+                    <li>{t('privacy_section1_collect_3')}</li>
+                    <li>{t('privacy_section1_collect_4')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
-                  <p>Τα δεδομένα που συλλέγουμε περιλαμβάνουν:</p>
+                  <p>{t('privacy_section1_data_collected')}</p>
                   <ul className="space-y-2 ">
-                    <li>1. Ονοματεπώνυμο</li>
-                    <li>2. Διεύθυνση email</li>
-                    <li>3. Τηλέφωνο</li>
-                    <li>3. Διεύθυνση αποστολής και χρέωσης</li>
-                    <li>4. Στοιχεία παραγγελίας</li>
+                    <li>{t('privacy_section1_data_1')}</li>
+                    <li>{t('privacy_section1_data_2')}</li>
+                    <li>{t('privacy_section1_data_3')}</li>
+                    <li>{t('privacy_section1_data_4')}</li>
+                    <li>{t('privacy_section1_data_5')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
                 </div>
@@ -69,17 +65,17 @@ export default function PrivacyPolicyPage() {
 
               {/* Section 2 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">2. Χρήση Προσωπικών Δεδομένων</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section2_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>Χρησιμοποιούμε τα προσωπικά σας δεδομένα για:</p>
+                  <p>{t('privacy_section2_usage')}</p>
                   <ul className="space-y-2 ">
-                    <li>1. Επεξεργασία και εκτέλεση των παραγγελιών σας</li>
-                    <li>2.Επικοινωνία σχετικά με τις παραγγελίες σας</li>
-                    <li>3. Παροχή εξυπηρέτησης πελατών</li>
-                    <li>4. Αποστολή ενημερωτικών email (με τη συγκατάθεσή σας)</li>
-                    <li>5. Βελτίωση των υπηρεσιών μας</li>
-                    <li>6. Συμμόρφωση με νομικές υποχρεώσεις</li>
+                    <li>{t('privacy_section2_usage_1')}</li>
+                    <li>{t('privacy_section2_usage_2')}</li>
+                    <li>{t('privacy_section2_usage_3')}</li>
+                    <li>{t('privacy_section2_usage_4')}</li>
+                    <li>{t('privacy_section2_usage_5')}</li>
+                    <li>{t('privacy_section2_usage_6')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
                 </div>
@@ -87,14 +83,14 @@ export default function PrivacyPolicyPage() {
 
               {/* Section 3 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">3. Κοινοποίηση σε Τρίτους</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section3_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>Δεν πωλούμε, ενοικιάζουμε ή μοιραζόμαστε τα προσωπικά σας δεδομένα με τρίτους, εκτός από:</p>
+                  <p>{t('privacy_section3_intro')}</p>
                   <ul className="space-y-2 ">
-                    <li>1. Εταιρείες ταχυμεταφορών (Box Now, Γενική Ταχυδρομική) για την παράδοση των παραγγελιών</li>
-                    <li>2. Παρόχους υπηρεσιών πληρωμών (Nexi E-Commerce, PayPal) για την επεξεργασία πληρωμών</li>
-                    <li>3. Όταν απαιτείται από το νόμο ή δικαστική απόφαση</li>
+                    <li>{t('privacy_section3_1')}</li>
+                    <li>{t('privacy_section3_2')}</li>
+                    <li>{t('privacy_section3_3')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
                 </div>
@@ -102,17 +98,15 @@ export default function PrivacyPolicyPage() {
 
               {/* Section 4 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">4. Ασφάλεια Δεδομένων</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section4_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>
-                    Λαμβάνουμε κατάλληλα τεχνικά και οργανωτικά μέτρα για την προστασία των προσωπικών σας δεδομένων:
-                  </p>
+                  <p>{t('privacy_section4_intro')}</p>
                   <ul className="space-y-2">
-                    <li>1. Κρυπτογράφηση SSL για την ασφαλή μεταφορά δεδομένων</li>
-                    <li>2. Ασφαλή αποθήκευση σε προστατευμένους διακομιστές</li>
-                    <li>3. Περιορισμένη πρόσβαση μόνο σε εξουσιοδοτημένο προσωπικό</li>
-                    <li>4. Τακτικές ενημερώσεις ασφαλείας</li>
+                    <li>{t('privacy_section4_1')}</li>
+                    <li>{t('privacy_section4_2')}</li>
+                    <li>{t('privacy_section4_3')}</li>
+                    <li>{t('privacy_section4_4')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
                 </div>
@@ -120,26 +114,16 @@ export default function PrivacyPolicyPage() {
 
               {/* Section 5 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">5. Δικαιώματα Υποκειμένων</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section5_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>Έχετε τα ακόλουθα δικαιώματα σχετικά με τα προσωπικά σας δεδομένα:</p>
+                  <p>{t('privacy_section5_intro')}</p>
                   <ul className="space-y-2 ">
-                    <li>
-                      <strong>Δικαίωμα πρόσβασης:</strong> Να ζητήσετε πληροφορίες για τα δεδομένα που επεξεργαζόμαστε
-                    </li>
-                    <li>
-                      <strong>Δικαίωμα διόρθωσης:</strong> Να ζητήσετε διόρθωση ανακριβών δεδομένων
-                    </li>
-                    <li>
-                      <strong>Δικαίωμα διαγραφής:</strong> Να ζητήσετε διαγραφή των δεδομένων σας
-                    </li>
-                    <li>
-                      <strong>Δικαίωμα φορητότητας:</strong> Να λάβετε τα δεδομένα σας σε δομημένη μορφή
-                    </li>
-                    <li>
-                      <strong>Δικαίωμα αντίρρησης:</strong> Να αντιταχθείτε στην επεξεργασία
-                    </li>
+                    <li><strong>{t('privacy_section5_right_access_title')}:</strong> {t('privacy_section5_right_access_desc')}</li>
+                    <li><strong>{t('privacy_section5_right_rectify_title')}:</strong> {t('privacy_section5_right_rectify_desc')}</li>
+                    <li><strong>{t('privacy_section5_right_delete_title')}:</strong> {t('privacy_section5_right_delete_desc')}</li>
+                    <li><strong>{t('privacy_section5_right_portability_title')}:</strong> {t('privacy_section5_right_portability_desc')}</li>
+                    <li><strong>{t('privacy_section5_right_object_title')}:</strong> {t('privacy_section5_right_object_desc')}</li>
                   </ul>
                   <hr className="my-6 border-t border-[#bfc1c6]/30" />
                 </div>
@@ -147,34 +131,33 @@ export default function PrivacyPolicyPage() {
 
               {/* Section 6 */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">6. Cookies</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_section6_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
                   <p>
-                    Ο ιστότοπός μας χρησιμοποιεί cookies για τη βελτίωση της εμπειρίας χρήσης. Για περισσότερες
-                    πληροφορίες, ανατρέξτε στην{" "}
+                    {t('privacy_section6_intro')}{" "}
                     <a href="/cookies-policy" className="text-black hover:underline">
-                      Πολιτική Cookies
+                      {t('privacy_section6_link')}
                     </a>{" "}
-                    μας.
+                    {t('privacy_section6_after_link')}
                   </p>
                 </div>
               </div>
 
               {/* Contact */}
               <div className="bg-[#23232a] p-8 rounded-lg text-center">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Επικοινωνία</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('privacy_contact_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto"></div>
                 <div className="space-y-2 text-[#bfc1c6] font-light">
-                  <p>Για οποιαδήποτε ερώτηση σχετικά με την πολιτική απορρήτου μας, επικοινωνήστε μαζί μας:</p>
+                  <p>{t('privacy_contact_intro')}</p>
                   <p>
-                    <strong>Email:</strong> pnoi@yahoo.gr
+                    <strong>{t('privacy_contact_email_label')}:</strong> {t('privacy_contact_email')}
                   </p>
                   <p>
-                    <strong>Διεύθυνση:</strong> Οδός Ιωάννου Δροσοπούλου 63, Κυψέλη, Αθήνα
+                    <strong>{t('privacy_contact_address_label')}:</strong> {t('privacy_contact_address')}
                   </p>
                   <p>
-                    <strong>ΑΦΜ:</strong> 129517325
+                    <strong>{t('privacy_contact_vat_label')}:</strong> {t('privacy_contact_vat')}
                   </p>
                 </div>
               </div>

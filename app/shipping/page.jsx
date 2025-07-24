@@ -1,14 +1,16 @@
+"use client";
+import { useTranslation } from "react-i18next";
+
 export default function ShippingPage() {
+  const { t } = useTranslation();
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Τρόποι Αποστολής</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('shipping_title')}</h1>
           <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
-          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
-            Επιλέξτε τον τρόπο αποστολής που σας εξυπηρετεί καλύτερα
-          </p>
+          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">{t('shipping_intro')}</p>
         </div>
       </section>
 

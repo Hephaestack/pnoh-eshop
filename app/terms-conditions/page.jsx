@@ -1,13 +1,17 @@
+"use client";
+import { useTranslation } from "react-i18next";
+
 export default function TermsConditionsPage() {
+  const { t } = useTranslation('terms');
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">Όροι & Προϋποθέσεις</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('terms_conditions')}</h1>
           <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
           <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
-            Οι όροι χρήσης του ηλεκτρονικού μας καταστήματος
+            {t('terms_intro')}
           </p>
         </div>
       </section>
@@ -19,61 +23,27 @@ export default function TermsConditionsPage() {
             <div className="prose prose-lg max-w-none prose-invert">
               {/* Section 1 - Γενικά */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">1. Γενικά</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">1. {t('terms_section1_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>
-                    Ο δικτυακός τόπος pnoikosmima.com αποτελεί ιδιοκτησία της εταιρείας με την επωνυμία "ΠΝΟΗ
-                    χειροποίητο κόσμημα", η οποία εδρεύει στην Κυψέλη, στην Οδό Ιωάννου Δροσοπούλου 63, με ΑΦΜ
-                    129517325, email pnoi@yahoo.gr.
-                  </p>
-                  <p>
-                    Στους χρήστες του δικτυακού μας τόπου παρέχεται πρόσβαση στην παρουσίαση του καταλόγου των προϊόντων
-                    μας. Ο χρήστης φέρει την ευθύνη πρόσβασης σε αυτόν, βλέποντας το περιεχόμενο του ελεύθερα. Σε κάθε
-                    περίπτωση η χρήση της παρούσας ιστοσελίδας ισοδυναμεί με τη ρητή συναίνεση και ρητή και ανεπιφύλακτη
-                    αποδοχή εκ μέρους σας των όρων χρήσης και του περιεχομένου της ιστοσελίδας (εφεξής Όροι Χρήσης).
-                  </p>
-                  <p>
-                    Βεβαιωθείτε λοιπόν ότι συμφωνείτε με τους παρακάτω όρους και προϋποθέσεις, διότι η περαιτέρω χρήση
-                    του δικτυακού μας τόπου συνεπάγεται τη ρητή και ανεπιφύλακτη αποδοχή τους εκ μέρους σας.
-                  </p>
+                  <p>{t('terms_section1_p1')}</p>
+                  <p>{t('terms_section1_p2')}</p>
+                  <p>{t('terms_section1_p3')}</p>
                 </div>
               </div>
 
               {/* Section 2 - Ρητή αποδοχή */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">
-                  2. Ρητή αποδοχή και ειδική συναίνεση
-                </h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">2. {t('terms_section2_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>
-                    Διατηρούμε το δικαίωμα μονομερώς να τροποποιούμε ή να ανανεώνουμε τους όρους της παρούσας. Τυχόν
-                    μεταβολές στην πολιτική μας σε ότι αφορά στην προστασία των προσωπικών δεδομένων, θα καταγράφονται
-                    στην ιστοσελίδα μας. Παρακαλείσθε να παρακολουθείτε τις μεταβολές αυτές πριν κάθε χρήση.
-                  </p>
-                  <p>
-                    Η pnoikosmima.com δεν ευθύνεται για τυχόν τεχνικά ή τυπογραφικά λάθη που δεν μπορούν να προβλεφθούν
-                    ή έχουν προκύψει ακούσια ή από διακοπές λειτουργίας ή λόγω ανωτέρας βίας.
-                  </p>
-                  <p>
-                    Σε καμία περίπτωση δεν μπορούμε να εγγυηθούμε την αδιάκοπη και χωρίς σφάλματα λειτουργία της
-                    ιστοσελίδας.
-                  </p>
-                  <p>
-                    Δεν φέρουμε ευθύνη έναντι των χρηστών για ζημιές που τυχόν προκύψουν από τη διακοπή πρόσβασης στην
-                    ιστοσελίδα για τεχνικούς λόγους ή από προβλήματα και δυσχέρειες, που μπορεί να επηρεάσουν ή να
-                    εμποδίσουν ή αναστείλουν την λειτουργία της και την υποβολή ή εκτέλεση ηλεκτρονικών παραγγελιών.
-                  </p>
-                  <p>Οι φωτογραφίες των προϊόντων είναι ενδεικτικές και δεν απεικονίζουν πιστά το τελικό προϊόν.</p>
-                  <p>
-                    Στην ιστοσελίδα μας αναγράφονται ορισμένα από τα χαρακτηριστικά των προϊόντων μας και δεν
-                    δεσμευόμαστε από τη ρητή και πλήρη αναφορά αυτών για την παρουσίασή τους, ούτε φέρουμε οποιαδήποτε
-                    ευθύνη για τυχόν ζημιές/βλάβες που ενδέχεται να προκύψουν στον τελικό χρήστη-καταναλωτή από τη
-                    μερική παρουσίαση αυτών.
-                  </p>
+                  <p>{t('terms_section2_p1')}</p>
+                  <p>{t('terms_section2_p2')}</p>
+                  <p>{t('terms_section2_p3')}</p>
                 </div>
+
               </div>
+              {/* Section 3 - Πνευματική Ιδιοκτησία */}
 
               {/* Section 3 - Πνευματική Ιδιοκτησία */}
               <div className="mb-12 text-center md:text-left">
@@ -207,142 +177,44 @@ export default function TermsConditionsPage() {
                 </div>
               </div>
 
-              {/* Πολιτική Επιστροφών */}
+              {/* Section 3 - Πνευματική Ιδιοκτησία */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Πολιτική Επιστροφών</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">3. {t('terms_section3_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
-                  <p>
-                    Οποιαδήποτε επιστροφή προϊόντων γίνεται δεκτή μόνο και εφόσον το προϊόν επιστραφεί μέσα σε διάστημα
-                    15 ημερών από την ημέρα παραλαβής του, στην αρχική του κατάσταση, δεν έχει χρησιμοποιηθεί, χτυπηθεί,
-                    λερωθεί ή βρίσκεται σε οποιαδήποτε άλλη κατάσταση πέραν της αρχικής του μαζί με οποιαδήποτε έγγραφα
-                    έχουν αποσταλεί (απόδειξη, πιστοποιητικό κτλ). Καμία επιστροφή δεν γίνεται δεκτή εάν δεν έχει
-                    προηγηθεί σχετική συνεννόηση.
-                  </p>
-                  <p>
-                    Για την επιστροφή προϊόντων επικοινωνείτε μέσω του site, ενημερώνοντας για το προϊόν που θέλετε να
-                    επιστρέψετε, τον λόγο για τον οποίο το επιστρέφετε, την ημερομηνία παραλαβής και τα στοιχεία σας,
-                    και εμείς θα φροντίσουμε να προχωρήσουμε άμεσα στην ολοκλήρωση της διαδικασίας ανάλογα με τον λόγο
-                    επιστροφής. Η αποστολή του προϊόντος προς επιστροφή γίνεται αποκλειστικά με δικά σας έξοδα, και
-                    συμφωνείται μαζί η παραγγελία νέου προϊόντος μέσω του site ή επιστροφή χρημάτων εντός 15 ημερών. Σε
-                    καμία περίπτωση δεν θα επιστρέφονται τα έξοδα αποστολής ή αντικαταβολής. Σας συνιστούμε να
-                    επιστρέφετε το προϊόν με συστημένο δέμα, έτσι ώστε να αποφύγετε τον κίνδυνο κλοπής, ζημιάς ή
-                    απώλειας του δέματος σας.
-                  </p>
-                  <p>
-                    Σε περίπτωση που το προϊόν που σας παραδόθηκε είναι λανθασμένο (δηλαδή δεν είναι το προϊόν της
-                    παραγγελίας σας), η επιστροφή του θα πραγματοποιείται με την παραλαβή του από εσάς με έξοδα που θα
-                    επιβαρύνουν την pnoikosmima.com, ενώ θα συμφωνηθεί μαζί σας η επιστροφή των χρημάτων
-                    (συμπεριλαμβανομένων την εξόδων αποστολής ή αντικαταβολής) ή η αποστολή του σωστού προϊόντος. H
-                    επιστροφή χρημάτων ή η αντικατάσταση με άλλο προϊόν θα γίνεται μετά την παραλαβή του προϊόντος, ώστε
-                    να επιβεβαιωθεί η λανθασμένη αποστολή.
-                  </p>
-                  <p>
-                    Σε περίπτωση που το προϊόν είναι ελαττωματικό κατά την παραλαβή του τότε ο πελάτης έχει 3 ημέρες
-                    στην διάθεσή του να επικοινωνήσει με το κατάστημα και να αιτηθεί αντικατάσταση. Μετά το πέρας των
-                    τριών ημερών δεν παρέχεται αντικατάσταση, καθώς ούτε επιστροφή χρημάτων.
-                  </p>
+                  <p>{t('terms_section3_p1')}</p>
+                  <p>{t('terms_section3_p2')}</p>
                 </div>
               </div>
 
-              {/* Τρόποι Αποστολής */}
+              {/* Section 4 - Ασφάλεια */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Τρόποι Αποστολής</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">4. {t('terms_section4_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
-                <div className="space-y-6 text-[#bfc1c6] font-light leading-relaxed">
-                  <div>
-                    <h3 className="mb-2 text-lg font-medium text-white">Box Now</h3>
-                    <p>
-                      Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Box Now
-                      εντός 1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 2€
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-lg font-medium text-white">Γενική Ταχυδρομική</h3>
-                    <p>
-                      Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Γενική
-                      ταχυδρομική εντός 1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 10€.
-                    </p>
-                  </div>
-                  <p>
-                    <strong>
-                      Για όλους τους τρόπους αποστολής ισχύει ότι για παραγγελίες άνω των 150€ τα έξοδα αποστολής είναι
-                      δωρεάν.
-                    </strong>
-                  </p>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
+                  <p>{t('terms_section4_p1')}</p>
+                  <p>{t('terms_section4_p2')}</p>
+                  <p>{t('terms_section4_p3')}</p>
                 </div>
               </div>
 
-              {/* Τρόποι Πληρωμής */}
+              {/* Section 5 - Προστασία Δεδομένων */}
               <div className="mb-12 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Τρόποι Πληρωμής</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">5. {t('terms_section5_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
-                <div className="space-y-6 text-[#bfc1c6] font-light leading-relaxed">
-                  <div>
-                    <h3 className="mb-2 text-lg font-medium text-white">Χρεωστική/Πιστωτική Κάρτα</h3>
-                    <p>
-                      Μπορείς να εξοφλήσεις την παραγγελία σου μέσω πιστωτικής ή χρεωστικής κάρτας Visa, MasterCard,
-                      Maestro, Diners Club και Discover.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-lg font-medium text-white">Ασφάλεια Συναλλαγών</h3>
-                    <p>
-                      Όλες οι πληρωμές που πραγματοποιούνται με χρήση κάρτας διεκπεραιώνονται μέσω της πλατφόρμας
-                      ηλεκτρονικών συναλλαγών "Nexi E-Commerce" της Nexi Payments Greece S.A. και χρησιμοποιεί
-                      κρυπτογράφηση TLS 1.2 με πρωτόκολλο κρυπτογράφησης 128 bit (Secure Sockets Layer – SSL). Η
-                      κρυπτογράφηση είναι ένας τρόπος κωδικοποίησης της πληροφορίας μέχρι αυτή να φτάσει στον ορισμένο
-                      αποδέκτη της, ο οποίος θα μπορέσει να την αποκωδικοποιήσει με χρήση του κατάλληλου κλειδιού.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-lg font-medium text-white">PayPal</h3>
-                    <p>
-                      Μπορείς να εξοφλήσεις την παραγγελία σου μέσω του ασφαλούς περιβάλλοντος πληρωμών PayPal
-                      χρησιμοποιώντας τον λογαριασμό σου.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-xl font-medium text-white">Κατάθεση σε Τραπεζικό Λογαριασμό</h3>
-                    <p>Μπορείς να εξοφλήσεις την παραγγελία σου μέσω κατάθεσης στον παρακάτω τραπεζικό λογαριασμό:</p>
-                    <div className="p-4 mt-2 bg-[#23232a] rounded-lg">
-                      <p>
-                        <strong>Δικαιούχος:</strong> ΣΕΡΒΟΣ ΜΙΧΑΗΛ
-                      </p>
-                      <p>
-                        <strong>Τράπεζα:</strong> ALPHA BANK
-                      </p>
-                      <p>
-                        <strong>IBAN:</strong> GR 160 140 4050 4050 0200 2018 725
-                      </p>
-                    </div>
-                    <p className="mt-4">
-                      <strong>
-                        (!) Η τραπεζική κατάθεση θα πρέπει να πραγματοποιηθεί εντός 24 ωρών από την καταχώρηση της
-                        παραγγελίας. Το αποδεικτικό της κατάθεσης θα πρέπει να αποσταλεί με email στο pnoi3@yahoo.gr.
-                        Εάν η κατάθεση των χρημάτων δεν πραγματοποιηθεί εντός 24 ωρών η παραγγελία ακυρώνεται αυτόματα,
-                        χωρίς προειδοποίηση.
-                      </strong>
-                    </p>
-                  </div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
+                  <p>{t('terms_section5_p1')}</p>
                 </div>
               </div>
 
-              {/* Contact */}
-              <div className="bg-[#23232a] p-8 rounded-lg text-center">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Επικοινωνία</h2>
-                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto"></div>
-                <div className="space-y-2 text-[#bfc1c6] font-light">
-                  <p>Για οποιαδήποτε ερώτηση σχετικά με τους όρους και προϋποθέσεις, επικοινωνήστε μαζί μας:</p>
-                  <p>
-                    <strong>Email:</strong> pnoi@yahoo.gr
-                  </p>
-                  <p>
-                    <strong>Διεύθυνση:</strong> Οδός Ιωάννου Δροσοπούλου 63, Κυψέλη, Αθήνα
-                  </p>
-                  <p>
-                    <strong>ΑΦΜ:</strong> 129517325
-                  </p>
+              {/* Section 6 - Επικοινωνία */}
+              <div className="mb-12 text-center md:text-left">
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">6. {t('terms_section6_title')}</h2>
+                <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
+                <div className="space-y-4 text-[#bfc1c6] font-light leading-relaxed">
+                  <p><strong>Email:</strong> pnoi@yahoo.gr</p>
+                  <p><strong>{t('address')}:</strong> {t('footer_address_line1')}, {t('footer_address_line2')}</p>
+                  <p><strong>ΑΦΜ:</strong> 129517325</p>
                 </div>
               </div>
             </div>
@@ -350,5 +222,7 @@ export default function TermsConditionsPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }
+
+

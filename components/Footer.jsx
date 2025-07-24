@@ -1,9 +1,11 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
-import Image from "next/image";
 
-export function Footer() {
+
+import Link from "next/link";
+import Image from "next/image";
+import { useTranslation } from "react-i18next";
+
+function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="pt-14 pb-8 bg-[#18181b] border-t-2 border-[#bfc1c6] w-full">
       <div className="px-4 mx-auto max-w-7xl sm:px-8">
@@ -12,86 +14,86 @@ export function Footer() {
         >
           {/* Company Info */}
           <div className="flex flex-col items-center w-full space-y-6 text-center md:items-start md:text-left">
-           <Image
+            <Image
               src="/logo.webp"
-              alt="Πνοή Logo"
+              alt={t('logo_alt')}
               width={150}
               height={150}
             />
             <p className="mb-4 text-sm font-light leading-relaxed text-[#bfc1c6]">
-              Εκλεπτυσμένα κοσμήματα που συνδυάζουν παράδοση και σύγχρονο design.
+              {t('footer_company_desc')}
             </p>
             <p className="text-sm font-light text-[#bfc1c6]">pnoi@yahoo.gr</p>
           </div>
 
           {/* Navigation */}
           <div className="flex flex-col items-center w-full space-y-6 text-center md:items-center">
-            <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">ΠΛΟΗΓΗΣΗ</h4>
+            <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">{t('footer_navigation')}</h4>
             <div className="space-y-3">
               <Link
                 href="/"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                ΚΟΣΜΗΜΑΤΑ
+                {t('jewelry')}
               </Link>
               <Link
                 href="/collections"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                ΠΟΙΟΙ ΕΙΜΑΣΤΕ
+                {t('about_us')}
               </Link>
               <Link
                 href="/rings"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                ΕΠΙΚΟΙΝΩΝΙΑ
+                {t('contact')}
               </Link>
             </div>
           </div>
 
           {/* Legal & Policies */}
           <div className="flex flex-col items-center w-full space-y-6 text-center md:items-end md:text-right">
-            <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">ΠΛΗΡΟΦΟΡΙΕΣ</h4>
+            <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">{t('footer_info')}</h4>
             <div className="space-y-3">
               <Link
                 href="/privacy-policy"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                Πολιτική Απορρήτου
+                {t('privacy_policy')}
               </Link>
               <Link
                 href="/terms-conditions"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                Όροι & Προϋποθέσεις
+                {t('terms_conditions')}
               </Link>
               <Link
                 href="/returns"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                Πολιτική Επιστροφών
+                {t('returns_policy')}
               </Link>
               <Link
                 href="/shipping"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                Τρόποι Αποστολής
+                {t('shipping_methods')}
               </Link>
               <Link
                 href="/payments"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
-                Τρόποι Πληρωμής
+                {t('payment_methods')}
               </Link>
               <div className="pt-4 space-y-2">
                 <p className="text-sm font-light text-[#bfc1c6]">
-                  <strong>Τηλέφωνο:</strong>
+                  <strong>{t('phone')}:</strong>
                   <br />+30 210 123 4567
                 </p>
                 <p className="text-sm font-light text-[#bfc1c6]">
-                  <strong>Διεύθυνση:</strong>
-                  <br />Οδός Ιωάννου Δροσοπούλου 63,
-                  <br />Κυψέλη, Αθήνα
+                  <strong>{t('address')}:</strong>
+                  <br />{t('footer_address_line1')},
+                  <br />{t('footer_address_line2')}
                 </p>
               </div>
             </div>
@@ -102,17 +104,17 @@ export function Footer() {
         <div className="pt-8 mt-14 border-t border-[#bfc1c6] w-full">
           <div className="flex flex-col items-center justify-between w-full gap-6 md:flex-row">
             <div className="text-sm font-light text-[#bfc1c6] text-center md:text-left">
-              © 2025 Πνοή. Όλα τα δικαιώματα διατηρούνται.
+              © 2025 {t('brand_name')}. {t('footer_rights')}
             </div>
 
             {/* Payment Methods */}
-            <div className="flex flex-col items-center gap-2 md:flex-row">
-              <span className="text-sm font-light text-[#bfc1c6]">Δεχόμαστε:</span>
-              <div className="flex items-center gap-2 mt-1 md:mt-0">
-                <div className="px-3 py-1 text-xs font-medium text-[#23232a] bg-[#bfc1c6] rounded">VISA</div>
-                <div className="px-3 py-1 text-xs font-medium text-[#23232a] bg-[#bfc1c6] rounded">MASTERCARD</div>
-                <div className="px-3 py-1 text-xs font-medium text-[#23232a] bg-[#bfc1c6] rounded">PAYPAL</div>
-                <div className="px-3 py-1 text-xs font-medium text-[#23232a] bg-[#bfc1c6] rounded">APPLE PAY</div>
+             <div className="flex flex-col items-center gap-2 md:flex-row">
+                     <div className="flex flex-wrap items-center justify-center h-12 gap-4">
+                     <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-8" />
+                     <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-8" />
+                     <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-8" />
+                     <img src="/payment-icons/discover.svg" alt="Discover" className="h-8" />
+                     <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-8" />
               </div>
             </div>
           </div>
@@ -121,3 +123,5 @@ export function Footer() {
     </footer>
   );
 }
+export default Footer;
+export { Footer };

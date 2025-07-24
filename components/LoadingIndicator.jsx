@@ -1,6 +1,9 @@
+
 import React from "react"
+import { useTranslation } from "react-i18next";
 
 export default function LoadingIndicator() {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#18181b] bg-opacity-90">
       <div className="flex flex-col items-center gap-4">
@@ -8,7 +11,7 @@ export default function LoadingIndicator() {
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
         </svg>
-        <span className="text-[#bfc1c6] text-lg font-light tracking-wide">Φόρτωση...</span>
+        <span className="text-[#bfc1c6] text-lg font-light tracking-wide">{t('loading')}</span>
       </div>
     </div>
   )

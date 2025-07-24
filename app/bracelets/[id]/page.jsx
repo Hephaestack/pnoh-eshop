@@ -3,11 +3,11 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-
-export default function BraceletDetailPage() {
+import { useTranslation } from "react-i18next";
   const [enlarged, setEnlarged] = useState(false);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+  const { t } = useTranslation();
   // Animation state (must be refs to persist across renders)
   const animationFrame = useRef(null);
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
@@ -75,7 +75,7 @@ export default function BraceletDetailPage() {
 
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
-      <Link href="/collections" className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block">← Πίσω στη συλλογή</Link>
+      <Link href="/collections" className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block">{t('back_to_collection')}</Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
           ref={containerRef}
@@ -116,7 +116,7 @@ export default function BraceletDetailPage() {
               className="fixed z-50 p-0 m-0 text-5xl font-bold text-white transition-transform duration-200 bg-transparent border-none shadow-none top-6 right-6 hover:scale-110"
               style={{ lineHeight: 1, background: 'none', border: 'none' }}
               onClick={e => { e.stopPropagation(); setEnlarged(false); }}
-              aria-label="Κλείσιμο"
+              aria-label={t('close')}
             >×</button>
             <style>{`
               @keyframes zoomIn {
@@ -127,20 +127,20 @@ export default function BraceletDetailPage() {
           </div>
         )}
         <div className="flex flex-col items-center justify-center flex-1 text-center md:items-start md:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">Βραχιόλι Touareg</h1>
-          <span className="text-[#bcbcbc] text-lg mb-2">Ασήμι 925</span>
-          <span className="text-[#bcbcbc] text-base mb-2">Σχεδιασμένο και κατασκευασμένο στην Ελλάδα</span>
-          <span className="text-[#bcbcbc] text-base mb-4">Unisex</span>
-          <span className="text-[#f8f8f8] text-xl font-semibold mb-4">€60</span>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">{t('bracelet_title')}</h1>
+          <span className="text-[#bcbcbc] text-lg mb-2">{t('bracelet_material')}</span>
+          <span className="text-[#bcbcbc] text-base mb-2">{t('bracelet_design')}</span>
+          <span className="text-[#bcbcbc] text-base mb-4">{t('bracelet_gender')}</span>
+          <span className="text-[#f8f8f8] text-xl font-semibold mb-4">{t('bracelet_price')}</span>
         </div>
       </div>
       <section className="mb-8 text-center md:text-left">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">Περιγραφή</h2>
-        <p className="text-[#e5e5e5] mb-2">Χειροποίητο βραχιόλι σε ασήμι 925, με πατίνα οξύδωσης. Ο συνδυασμός του ethnic design με τη μοντέρνα προσέγκιση, είναι ο τέλειος συνδυασμός για εκείνους που λατρεύουν να φοράνε μοναδικά, ξεχωριστά και εντυπωσικά κοσμήματα. Κάθε κόσμημα είναι κατασκευασμένο στο χέρι, που σημαίνει δύο κομμάτια από το ίδιο σχέδιο δεν μπορεί να είναι ακριβώς όμοια. Το βραχιόλι φέρει σφραγίδα 925, το λογότυπο του εργαστηρίου μας καθώς και πιστοποιητικό γνησιότητας.</p>
+        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">{t('bracelet_description_title')}</h2>
+        <p className="text-[#e5e5e5] mb-2">{t('bracelet_description')}</p>
         <ul className="text-[#bcbcbc] text-sm list-disc md:pl-6 pl-0 inline-block md:inline-block text-left mx-auto md:mx-0">
-          <li>Μήκος βραχιολιού: 20εκ</li>
-          <li>Ύψος στοιχείου: 30μμ</li>
-          <li>Μήκος στοιχείου: 70μμ</li>
+          <li>{t('bracelet_length')}</li>
+          <li>{t('bracelet_element_height')}</li>
+          <li>{t('bracelet_element_length')}</li>
         </ul>
       </section>
       {/* Divider for mobile only */}
@@ -148,12 +148,12 @@ export default function BraceletDetailPage() {
         <div className="h-px w-full mx-auto bg-gradient-to-r from-transparent via-[#bcbcbc33] to-transparent" />
       </div>
       <section className="mb-8">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2 text-center md:text-left">Αποστολές</h2>
+        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2 text-center md:text-left">{t('shipping_title')}</h2>
         <ul className="text-[#bcbcbc] text-sm list-disc pl-6 mb-2 text-left w-full">
-          <li>Box Now: Το κόστος αποστολής ανέρχεται σε 2 €</li>
-          <li>Γενική Ταχυδρομική: Το κόστος αποστολής ανέρχεται σε 10 €</li>
-          <li>Για παραγγελίες άνω των 150 € το κόστος αποστολής είναι δωρεάν.</li>
-          <li>Οι παραγγελίες αποστέλλονται εντός 1-2 εργάσιμων ημερών.</li>
+          <li>{t('shipping_boxnow')}</li>
+          <li>{t('shipping_geniki')}</li>
+          <li>{t('shipping_free')}</li>
+          <li>{t('shipping_time')}</li>
         </ul>
       </section>
       {/* Divider for mobile only */}
@@ -161,9 +161,9 @@ export default function BraceletDetailPage() {
         <div className="h-px w-full mx-auto bg-gradient-to-r from-transparent via-[#bcbcbc33] to-transparent" />
       </div>
       <section className="mb-8 text-center md:text-left">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">Επιστροφές</h2>  
-        <p className="text-[#e5e5e5]">Δεν σου ταίριαξε κάποιο από τα προϊόντα που επέλεξες; Κανένα πρόβλημα, αφού έχεις το δικαίωμα να το επιστρέψεις εντός 15 ημερολογιακών ημερών και να ζητήσεις την αντικατάσταση τους ή την επιστροφή της αξίας τους! Για την πραγματοποίηση της επιστροφής απαραίτητα είναι το προϊόν να είναι σε άριστη κατάσταση και την απόδειξη της παραγγελίας.</p>
+        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">{t('returns_title')}</h2>  
+        <p className="text-[#e5e5e5]">{t('returns_policy')}</p>
       </section>
     </main>
   );
-}
+
