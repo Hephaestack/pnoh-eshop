@@ -1,4 +1,6 @@
 {
+  "shipping_notice": "For orders over €150, shipping is free. Orders are shipped within 1-2 business days.",
+  "returns_notice": "Didn't like any of the products you chose? No problem! You have the right to return it within 15 calendar days and request a replacement or a refund. To process the return, the product must be in excellent condition and you must have the order receipt.",
   "bracelet_length": "Bracelet length: 20cm",
   "bracelet_element_height": "Element height: 30mm",
   "bracelet_element_length": "Element length: 70mm",
@@ -63,13 +65,13 @@
   "payments_methods_title": "Payment Methods",
   "payments_methods_intro": "Select your preferred payment method for your order.",
   "payments_card_title": "Credit/Debit Cards",
-  "payments_card_desc": "You can complete your purchase using your Visa, MasterCard, Maestro, Diners Club, or Discover card.",
+  "payments_card_desc": "You can pay for your order using a credit or debit card: Visa, MasterCard, Maestro, Diners Club, and Discover.",
   "payments_security_title": "Payment Security",
-  "payments_security_desc": "All payments are processed securely via the Nexi E-Commerce platform of Nexi Payments Greece S.A. and are protected by 128-bit SSL (Secure Sockets Layer) encryption. This ensures your payment information is always safe.",
+  "payments_security_desc": "All card payments are processed securely via the Nexi E-Commerce platform of Nexi Payments Greece S.A. and use TLS 1.2 encryption protocol with 128-bit Secure Sockets Layer (SSL) encryption. Encryption is a way of encoding information until it reaches its designated recipient, who can decode it using the appropriate key.",
   "payments_paypal_title": "PAYPAL",
-  "payments_paypal_desc": "You can complete your purchase using your PayPal account securely.",
+  "payments_paypal_desc": "You can pay for your order securely using your PayPal account through the PayPal payment environment.",
   "payments_bank_title": "Bank Transfer",
-  "payments_bank_desc": "You can complete your purchase by bank transfer to the following account:",
+  "payments_bank_desc": "You can pay for your order by depositing the amount into the following bank account:",
   "payments_bank_holder": "Account Holder:",
   "payments_bank_bank": "Bank:",
   "payments_bank_iban": "IBAN:",
@@ -237,5 +239,7 @@
   "privacy_contact_address_label": "Address",
   "privacy_contact_address": "Ioannou Drosopoulou 63, Kypseli, Athens",
   "privacy_contact_vat_label": "VAT",
-  "privacy_contact_vat": "129517325"
+  "privacy_contact_vat": "129517325",
+    "payments_title": "Payments",
+    "explore_collection": "Explore Collection"
 }

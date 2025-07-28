@@ -17,7 +17,7 @@ export default function TopHeader() {
           {/* Social Icons */}
           <div className="flex items-center space-x-3">
             <Link
-              href="https://facebook.com"
+              href="https://www.facebook.com/pnoikosmima"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white transition-colors duration-200 "
@@ -26,7 +26,7 @@ export default function TopHeader() {
               <Facebook className="w-4 h-4 fill-current" />
             </Link>
             <Link
-              href="https://instagram.com"
+              href="https://www.instagram.com/pnoi_kosmima"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white transition-colors duration-200 "

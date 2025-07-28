@@ -4,9 +4,11 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+ export default function BraceletPage() {
   const [enlarged, setEnlarged] = useState(false);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+ 
   const { t } = useTranslation();
   // Animation state (must be refs to persist across renders)
   const animationFrame = useRef(null);
@@ -155,15 +157,16 @@ import { useTranslation } from "react-i18next";
           <li>{t('shipping_free')}</li>
           <li>{t('shipping_time')}</li>
         </ul>
+        <p className="text-[#e5e5e5] text-sm mt-2">{t('shipping_notice')}</p>
       </section>
       {/* Divider for mobile only */}
       <div className="flex w-full my-6 md:hidden">
         <div className="h-px w-full mx-auto bg-gradient-to-r from-transparent via-[#bcbcbc33] to-transparent" />
       </div>
       <section className="mb-8 text-center md:text-left">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">{t('returns_title')}</h2>  
-        <p className="text-[#e5e5e5]">{t('returns_policy')}</p>
+        <p className="text-xl text-[#e5e5e5]">{t('returns_policy')}</p>
+        <p className="text-[#e5e5e5] text-sm mt-2">{t('returns_notice')}</p>
       </section>
     </main>
   );
-
+}

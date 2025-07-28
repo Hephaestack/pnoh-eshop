@@ -31,19 +31,19 @@ function Footer() {
             <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">{t('footer_navigation')}</h4>
             <div className="space-y-3">
               <Link
-                href="/"
+                href="/collections"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
                 {t('jewelry')}
               </Link>
               <Link
-                href="/collections"
+                href="/about"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
                 {t('about_us')}
               </Link>
               <Link
-                href="/rings"
+                href="/contact"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
                 {t('contact')}
@@ -108,15 +108,18 @@ function Footer() {
             </div>
 
             {/* Payment Methods */}
-             <div className="flex flex-col items-center gap-2 md:flex-row">
-                     <div className="flex flex-wrap items-center justify-center h-12 gap-4">
-                     <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-8" />
-                     <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-8" />
-                     <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-8" />
-                     <img src="/payment-icons/discover.svg" alt="Discover" className="h-8" />
-                     <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-8" />
+            <div className="flex flex-col items-center gap-2 md:flex-row">
+              <div className="flex flex-wrap items-center justify-center h-12 gap-4">
+                <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-8" />
+                <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-8" />
+                <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-8" />
+                <img src="/payment-icons/discover.svg" alt="Discover" className="h-8" />
+                <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-8" />
               </div>
             </div>
+          </div>
+          <div className="mt-4 text-xs text-[#bfc1c6] text-center md:text-right font-light opacity-80">
+            Powered by Hephaestack
           </div>
         </div>
       </div>

@@ -1,78 +1,64 @@
 "use client"
 
-
 import i18n from '../i18n/i18n';
-import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Globe } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Globe } from "lucide-react"
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LanguageSwitcher() {
   const { t } = useTranslation();
   const languages = [
-    { code: "en", name: t('lang_en'), },
-    { code: "gr", name: t('lang_gr'),  },
+    { code: "en", name: t('lang_en') },
+    { code: "gr", name: t('lang_gr') },
   ];
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState(languages.find(l => l.code === i18n.language) || languages[0])
-  const dropdownRef = useRef(null)
+  const [showPopup, setShowPopup] = useState(false);
+  const [spin, setSpin] = useState(false);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false)
-      }
-    }
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language)
-    setIsOpen(false)
-    i18n.changeLanguage(language.code)
-  }
+  const swapLanguage = () => {
+    const nextLang = currentLang === 'en' ? 'gr' : 'en';
+    setCurrentLang(nextLang);
+    i18n.changeLanguage(nextLang);
+    setSpin(true);
+    setShowPopup(true);
+    setTimeout(() => {
+      setShowPopup(false);
+      setSpin(false);
+    }, 1000);
+  };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Trigger Button: Only Globe icon */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
+    <div className="relative">
+      <motion.button
+        onClick={swapLanguage}
         className="flex items-center justify-center p-2 text-white transition-all duration-200 border border-white rounded-full bg-gray hover:border-white focus:outline-none focus:ring-2 focus:border-transparent"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
         title={t('Change language')}
+        whileTap={{ scale: 0.95 }}
       >
-        <Globe className="w-5 h-5" />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 z-50 w-32 mt-2 duration-100 bg-[#18181b] border rounded-lg shadow-lg animate-in fade-in-0 zoom-in-95 text-white">
-          <div className="py-1">
-            {languages.map((language) => (
-              <button
-                key={language.code}
-                onClick={() => handleLanguageSelect(language)}
-                className={`w-full flex items-center space-x-2 px-3 py-1 text-sm text-left hover:bg-[#1d1d1d] transition-colors duration-150 ${
-                  selectedLanguage.code === language.code ? " text-white font-medium" : "text-white"
-                }`}
-              >
-                <span className="text-lg">{language.flag}</span>
-                <span>{language.name}</span>
-                {selectedLanguage.code === language.code && (
-                  <div className="ml-auto">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        <motion.span
+          animate={spin ? { rotate: [0, 360] } : { rotate: 0 }}
+          transition={{ duration: 0.5, ease: "linear" }}
+          style={{ display: 'inline-block' }}
+        >
+          <Globe className="w-5 h-5" />
+        </motion.span>
+      </motion.button>
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.3 }}
+            className="absolute left-1/2 -translate-x-1/2 mt-2 px-4 py-2 rounded-lg bg-[#232326] text-white shadow-lg border border-[#232326] z-50 text-sm font-medium"
+            style={{ minWidth: 60, textAlign: 'center' }}
+          >
+            {languages.find(l => l.code === currentLang)?.name}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
