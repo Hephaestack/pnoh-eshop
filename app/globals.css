@@ -1,2 +1,61 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* CSS Custom Properties for header heights */
+:root {
+  --top-header-height: 40px;
+  --main-header-height: 80px;
+  --total-header-height: 120px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --main-header-height: 96px;
+    --total-header-height: 136px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --main-header-height: 112px;
+    --total-header-height: 152px;
+  }
+}
+
+/* Header stability improvements */
+header {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  position: sticky;
+  will-change: transform;
+}
+
+/* Top header styles */
+.top-header {
+  height: var(--top-header-height);
+  top: 0;
+  z-index: 60;
+}
+
+/* Main header styles */
+.main-header {
+  height: var(--main-header-height);
+  top: var(--top-header-height);
+  z-index: 40;
+}
+
+/* Ensure smooth scrolling and prevent layout shifts */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force hardware acceleration for sticky elements */
+.sticky {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}

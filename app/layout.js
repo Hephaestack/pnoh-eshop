@@ -4,7 +4,7 @@ import ClientLayout from "@/components/ClientLayout"
 
 export const metadata = {
   title: "Πνοή - Jewelry E-Shop",
-  description: "Εκλεπτυσμένα κοσμήματα που συνδυάζουν παράδοση και σύγχρονο design",
+  description: "Εργαστήρι Χειροποίητου Κοσμήματος",
 }
 
 export default function RootLayout({ children }) {

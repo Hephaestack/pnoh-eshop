@@ -24,7 +24,7 @@ export default function ClientLayout({ children }) {
       {loading && <LoadingIndicator />}
       <TopHeader />
       <Header />
-      <main style={{ opacity: loading ? 0 : 1, transition: 'opacity 0.3s' }}>{children}</main>
+      <main className={`transition-opacity duration-300`} style={{ opacity: loading ? 0 : 1 }}>{children}</main>
       <Footer />
     </>
   );

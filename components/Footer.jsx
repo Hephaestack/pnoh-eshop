@@ -109,12 +109,12 @@ function Footer() {
 
             {/* Payment Methods */}
             <div className="flex flex-col items-center gap-2 md:flex-row">
-              <div className="flex flex-wrap items-center justify-center h-12 gap-4">
-                <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-8" />
-                <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-8" />
-                <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-8" />
-                <img src="/payment-icons/discover.svg" alt="Discover" className="h-8" />
-                <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-8" />
+              <div className="flex flex-wrap items-center justify-center h-16 gap-4">
+                <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-12" />
+                <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-12" />
+                <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-12" />
+                <img src="/payment-icons/discover.svg" alt="Discover" className="h-12" />
+                <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-12" />
               </div>
             </div>
           </div>

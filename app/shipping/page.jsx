@@ -21,21 +21,19 @@ export default function ShippingPage() {
             <div className="prose prose-lg max-w-none prose-invert">
               {/* Box Now */}
               <div className="mb-8 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Box Now</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('shipping_boxnow_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <p className="text-[#bfc1c6] font-light leading-relaxed">
-                  Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Box Now εντός
-                  1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 2€
+                  {t('shipping_boxnow_desc')}
                 </p>
               </div>
 
               {/* Γενική Ταχυδρομική */}
               <div className="mb-8 text-center md:text-left">
-                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">Γενική Ταχυδρομική</h2>
+                <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('shipping_geniki_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <p className="text-[#bfc1c6] font-light leading-relaxed">
-                  Οι παραδόσεις των παραγγελιών αποστέλλονται μέσω της εταιρείας ταχυμεταφορών (courier) Γενική
-                  ταχυδρομική εντός 1-2 εργάσιμων ημερών. Τα έξοδα αποστολής είναι 10€.
+                  {t('shipping_geniki_desc')}
                 </p>
               </div>
 
@@ -43,8 +41,7 @@ export default function ShippingPage() {
               <div className="p-6 border rounded-lg bg-green-900/20 border-green-700/30">
                 <p className="font-light text-center text-green-300">
                   <strong>
-                    Για όλους τους τρόπους αποστολής ισχύει ότι για παραγγελίες άνω των 150€ τα έξοδα αποστολής είναι
-                    δωρεάν.
+                    {t('shipping_free_notice')}
                   </strong>
                 </p>
               </div>

@@ -41,14 +41,6 @@ export function Header() {
   const [jewelryOpen, setJewelryOpen] = useState(false)
   const jewelryRef = useRef(null)
   const headerRef = useRef(null);
-  const [headerBottom, setHeaderBottom] = useState(0);
-
-  useEffect(() => {
-    if (jewelryOpen && headerRef.current) {
-      const rect = headerRef.current.getBoundingClientRect();
-      setHeaderBottom(rect.bottom);
-    }
-  }, [jewelryOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -88,11 +80,11 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   return (
-    <header ref={headerRef} className="border-b border-white sticky top-[40px] bg-[#18181b] z-40 shadow-[0_2px_8px_0_rgba(180,180,180,0.04)]">
-      <div className="px-2 py-0 mx-auto max-w-7xl sm:px-6 min-h-[40px]">
-        <div className="grid items-center w-full grid-cols-3">
+    <header ref={headerRef} className="border-b border-white sticky main-header bg-[#18181b] shadow-[0_2px_8px_0_rgba(180,180,180,0.04)]">
+      <div className="px-2 py-2 mx-auto max-w-7xl sm:px-6 h-20 md:h-24 lg:h-28 flex items-center">
+        <div className="grid items-center w-full grid-cols-3 gap-4 h-full">
           {/* Logo Left */}
-          <div className="flex items-center min-w-0">
+          <div className="flex items-center min-w-0 justify-start">
             <Link href="/" className="flex items-center">
               <img
                 src="/logo.webp"
@@ -104,7 +96,7 @@ export function Header() {
             </Link>
           </div>
           {/* Centered Menu (hidden placeholder on mobile to keep grid layout) */}
-          <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 md:flex">
+          <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 md:flex shrink-0">
             <Link href="/about" className="text-md font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5" onClick={() => setJewelryOpen(false)}>
               {t('about_us')}
             </Link>
@@ -113,7 +105,7 @@ export function Header() {
               {jewelryOpen && (
                 <div
                   className="fixed bottom-0 left-0 right-0 z-30 transition-opacity duration-200 opacity-100 bg-black/30 backdrop-blur-sm"
-                  style={{ top: headerBottom, pointerEvents: 'auto' }}
+                  style={{ top: 'var(--total-header-height)', pointerEvents: 'auto' }}
                   aria-hidden="true"
                   onClick={() => setJewelryOpen(false)}
                 />
@@ -153,7 +145,7 @@ export function Header() {
           {/* Placeholder for center column on mobile */}
           <div className="block md:hidden" />
           {/* Icons Right */}
-          <div className="flex items-center justify-end min-w-0 space-x-4">
+          <div className="flex items-center justify-end min-w-0 space-x-4 shrink-0">
             <LanguageSwitcher />
             <Button
               variant="ghost"
