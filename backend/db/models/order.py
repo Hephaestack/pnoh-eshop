@@ -18,7 +18,8 @@ class Order(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey='users.id', nullable=False)
     user = relationship("User", back_populates="orders")
     shipping_address = relationship("Address", back_populates="orders", uselist=False)
-    order_items = relationship("OrderItem", back_populates="orders", cascade="all, delete-orphan")
+    order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    payment = relationship("Payment", back_populates="order", uselist=False)
 
     class Config:
         orm_mode = True

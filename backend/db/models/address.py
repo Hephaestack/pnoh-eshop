@@ -18,6 +18,7 @@ class Address(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
     user = relationship("User", back_populates="addresses", uselist=False)
+    orders = relationship("Order", back_populates="shipping_address")
 
     address_type = Column(String, nullable=False, default="shipping")
 
