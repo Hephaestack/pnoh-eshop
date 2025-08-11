@@ -1,5 +1,6 @@
 "use client"
 
+import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
 
 function MegaMenuItem({ href, img, label, onClick }) {
   return (
@@ -36,6 +37,7 @@ import LanguageSwitcher from "./language-switcher"
 
 export function Header() {
   const { t } = useTranslation();
+  const { isSignedIn, user } = useUser();
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [jewelryOpen, setJewelryOpen] = useState(false)
@@ -155,9 +157,27 @@ export function Header() {
             >
               <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full">
-              <User className="w-5 h-5 text-white transition-colors hover:text-white" />
-            </Button>
+            {isSignedIn ? (
+              <div className="flex items-center">
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10 border-2 border-white rounded-full hover:border-[#f8f8f8] transition-colors",
+                      userButtonPopoverCard: "bg-[#18181b] border border-[#232326]",
+                      userButtonPopoverActionButton: "text-white hover:bg-[#232326]",
+                      userButtonPopoverActionButtonText: "text-white",
+                      userButtonPopoverFooter: "hidden"
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full">
+                  <User className="w-5 h-5 text-white transition-colors hover:text-white" />
+                </Button>
+              </SignInButton>
+            )}
             <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full relative">
               <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
               <span className="absolute -top-2 -right-2 bg-[#232326] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center border border-white shadow-[0_0_4px_#bcbcbc99]">
