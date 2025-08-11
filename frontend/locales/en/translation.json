@@ -191,8 +191,6 @@
   "hero_emerald_necklace": "Emerald Necklace",
   "hero_luxury_watch": "Luxury Watch",
   "hero_sapphire_earrings": "Sapphire Earrings",
-  "privacy_policy_title": "Privacy Policy",
-  "privacy_policy_intro": "Protecting your personal data is important to us. Read how we handle your data.",
   "privacy_last_update_label": "Last updated",
   "privacy_last_update_date": "January 2024",
   "privacy_intro_title": "Introduction",
@@ -254,5 +252,86 @@
   "privacy_contact_vat_label": "VAT",
   "privacy_contact_vat": "129517325",
     "payments_title": "Payments",
-    "explore_collection": "Explore Collection"
-}
+    "explore_collection": "Explore Collection",
+    "auth": {
+      "sign_in": {
+        "title": "Welcome Back",
+        "subtitle": "Sign in to your account to continue",
+        "button": "Sign In",
+        "link": "Sign in"
+      },
+      "sign_up": {
+        "title": "Create Account",
+        "subtitle": "Join us to start shopping beautiful jewelry",
+        "button": "Create Account",
+        "link": "Sign up"
+      },
+      "verify_email": {
+        "title": "Verify Your Email",
+        "subtitle": "We've sent a verification code to your email",
+        "button": "Verify Email"
+      },
+      "email": "Email",
+      "password": "Password",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "verification_code": "Verification Code",
+      "email_placeholder": "Enter your email",
+      "password_placeholder": "Enter your password",
+      "first_name_placeholder": "First name",
+      "last_name_placeholder": "Last name",
+      "code_placeholder": "Enter verification code",
+      "password_requirements": "Password must be at least 8 characters long",
+      "signing_in": "Signing in...",
+      "creating_account": "Creating account...",
+      "verifying": "Verifying...",
+      "or": "Or",
+      "continue_with_google": "Continue with Google",
+      "forgot_password_link": "Forgot your password?",
+      "dont_have_account": "Don't have an account?",
+      "already_have_account": "Already have an account?",
+      "back_to_signup": "Back to sign up",
+      "back_to_signin": "Back to sign in",
+      "forgot_password": {
+        "title": "Forgot Password",
+        "subtitle": "Enter your email address and we'll send you a link to reset your password",
+        "button": "Send Reset Link",
+        "sending": "Sending...",
+        "check_email": "Check Your Email",
+        "email_sent": "We've sent a password reset link to your email",
+        "success_message": "Password reset email sent successfully! Check your inbox and follow the instructions.",
+        "didnt_receive": "Didn't receive the email? Check your spam folder or try again.",
+        "try_again": "Try Again"
+      },
+      "error": {
+        "general": "An error occurred. Please try again.",
+        "email_not_found": "No account found with this email address",
+        "password_incorrect": "Incorrect password",
+        "email_exists": "An account with this email already exists",
+        "email_invalid": "Please enter a valid email address",
+        "password_too_short": "Password must be at least 8 characters",
+        "password_pwned": "This password has been found in a data breach. Please choose a different password.",
+        "code_incorrect": "Incorrect verification code",
+        "verification_failed": "Verification failed. Please try again.",
+                "google": "Google sign in failed. Please try again."
+      }
+    },
+    "account": {
+      "title": "My Account",
+      "subtitle": "Manage your account settings and preferences",
+      "personal_info": "Personal Information",
+      "account_settings": "Account Settings",
+      "full_name": "Full Name",
+      "email": "Email",
+      "member_since": "Member Since",
+      "edit_profile": "Edit Profile",
+      "change_password": "Change Password",
+      "order_history": "Order History",
+      "no_orders": "No orders yet. Start shopping to see your order history here!",
+      "start_shopping": "Start Shopping",
+      "sign_out": "Sign Out",
+      "edit_profile_notice": "Profile editing will be available soon",
+      "change_password_notice": "Password change will be available soon"
+    }
+  }
+

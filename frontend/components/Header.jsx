@@ -1,6 +1,7 @@
 "use client"
 
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
+import Link from "next/link"
+import { UserButton, useUser } from '@clerk/nextjs';
 
 function MegaMenuItem({ href, img, label, onClick }) {
   return (
@@ -25,7 +26,6 @@ function MegaMenuItem({ href, img, label, onClick }) {
 }
 
 
-import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,7 @@ import { Search, User, ShoppingBag, Menu, X } from "lucide-react"
 
 import { AnimatePresence, motion } from "framer-motion"
 import LanguageSwitcher from "./language-switcher"
+import useCartStore from "@/lib/store/cart"
 
 export function Header() {
   const { t } = useTranslation();
@@ -41,8 +42,18 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [jewelryOpen, setJewelryOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const jewelryRef = useRef(null)
   const headerRef = useRef(null);
+
+  // Get cart state
+  const { getTotals } = useCartStore();
+  const totals = mounted ? getTotals() : { itemCount: 0 };
+
+  // Handle mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -169,21 +180,27 @@ export function Header() {
                       userButtonPopoverFooter: "hidden"
                     }
                   }}
+                  userProfileMode="navigation"
+                  userProfileUrl="/account"
                 />
               </div>
             ) : (
-              <SignInButton mode="modal">
+              <Link href="/auth/sign-in">
                 <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full">
                   <User className="w-5 h-5 text-white transition-colors hover:text-white" />
                 </Button>
-              </SignInButton>
+              </Link>
             )}
-            <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full relative">
-              <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
-              <span className="absolute -top-2 -right-2 bg-[#232326] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center border border-white shadow-[0_0_4px_#bcbcbc99]">
-                0
-              </span>
-            </Button>
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="hover:bg-[#232326] border border-white rounded-full relative">
+                <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
+                {totals.itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold">
+                    {totals.itemCount > 99 ? '99+' : totals.itemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
             {/* Mobile Menu Button - always takes space */}
             <div className="md:invisible">
               <Button
@@ -228,6 +245,10 @@ export function Header() {
               </Link>
               <Link href="/contact" className="text-lg font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5" onClick={() => setMobileMenuOpen(false)}>
                 {t('contact')}
+              </Link>
+              <Link href="/cart" className="text-lg font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5 flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                Καλάθι {totals.itemCount > 0 && `(${totals.itemCount})`}
               </Link>
             </motion.nav>
           )}
