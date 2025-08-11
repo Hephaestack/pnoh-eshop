@@ -129,11 +129,11 @@ export function Header() {
                 tabIndex={-1}
               >
                 <div className="flex justify-center w-full gap-20 py-10 px-14">
-                  <MegaMenuItem href="/collections" img="/images/all_jewelry.jpg" label={t('all_jewelry')} onClick={() => setJewelryOpen(false)} />
-                  <MegaMenuItem href="/rings" img="/images/rings.jpg" label={t('rings')} onClick={() => setJewelryOpen(false)} />
-                  <MegaMenuItem href="/bracelets" img="/images/bracelets.jpg" label={t('bracelets')} onClick={() => setJewelryOpen(false)} />
-                  <MegaMenuItem href="/necklaces" img="/images/necklaces.jpg" label={t('necklaces')} onClick={() => setJewelryOpen(false)} />
-                  <MegaMenuItem href="/earrings" img="/images/earrings.jpg" label={t('earrings')} onClick={() => setJewelryOpen(false)} />
+                  <MegaMenuItem href="/shop/products" img="/images/all_jewelry.jpg" label={t('all_products')} onClick={() => setJewelryOpen(false)} />
+                  <MegaMenuItem href="/shop/rings" img="/images/rings.jpg" label={t('rings')} onClick={() => setJewelryOpen(false)} />
+                  <MegaMenuItem href="/shop/bracelets" img="/images/bracelets.jpg" label={t('bracelets')} onClick={() => setJewelryOpen(false)} />
+                  <MegaMenuItem href="/shop/necklaces" img="/images/necklaces.jpg" label={t('necklaces')} onClick={() => setJewelryOpen(false)} />
+                  <MegaMenuItem href="/shop/earrings" img="/images/earrings.jpg" label={t('earrings')} onClick={() => setJewelryOpen(false)} />
                 </div>
               </div>
 

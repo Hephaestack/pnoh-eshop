@@ -1,11 +1,15 @@
 "use client"
 
-
+import React from "react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
- export default function BraceletPage() {
+
+export default function RingsPage({ params }) {
+  const routeParams = React.use(params);
   const [enlarged, setEnlarged] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [productData, setProductData] = useState(null);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
  
@@ -14,6 +18,52 @@ import { useTranslation } from "react-i18next";
   const animationFrame = useRef(null);
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
   const current = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
+
+  // TODO: Replace with actual API call when backend is ready
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        // Simulate API call - replace with: 
+        // const response = await fetch(`/api/products/${params.id}`);
+        // const data = await response.json();
+        // setProductData(data);
+        
+        // Temporary: simulate API delay and set mock data
+        const timer = setTimeout(() => {
+          setProductData({
+            id: routeParams?.id || 1,
+            name: "Elegant Ring",
+            price: 85,
+            description: "Beautiful handcrafted ring",
+            image: "/images/test2.jpg"
+          });
+          setIsLoading(false);
+        }, 300);
+
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [routeParams?.id]);
+
+  // Show loading state while fetching data
+  if (isLoading || !productData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#18181b] px-4 py-8">
+        <div className="bg-[#232326]/60 rounded-2xl shadow-2xl px-8 py-12 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 w-full max-w-md">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bcbcbc] mb-6"></div>
+            <p className="text-center text-[#f8f8f8] font-medium text-lg">Loading Product...</p>
+            <p className="text-center text-[#bcbcbc] text-sm mt-2">Preparing your jewelry details</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   function clamp(val, min, max) {
     return Math.max(min, Math.min(max, val));
