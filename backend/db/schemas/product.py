@@ -12,7 +12,7 @@ class ProductSummary(BaseModel):
     price: float
     category: Optional[Category]
     sub_category: Optional[SubCategory]
-    image_url: List[str]
+    image_url: Optional[List[str]]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

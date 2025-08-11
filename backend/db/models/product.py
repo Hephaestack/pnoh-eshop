@@ -4,8 +4,9 @@ from sqlalchemy import Column, String, Float, Integer, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from db.database import Base
 from zoneinfo import ZoneInfo
+
+from db.database import Base
 
 class Category(str, enum.Enum):
     rings = "rings"
@@ -33,9 +34,9 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
     updated_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), onupdate=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
 
-    wishlist_items = relationship("Wishlist", back_populates="product")
-    cart_items = relationship("CartItem", back_populates="product")
-    order_items = relationship("OrderItem", back_populates="product")
+    # wishlist_items = relationship("Wishlist", back_populates="product")
+    # cart_items = relationship("CartItem", back_populates="product")
+    # order_items = relationship("OrderItem", back_populates="product")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
