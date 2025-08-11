@@ -64,10 +64,10 @@ def get_products_by_category_and_subcategory(
     
     return products
 
-@router.get("/products/categories", response_model=list[str])
+@router.get("/categories", response_model=list[str])
 def get_categories():
     return [category.value for category in Category]
 
-@router.get("/products/subcategories", response_model=list[str])
+@router.get("/subcategories", response_model=list[str])
 def get_subcategories():
     return [sub_category.value for sub_category in SubCategory]
