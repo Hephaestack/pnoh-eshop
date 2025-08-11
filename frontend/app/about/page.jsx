@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Award, Users, Heart, Gem } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
+import { useRouter } from "next/navigation"
 
 export default function AboutPage() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
@@ -151,12 +153,14 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button
+              onClick={() => router.push("/contact")}
               size="lg"
               className="bg-[#23232a] text-[#e5e7eb] hover:bg-[#18181b] px-8 py-3 text-sm font-light tracking-wide transition-all duration-300 border border-[#bfc1c6]"
             >
               {t('about_cta_contact')}
             </Button>
             <Button
+              onClick={() => router.push("/collections")}
               variant="outline"
               size="lg"
               className="border-[#bfc1c6] text-[#bfc1c6] hover:bg-[#23232a] px-8 py-3 text-sm font-light tracking-wide transition-all duration-300 bg-transparent"
