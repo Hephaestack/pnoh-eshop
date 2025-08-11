@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
@@ -9,6 +9,7 @@ import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
 // Removed texture/particles/frame for a more minimal look
 
 // Enhanced Product Card
+
 const EnhancedProductCard = ({ product, viewMode }) => {
   const { t } = useTranslation();
   
@@ -58,48 +59,52 @@ export default function AllProductsPage() {
   const [selectedTheme, setSelectedTheme] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { t } = useTranslation();
 
   // Pagination settings - 4 rows with 3 columns = 12 products per page
   const productsPerPage = 12;
 
-  // Mock product data - replace with your actual API call
-  const allProducts = [
-    // Rings
-    { id: 1, name: "Elegant Gold Ring", price: 45, category: "rings", theme: "classic", image: "/placeholder-ring.jpg" },
-    { id: 2, name: "Ethnic Silver Ring", price: 60, category: "rings", theme: "ethnic", image: "/placeholder-ring.jpg" },
-    { id: 3, name: "One of a Kind Ruby Ring", price: 120, category: "rings", theme: "one-of-a-kind", image: "/placeholder-ring.jpg" },
-    { id: 13, name: "Vintage Gold Ring", price: 95, category: "rings", theme: "classic", image: "/placeholder-ring.jpg" },
-    { id: 14, name: "Modern Silver Ring", price: 75, category: "rings", theme: "ethnic", image: "/placeholder-ring.jpg" },
-    { id: 15, name: "Designer Diamond Ring", price: 180, category: "rings", theme: "one-of-a-kind", image: "/placeholder-ring.jpg" },
-    
-    // Bracelets
-    { id: 4, name: "Classic Gold Bracelet", price: 80, category: "bracelets", theme: "classic", image: "/placeholder-bracelet.jpg" },
-    { id: 5, name: "Ethnic Beaded Bracelet", price: 35, category: "bracelets", theme: "ethnic", image: "/placeholder-bracelet.jpg" },
-    { id: 6, name: "Artisan Bracelet", price: 95, category: "bracelets", theme: "one-of-a-kind", image: "/placeholder-bracelet.jpg" },
-    { id: 16, name: "Silver Chain Bracelet", price: 65, category: "bracelets", theme: "classic", image: "/placeholder-bracelet.jpg" },
-    { id: 17, name: "Leather Cord Bracelet", price: 40, category: "bracelets", theme: "ethnic", image: "/placeholder-bracelet.jpg" },
-    { id: 18, name: "Gemstone Bracelet", price: 110, category: "bracelets", theme: "one-of-a-kind", image: "/placeholder-bracelet.jpg" },
-    
-    // Necklaces
-    { id: 7, name: "Pearl Necklace", price: 150, category: "necklaces", theme: "classic", image: "/placeholder-necklace.jpg" },
-    { id: 8, name: "Tribal Necklace", price: 75, category: "necklaces", theme: "ethnic", image: "/placeholder-necklace.jpg" },
-    { id: 9, name: "Designer Statement Piece", price: 200, category: "necklaces", theme: "one-of-a-kind", image: "/placeholder-necklace.jpg" },
-    { id: 19, name: "Gold Chain Necklace", price: 120, category: "necklaces", theme: "classic", image: "/placeholder-necklace.jpg" },
-    { id: 20, name: "Bohemian Necklace", price: 85, category: "necklaces", theme: "ethnic", image: "/placeholder-necklace.jpg" },
-    { id: 21, name: "Crystal Pendant Necklace", price: 160, category: "necklaces", theme: "one-of-a-kind", image: "/placeholder-necklace.jpg" },
-    
-    // Earrings
-    { id: 10, name: "Diamond Studs", price: 85, category: "earrings", theme: "classic", image: "/placeholder-earrings.jpg" },
-    { id: 11, name: "Hoop Earrings", price: 45, category: "earrings", theme: "ethnic", image: "/placeholder-earrings.jpg" },
-    { id: 12, name: "Artisan Drop Earrings", price: 110, category: "earrings", theme: "one-of-a-kind", image: "/placeholder-earrings.jpg" },
-    { id: 22, name: "Pearl Drop Earrings", price: 90, category: "earrings", theme: "classic", image: "/placeholder-earrings.jpg" },
-    { id: 23, name: "Feather Earrings", price: 55, category: "earrings", theme: "ethnic", image: "/placeholder-earrings.jpg" },
-    { id: 24, name: "Chandelier Earrings", price: 135, category: "earrings", theme: "one-of-a-kind", image: "/placeholder-earrings.jpg" },
-  ];
+  // Fetch products from the API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        // Direct call to FastAPI backend
+        const response = await fetch('http://localhost:8000/products/all');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch products: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Map the backend product structure to the frontend structure
+        const mappedProducts = data.map(product => ({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          category: product.category.toLowerCase(),
+          theme: product.sub_category ? product.sub_category.toLowerCase().replace(/_/g, '-') : 'classic',
+          image: product.image_url && product.image_url.length > 0 ? product.image_url[0] : "/placeholder-product.jpg"
+        }));
+        
+        setProducts(mappedProducts);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter products based on selected filters
-  const filteredProducts = allProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
     const themeMatch = selectedTheme === 'all' || product.theme === selectedTheme;
     return categoryMatch && themeMatch;
@@ -152,6 +157,38 @@ export default function AllProductsPage() {
     { value: 'ethnic', label: t('ethnic', 'Ethnic') },
     { value: 'one-of-a-kind', label: t('one_of_a_kind', 'One of a Kind') }
   ];
+
+  // Add loading and error states
+  if (loading) {
+    return (
+      <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-[#bcbcbc]">
+            {t('loading_products', 'Loading products...')}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="mb-4 text-lg text-red-500">
+            {t('error_loading_products', 'Error loading products')}
+          </div>
+          <div className="text-sm text-[#bcbcbc] mb-4">{error}</div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black"
+          >
+            {t('retry', 'Retry')}
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
