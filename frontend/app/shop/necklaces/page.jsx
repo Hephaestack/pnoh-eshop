@@ -2,9 +2,8 @@
 
 import CategoryPage from "../../../components/shop/CategoryPage";
 
-export default function NecklacesPage() {
-  // You can fetch category-specific products here
-  // For now, using the component's default mock data
+export default function RingsPage() {
+ 
   
-  return <CategoryPage category="necklaces" />;
+  return <CategoryPage category="rings" />;
 }

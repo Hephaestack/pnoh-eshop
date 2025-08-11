@@ -94,10 +94,10 @@ export function Header() {
 
   return (
     <header ref={headerRef} className="border-b border-white sticky main-header bg-[#18181b] shadow-[0_2px_8px_0_rgba(180,180,180,0.04)]">
-      <div className="px-2 py-2 mx-auto max-w-7xl sm:px-6 h-20 md:h-24 lg:h-28 flex items-center">
-        <div className="grid items-center w-full grid-cols-3 gap-4 h-full">
+      <div className="flex items-center h-20 px-2 py-2 mx-auto max-w-7xl sm:px-6 md:h-24 lg:h-28">
+        <div className="grid items-center w-full h-full grid-cols-3 gap-4">
           {/* Logo Left */}
-          <div className="flex items-center min-w-0 justify-start">
+          <div className="flex items-center justify-start min-w-0">
             <Link href="/" className="flex items-center">
               <img
                 src="/logo.webp"
@@ -295,16 +295,16 @@ function MobileDropdownNav() {
         <Link href="/collections" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
           {t('all_jewelry')}
         </Link>
-        <Link href="/rings" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+        <Link href="/shop/rings" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
           {t('rings')}
         </Link>
-        <Link href="/bracelets" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+        <Link href="/shop/bracelets" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
           {t('bracelets')}
         </Link>
-        <Link href="/necklaces" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+        <Link href="/shop/necklaces" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
           {t('necklaces')}
         </Link>
-        <Link href="/earrings" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
+        <Link href="/shop/earrings" className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors" onClick={() => setOpen(false)}>
           {t('earrings')}
         </Link>
       </div>

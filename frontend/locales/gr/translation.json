@@ -148,6 +148,13 @@
   "email_label": "Email *",
   "email_placeholder": "email@example.com",
   "phone_label_simple": "Τηλέφωνο",
+
+  "add_to_cart": "Προσθήκη στο Καλάθι",
+  "buy_now": "Αγορά Τώρα",
+  "previous_page": "Προηγούμενη Σελίδα",
+  "next_page": "Επόμενη Σελίδα",
+  "page": "Σελίδα",
+  "of": "από",
   "phone_placeholder": "+30 210 123 4567",
   "subject_label": "Θέμα *",
   "subject_placeholder": "Θέμα μηνύματος",

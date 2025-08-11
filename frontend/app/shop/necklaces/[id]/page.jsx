@@ -1,12 +1,15 @@
 "use client"
 
+import React from "react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function NecklacesPage() {
+export default function NecklacePage({ params }) {
+  const routeParams = React.use(params);
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [productData, setProductData] = useState(null);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
  
@@ -16,29 +19,36 @@ export default function NecklacesPage() {
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
   const current = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
 
-  // Simulate minimal loading for smooth transition
+  // TODO: Replace with actual API call when backend is ready
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 300); // Reduced delay for faster loading
+    const fetchProduct = async () => {
+      try {
+        // Simulate API call - replace with: 
+        // const response = await fetch(`/api/products/${params.id}`);
+        // const data = await response.json();
+        // setProductData(data);
+        
+        // Temporary: simulate API delay and set mock data
+        const timer = setTimeout(() => {
+          setProductData({
+            id: routeParams?.id || 1,
+            name: "Elegant Ring",
+            price: 85,
+            description: "Beautiful handcrafted ring",
+            image: "/images/test2.jpg"
+          });
+          setIsLoading(false);
+        }, 300);
 
-    return () => clearTimeout(timer);
-  }, []);
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setIsLoading(false);
+      }
+    };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#18181b] px-4 py-8">
-        <div className="bg-[#232326]/60 rounded-2xl shadow-2xl px-8 py-12 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 w-full max-w-md">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bcbcbc] mb-6"></div>
-            <p className="text-center text-[#f8f8f8] font-medium text-lg">Loading Product...</p>
-            <p className="text-center text-[#bcbcbc] text-sm mt-2">Preparing your jewelry details</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    fetchProduct();
+  }, [routeParams?.id]);
 
   function clamp(val, min, max) {
     return Math.max(min, Math.min(max, val));
@@ -102,23 +112,25 @@ export default function NecklacesPage() {
 
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
-      <Link href="/collections" className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block">{t('back_to_collection')}</Link>
+      <Link href="/products" className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block">{t('back_to_collection')}</Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
           ref={containerRef}
-          className="flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
+          className="group flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
           style={{ perspective: '1200px' }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={() => setEnlarged(true)}
         >
-          <img
-            ref={imgRef}
-            src="/images/test2.jpg"
-            alt="Βραχιόλι Touareg"
-            className="rounded-xl shadow-xl object-cover w-full max-w-xs bg-[#232326]/60 border border-[#bcbcbc33] backdrop-blur-md transition-transform duration-300"
-            style={{ transformStyle: 'preserve-3d', cursor: 'zoom-in' }}
-          />
+          <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 transition-shadow group-hover:shadow-[0_0_20px_4px_rgba(192,192,192,0.25)] w-full max-w-xs">
+            <img
+              ref={imgRef}
+              src="/images/test2.jpg"
+              alt="Elegant Ring"
+              className="object-cover w-full h-full transition-transform duration-200"
+              style={{ transformStyle: 'preserve-3d', cursor: 'zoom-in' }}
+            />
+          </div>
         </div>
 
         {/* Enlarged image overlay */}
@@ -159,6 +171,14 @@ export default function NecklacesPage() {
           <span className="text-[#bcbcbc] text-base mb-2">{t('bracelet_design')}</span>
           <span className="text-[#bcbcbc] text-base mb-4">{t('bracelet_gender')}</span>
           <span className="text-[#f8f8f8] text-xl font-semibold mb-4">{t('bracelet_price')}</span>
+          <div className="mt-2 flex items-center gap-2">
+            <button className="border border-slate-300 bg-transparent text-slate-200 rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 hover:text-black font-serif">
+              {t('add_to_cart', 'Add to Cart')}
+            </button>
+            <button className="border border-slate-300 bg-slate-200 text-black rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 font-serif">
+              {t('buy_now', 'Buy Now')}
+            </button>
+          </div>
         </div>
       </div>
       <section className="mb-8 text-center md:text-left">

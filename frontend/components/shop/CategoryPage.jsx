@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, Grid, List } from "lucide-react";
+import { SlidersHorizontal, Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CategoryPage({ category, products }) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
+  const [currentPage, setCurrentPage] = useState(1);
   const { t } = useTranslation();
+
+  const productsPerPage = 12;
 
   // Get theme from URL params on client side
   useEffect(() => {
@@ -74,12 +77,55 @@ export default function CategoryPage({ category, products }) {
     { id: 4, name: `Modern ${categoryInfo.title}`, price: 35, image: categoryInfo.placeholder, theme: 'classic' },
     { id: 5, name: `Tribal ${categoryInfo.title}`, price: 85, image: categoryInfo.placeholder, theme: 'ethnic' },
     { id: 6, name: `Designer ${categoryInfo.title}`, price: 150, image: categoryInfo.placeholder, theme: 'one-of-a-kind' },
+    { id: 7, name: `Vintage ${categoryInfo.title}`, price: 75, image: categoryInfo.placeholder, theme: 'classic' },
+    { id: 8, name: `Bohemian ${categoryInfo.title}`, price: 55, image: categoryInfo.placeholder, theme: 'ethnic' },
+    { id: 9, name: `Luxury ${categoryInfo.title}`, price: 200, image: categoryInfo.placeholder, theme: 'one-of-a-kind' },
+    { id: 10, name: `Minimalist ${categoryInfo.title}`, price: 40, image: categoryInfo.placeholder, theme: 'classic' },
+    { id: 11, name: `Folk ${categoryInfo.title}`, price: 65, image: categoryInfo.placeholder, theme: 'ethnic' },
+    { id: 12, name: `Unique ${categoryInfo.title}`, price: 180, image: categoryInfo.placeholder, theme: 'one-of-a-kind' },
+    { id: 13, name: `Contemporary ${categoryInfo.title}`, price: 90, image: categoryInfo.placeholder, theme: 'classic' },
+    { id: 14, name: `Traditional ${categoryInfo.title}`, price: 70, image: categoryInfo.placeholder, theme: 'ethnic' },
+    { id: 15, name: `Exclusive ${categoryInfo.title}`, price: 250, image: categoryInfo.placeholder, theme: 'one-of-a-kind' },
+    { id: 16, name: `Elegant ${categoryInfo.title}`, price: 95, image: categoryInfo.placeholder, theme: 'classic' },
   ];
 
   // Filter products by theme
   const filteredProducts = selectedTheme === 'all' 
     ? mockProducts 
     : mockProducts.filter(product => product.theme === selectedTheme);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTheme]);
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    // Smooth scroll to top of page
+    window.scrollTo({ 
+      top: 0, 
+      behavior: 'smooth' 
+    });
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  };
 
   const themes = [
     { value: 'all', label: t('all_themes', 'All Themes') },
@@ -178,48 +224,113 @@ export default function CategoryPage({ category, products }) {
 
       {/* Product Grid/List */}
       <div className={viewMode === 'grid' 
-        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" 
-        : "space-y-4"
+        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 border-t border-[rgba(255,255,255,0.05)]" 
+        : "space-y-4 border-t border-[rgba(255,255,255,0.05)]"
       }>
-        {filteredProducts.map((product) => (
-          <motion.div
-            key={product.id}
-            layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Link href={`/shop/${category}/${product.id}`}>
-              <div className={viewMode === 'grid' 
-                ? "rounded-xl shadow-xl p-4 flex flex-col items-center bg-[#232326]/60 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 hover:scale-[1.03] transition-transform hover:border-[#bcbcbc55]"
-                : "rounded-xl shadow-xl p-4 flex flex-row items-center bg-[#232326]/60 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 hover:scale-[1.01] transition-transform hover:border-[#bcbcbc55] gap-4"
-              } style={{boxShadow:'0 8px 32px 0 #23232a55'}}>
-                <div className={viewMode === 'grid' 
-                  ? "w-full aspect-square bg-[#18181b] rounded-lg mb-4 flex items-center justify-center overflow-hidden"
-                  : "w-24 h-24 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
-                }>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="object-cover w-full h-full transition-transform hover:scale-110"
-                  />
-                </div>
-                <div className={viewMode === 'grid' ? "text-center" : "flex-1"}>
-                  <h3 className="text-lg font-medium text-[#f8f8f8] mb-1">{product.name}</h3>
-                  <p className="text-[#bcbcbc] text-sm mb-2 capitalize">
-                    {t(product.theme.replace(/-/g, '_'))} • {categoryInfo.title}
-                  </p>
-                  <span className="text-[#f8f8f8] font-semibold">€{product.price}</span>
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {currentProducts.map((product) => (
+            <motion.div
+              key={`${product.id}-${currentPage}`}
+              layout
+              layoutId={`product-${product.id}-page-${currentPage}`}
+              initial={{ opacity: 0, scale: 0.98, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: -20 }}
+              transition={{ 
+                duration: 0.3, 
+                layout: { type: "spring", stiffness: 500, damping: 40 },
+                delay: (currentProducts.indexOf(product) % 12) * 0.05 
+              }}
+            >
+              <Link href={`/shop/${category}/${product.id}`}>
+                <motion.div
+                  className={viewMode === 'grid'
+                    ? "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group backdrop-blur-md backdrop-saturate-150 transition-transform"
+                    : "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group flex flex-row gap-4 backdrop-blur-md backdrop-saturate-150 transition-transform"
+                  }
+                  whileHover={{ y: -4, boxShadow: "0 0 20px 4px rgba(192,192,192,0.25)" }}
+                >
+                  <div className={viewMode === 'grid'
+                    ? "relative w-full aspect-square bg-[#18181b] rounded-lg mb-4 flex items-center justify-center overflow-hidden"
+                    : "relative w-24 h-24 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+                  }>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  <div className={viewMode === 'grid' ? "text-center px-2 pb-2" : "flex-1 px-2 py-2"}>
+                    <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">{product.name}</h3>
+                    <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif">
+                      {t(product.theme.replace(/-/g, '_'))} • {categoryInfo.title}
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xl font-bold text-slate-300">€{product.price}</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      <button className="border border-slate-300 bg-transparent text-slate-200 rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 hover:text-black font-serif">
+                        {t('add_to_cart')}
+                      </button>
+                      <button className="border border-slate-300 bg-slate-200 text-black rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 font-serif">
+                        {t('buy_now')}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <motion.div 
+          className="flex items-center justify-center mt-12 gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <button
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+            className="flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 bg-transparent text-slate-200 transition-colors duration-150 hover:bg-slate-300 hover:text-black font-serif disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            {t('previous_page', 'Previous')}
+          </button>
+
+          {/* Page numbers */}
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                className={`px-4 py-2 rounded-md transition-colors duration-150 font-serif ${
+                  page === currentPage
+                    ? 'bg-slate-200 text-black'
+                    : 'border border-slate-300 bg-transparent text-slate-200 hover:bg-slate-300 hover:text-black'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-2 px-4 py-2 rounded-md border border-slate-300 bg-transparent text-slate-200 transition-colors duration-150 hover:bg-slate-300 hover:text-black font-serif disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {t('next_page', 'Next')}
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
+
       {/* No Results */}
-      {filteredProducts.length === 0 && (
+      {currentProducts.length === 0 && (
         <div className="py-12 text-center">
           <p className="text-[#bcbcbc] text-lg">
             {t('no_products_found', 'No products found matching your criteria.')}

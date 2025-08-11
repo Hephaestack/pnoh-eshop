@@ -34,16 +34,16 @@ export default function CartPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#18181b] pt-8">
-        <div className="container mx-auto px-4">
+        <div className="container px-4 mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-4">
+            <div className="w-1/4 h-8 mb-8 bg-gray-700 rounded"></div>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="space-y-4 lg:col-span-2">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-32 bg-gray-700 rounded"></div>
                 ))}
               </div>
-              <div className="h-96 bg-gray-700 rounded"></div>
+              <div className="bg-gray-700 rounded h-96"></div>
             </div>
           </div>
         </div>
@@ -54,22 +54,22 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-[#18181b] pt-8">
-        <div className="container mx-auto px-4">
+        <div className="container px-4 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16"
+            className="py-16 text-center"
           >
-            <ShoppingBag className="w-24 h-24 text-gray-400 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-white mb-4">
+            <ShoppingBag className="w-24 h-24 mx-auto mb-6 text-gray-400" />
+            <h1 className="mb-4 text-3xl font-bold text-white">
               Το καλάθι σας είναι άδειο
             </h1>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="max-w-md mx-auto mb-8 text-gray-400">
               Φαίνεται ότι δεν έχετε προσθέσει ακόμα προϊόντα στο καλάθι σας. 
               Ανακαλύψτε τη συλλογή μας και βρείτε κάτι όμορφο!
             </p>
-            <Link href="/collections">
-              <Button className="bg-white text-black hover:bg-gray-100">
+            <Link href="/products">
+              <Button className="text-black bg-white hover:bg-gray-100">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Συνέχεια Αγορών
               </Button>
@@ -82,7 +82,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-[#18181b] pt-8 pb-16">
-      <div className="container mx-auto px-4">
+      <div className="container px-4 mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -102,7 +102,7 @@ export default function CartPage() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Cart Items */}
           <div className="lg:col-span-2">
             <Card className="bg-[#232326] border-gray-700">
@@ -124,7 +124,7 @@ export default function CartPage() {
                         <img
                           src={item.image || '/placeholder-product.jpg'}
                           alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg"
+                          className="object-cover w-20 h-20 rounded-lg"
                         />
                       </div>
 
@@ -134,7 +134,7 @@ export default function CartPage() {
                           {item.name}
                         </h3>
                         {item.variant && (
-                          <div className="flex space-x-2 mt-1">
+                          <div className="flex mt-1 space-x-2">
                             {item.variant.size && (
                               <Badge variant="secondary" className="text-xs">
                                 Μέγεθος: {item.variant.size}
@@ -147,7 +147,7 @@ export default function CartPage() {
                             )}
                           </div>
                         )}
-                        <p className="text-2xl font-bold text-white mt-2">
+                        <p className="mt-2 text-2xl font-bold text-white">
                           €{item.price}
                         </p>
                       </div>
@@ -158,7 +158,7 @@ export default function CartPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant)}
-                          className="h-8 w-8 p-0 border-gray-600 text-white hover:bg-gray-700"
+                          className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
@@ -169,7 +169,7 @@ export default function CartPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant)}
-                          className="h-8 w-8 p-0 border-gray-600 text-white hover:bg-gray-700"
+                          className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Plus className="w-3 h-3" />
                         </Button>
@@ -180,7 +180,7 @@ export default function CartPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeItem(item.id, item.variant)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20 p-2"
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -217,15 +217,15 @@ export default function CartPage() {
                       <span>€{totals.tax}</span>
                     </div>
                     <hr className="border-gray-600" />
-                    <div className="flex justify-between text-white text-lg font-bold">
+                    <div className="flex justify-between text-lg font-bold text-white">
                       <span>Σύνολο</span>
                       <span>€{totals.total}</span>
                     </div>
                   </div>
 
                   {totals.shipping === 0 && (
-                    <div className="bg-green-900/20 border border-green-700 rounded-lg p-3">
-                      <p className="text-green-400 text-sm text-center">
+                    <div className="p-3 border border-green-700 rounded-lg bg-green-900/20">
+                      <p className="text-sm text-center text-green-400">
                         🎉 Κερδίσατε δωρεάν μεταφορικά!
                       </p>
                     </div>
@@ -234,7 +234,7 @@ export default function CartPage() {
                   <div className="space-y-3">
                     <Link href="/checkout">
                       <Button 
-                        className="w-full bg-white text-black hover:bg-gray-100 font-semibold"
+                        className="w-full font-semibold text-black bg-white hover:bg-gray-100"
                         disabled={isLoading}
                       >
                         <Lock className="w-4 h-4 mr-2" />
