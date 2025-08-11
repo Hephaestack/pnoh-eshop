@@ -3,21 +3,16 @@ from uuid import UUID
 from typing import List, Optional
 from datetime import datetime
 
+from db.models.product import Category, SubCategory
+
 class ProductSummary(BaseModel):
     id: UUID
     name: str
     description: Optional[str]
     price: float
-    stock_quantity: int
-    category: Optional[str]
-    sub_category: Optional[str]
+    category: Optional[Category]
+    sub_category: Optional[SubCategory]
     image_url: List[str]
-    created_at: datetime
-    updated_at: datetime
-    wishlist: "WishlistSummary"
 
     class Config:
         orm_mode = True
-
-from db.schemas.wishlist import WishlistSummary
-ProductSummary.model_rebuild()

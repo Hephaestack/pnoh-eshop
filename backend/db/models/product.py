@@ -1,9 +1,23 @@
 import uuid
-from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+import enum
+from sqlalchemy import Column, String, Float, Integer, DateTime, Enum
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db.database import Base
+from zoneinfo import ZoneInfo
+
+class Category(str, enum.Enum):
+    rings = "rings"
+    earrings = "earrings"
+    bracelets = "bracelets"
+    necklaces = "necklaces"
+
+class SubCategory(str, enum.Enum):
+    ethnic = "ethnic"
+    one_of_a_kind = "one of a kind"
+    minimal = "minimal"
+    luxury = "luxury"
 
 class Product(Base):
     __tablename__ = "products"
@@ -13,11 +27,11 @@ class Product(Base):
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
     stock_quantity = Column(Integer, nullable=False, default=0)
-    category = Column(String(100), nullable=True)
-    sub_category = Column(String, nullable=True)
-    image_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(), nullable=False)
-    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.utcnow, nullable=False)
+    category = Column(Enum(Category, name="category"), nullable=True)
+    sub_category = Column(Enum(SubCategory, name="Subcategory"), nullable=True)
+    image_url = Column(ARRAY(String), nullable=True)
+    created_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
+    updated_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), onupdate=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
 
     wishlist_items = relationship("Wishlist", back_populates="product")
     cart_items = relationship("CartItem", back_populates="product")

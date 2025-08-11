@@ -1,28 +1,33 @@
-# Python
-*.pyc
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
-__pycache__/
-*.env
-*.db
-*.sqlite
 
-# Virtual environments
+# Environments
+.venv/
 venv/
-env/
-.env/
+.env
 
-# IDE/editor files
+# Database
+*.db
+*.sqlite3
+app.db
+reset.sql
+
+# IDE files
 .vscode/
 .idea/
 
-# pytest cache and other test-related files
-*.log
-*.coverage
-nosetests.xml
-coverage.xml
-*.hypothesis/
-
-# System files
+# OS-specific
 .DS_Store
 Thumbs.db
+
+# Logs & test
+*.log
+*.coverage
+htmlcov/
+pytest_cache/
+
+# Alembic migrations (αν χρησιμοποιήσεις στο μέλλον)
+alembic/
