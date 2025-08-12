@@ -1,6 +1,8 @@
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from fastapi.encoders import jsonable_encoder
 
 from db.database import SessionLocal
 from db.models.product import Product, Category, SubCategory
@@ -11,10 +13,16 @@ router = APIRouter()
 
 @router.get("/products/all", response_model=list[ProductSummary])
 def get_all_products(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 12
 ):
-    products = db.query(Product).all()
-    return products
+    products = db.query(Product).offset(skip).limit(limit).all()
+    
+    response_data = jsonable_encoder(products)
+    response = JSONResponse(content = response_data)
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
 
 @router.get("/products/{product_id}", response_model=ProductSummary)
 def get_product(
@@ -25,44 +33,62 @@ def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found.")
     
-    return product
+    response_data = jsonable_encoder(product)
+    response = JSONResponse(content = response_data)
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
 
 @router.get("/products/category/{category}", response_model=list[ProductSummary])
 def get_products_by_category(
     category: Category,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 12
 ):
-    products = db.query(Product).filter(Product.category == category).all()
+    products = db.query(Product).filter(Product.category == category).offset(skip).limit(limit).all()
     if not products:
         raise HTTPException(status_code=404, detail="No products found for this category.")
     
-    return products
+    response_data = jsonable_encoder(products)
+    response = JSONResponse(content = response_data)
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
 
 @router.get("/products/subcategory/{sub_category}", response_model=list[ProductSummary])
 def get_products_by_subcategory(
     sub_category: SubCategory,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 12
 ):
-    products = db.query(Product).filter(Product.sub_category == sub_category).all()
+    products = db.query(Product).filter(Product.sub_category == sub_category).offset(skip).limit(limit).all()
     if not products:
         raise HTTPException(status_code=404, detail="No products found for this subcategory.")
     
-    return products
+    response_data = jsonable_encoder(products)
+    response = JSONResponse(content = response_data)
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
 
 @router.get("/products/category/{category}/subcategory/{sub_category}", response_model=list[ProductSummary])
 def get_products_by_category_and_subcategory(
     category: Category,
     sub_category: SubCategory,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 12
 ):
     products = db.query(Product).filter(
         Product.category == category,
         Product.sub_category == sub_category
-    ).all()
+    ).offset(skip).limit(limit).all()
     if not products:
         raise HTTPException(status_code=404, detail="No products found.")
     
-    return products
+    response_data = jsonable_encoder(products)
+    response = JSONResponse(content = response_data)
+    response.headers['Cache-Control'] = 'public, max-age=3600'    
+    return response
 
 @router.get("/categories", response_model=list[str])
 def get_categories():
