@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -10,44 +10,47 @@ export default function RingsPage({ params }) {
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
-  const imgRef = useRef(null);
-  const containerRef = useRef(null);
- 
-  const { t } = useTranslation();
-  // Animation state (must be refs to persist across renders)
-  const animationFrame = useRef(null);
-  const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
-  const current = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
 
-  // TODO: Replace with actual API call when backend is ready
+  const { t } = useTranslation();
+
+  // Fetch product from API
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // Simulate API call - replace with: 
-        // const response = await fetch(`/api/products/${params.id}`);
-        // const data = await response.json();
-        // setProductData(data);
-        
-        // Temporary: simulate API delay and set mock data
-        const timer = setTimeout(() => {
-          setProductData({
-            id: routeParams?.id || 1,
-            name: "Elegant Ring",
-            price: 85,
-            description: "Beautiful handcrafted ring",
-            image: "/images/test2.jpg"
-          });
-          setIsLoading(false);
-        }, 300);
+        setIsLoading(true);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`);
 
-        return () => clearTimeout(timer);
+        if (!response.ok) {
+          throw new Error(`Product not found: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setProductData({
+          id: data.id,
+          name: data.name,
+          price: data.price,
+          description: data.description,
+          category: data.category,
+          sub_category: data.sub_category,
+          image:
+            data.image_url && data.image_url.length > 0
+              ? data.image_url[0].replace("dl=0", "raw=1")
+              : "/placeholder-product.jpg",
+          images: data.image_url
+            ? data.image_url.map((url) => url.replace("dl=0", "raw=1"))
+            : [],
+        });
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error("Error fetching product:", error);
         setIsLoading(false);
       }
     };
 
-    fetchProduct();
+    if (routeParams?.id) {
+      fetchProduct();
+    }
   }, [routeParams?.id]);
 
   function clamp(val, min, max) {
@@ -57,10 +60,10 @@ export default function RingsPage({ params }) {
   function animate() {
     // Lower lerp for more stickiness
     const lerp = (a, b, n) => a + (b - a) * n;
-    current.current.tx = lerp(current.current.tx, target.current.tx, 0.10);
-    current.current.ty = lerp(current.current.ty, target.current.ty, 0.10);
-    current.current.rx = lerp(current.current.rx, target.current.rx, 0.10);
-    current.current.ry = lerp(current.current.ry, target.current.ry, 0.10);
+    current.current.tx = lerp(current.current.tx, target.current.tx, 0.1);
+    current.current.ty = lerp(current.current.ty, target.current.ty, 0.1);
+    current.current.rx = lerp(current.current.rx, target.current.rx, 0.1);
+    current.current.ry = lerp(current.current.ry, target.current.ry, 0.1);
     // Clamp for more physical feel
     const tx = clamp(current.current.tx, -60, 60);
     const ty = clamp(current.current.ty, -60, 60);
@@ -101,10 +104,11 @@ export default function RingsPage({ params }) {
     // Animate back to center
     const img = imgRef.current;
     if (!img) return;
-    img.style.transition = 'transform 0.7s cubic-bezier(.22,1,.36,1)';
-    img.style.transform = "translate(0px,0px) rotateX(0deg) rotateY(0deg) scale(1)";
+    img.style.transition = "transform 0.7s cubic-bezier(.22,1,.36,1)";
+    img.style.transform =
+      "translate(0px,0px) rotateX(0deg) rotateY(0deg) scale(1)";
     setTimeout(() => {
-      if (img) img.style.transition = '';
+      if (img) img.style.transition = "";
     }, 700);
     // Reset current for next hover
     current.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
@@ -112,23 +116,23 @@ export default function RingsPage({ params }) {
 
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
-      <Link href="/products" className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block">{t('back_to_collection')}</Link>
+      <Link
+        href="/products"
+        className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
+      >
+        {t("back_to_collection")}
+      </Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
-          ref={containerRef}
-          className="group flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
-          style={{ perspective: '1200px' }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+          className="flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
           onClick={() => setEnlarged(true)}
         >
-          <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 transition-shadow group-hover:shadow-[0_0_20px_4px_rgba(192,192,192,0.25)] w-full max-w-xs">
+          <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
             <img
-              ref={imgRef}
-              src="/images/test2.jpg"
-              alt="Elegant Ring"
-              className="object-cover w-full h-full transition-transform duration-200"
-              style={{ transformStyle: 'preserve-3d', cursor: 'zoom-in' }}
+              src={productData?.image || "/images/test2.jpg"}
+              alt={productData?.name || "Product Image"}
+              className="object-cover w-full h-full"
+              style={{ cursor: "zoom-in" }}
             />
           </div>
         </div>
@@ -141,22 +145,29 @@ export default function RingsPage({ params }) {
           >
             <div
               className="relative transition-all duration-500 ease-out scale-90 opacity-0 animate-zoomIn"
-              style={{ animation: 'zoomIn 0.5s cubic-bezier(.22,1,.36,1) forwards' }}
+              style={{
+                animation: "zoomIn 0.5s cubic-bezier(.22,1,.36,1) forwards",
+              }}
             >
               <img
-                src="/images/test2.jpg"
-                alt="Βραχιόλι Touareg"
+                src={productData?.image || "/images/test2.jpg"}
+                alt={productData?.name || "Product Image"}
                 className="rounded-xl shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
-                style={{ cursor: 'zoom-out' }}
+                style={{ cursor: "zoom-out" }}
               />
             </div>
             {/* Close button outside image, fixed at overlay top right */}
             <button
               className="fixed z-50 p-0 m-0 text-5xl font-bold text-white transition-transform duration-200 bg-transparent border-none shadow-none top-6 right-6 hover:scale-110"
-              style={{ lineHeight: 1, background: 'none', border: 'none' }}
-              onClick={e => { e.stopPropagation(); setEnlarged(false); }}
-              aria-label={t('close')}
-            >×</button>
+              style={{ lineHeight: 1, background: "none", border: "none" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEnlarged(false);
+              }}
+              aria-label={t("close")}
+            >
+              ×
+            </button>
             <style>{`
               @keyframes zoomIn {
                 from { transform: scale(0.7); opacity: 0; }
@@ -166,51 +177,62 @@ export default function RingsPage({ params }) {
           </div>
         )}
         <div className="flex flex-col items-center justify-center flex-1 text-center md:items-start md:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">{t('bracelet_title')}</h1>
-          <span className="text-[#bcbcbc] text-lg mb-2">{t('bracelet_material')}</span>
-          <span className="text-[#bcbcbc] text-base mb-2">{t('bracelet_design')}</span>
-          <span className="text-[#bcbcbc] text-base mb-4">{t('bracelet_gender')}</span>
-          <span className="text-[#f8f8f8] text-xl font-semibold mb-4">{t('bracelet_price')}</span>
-          <div className="mt-2 flex items-center gap-2">
-            <button className="border border-slate-300 bg-transparent text-slate-200 rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 hover:text-black font-serif">
-              {t('add_to_cart', 'Add to Cart')}
+          <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">
+            {productData?.name || t("bracelet_title")}
+          </h1>
+          <span className="text-[#bcbcbc] text-lg mb-2">
+            {productData?.category || t("bracelet_material")}
+          </span>
+          <span className="text-[#bcbcbc] text-base mb-2">
+            {productData?.description || t("bracelet_design")}
+          </span>
+          <span className="text-[#bcbcbc] text-base mb-4">
+            {t("bracelet_gender")}
+          </span>
+          <span className="text-[#f8f8f8] text-xl font-semibold mb-4">
+            €{productData?.price || t("bracelet_price")}
+          </span>
+          <div className="flex items-center gap-2 mt-2">
+            <button className="px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black">
+              {t("add_to_cart", "Add to Cart")}
             </button>
-            <button className="border border-slate-300 bg-slate-200 text-black rounded-md px-4 py-2 transition-colors duration-150 hover:bg-slate-300 font-serif">
-              {t('buy_now', 'Buy Now')}
+            <button className="px-4 py-2 font-serif text-black transition-colors duration-150 border rounded-md border-slate-300 bg-slate-200 hover:bg-slate-300">
+              {t("buy_now", "Buy Now")}
             </button>
           </div>
         </div>
       </div>
       <section className="mb-8 text-center md:text-left">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">{t('bracelet_description_title')}</h2>
-        <p className="text-[#e5e5e5] mb-2">{t('bracelet_description')}</p>
-        <ul className="text-[#bcbcbc] text-sm list-disc md:pl-6 pl-0 inline-block md:inline-block text-left mx-auto md:mx-0">
-          <li>{t('bracelet_length')}</li>
-          <li>{t('bracelet_element_height')}</li>
-          <li>{t('bracelet_element_length')}</li>
-        </ul>
+        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">
+          {t("bracelet_description_title")}
+        </h2>
+        <p className="text-[#e5e5e5] mb-2">
+          {productData?.description || t("bracelet_description")}
+        </p>
       </section>
       {/* Divider for mobile only */}
       <div className="flex w-full my-6 md:hidden">
         <div className="h-px w-full mx-auto bg-gradient-to-r from-transparent via-[#bcbcbc33] to-transparent" />
       </div>
       <section className="mb-8">
-        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2 text-center md:text-left">{t('shipping_title')}</h2>
+        <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2 text-center md:text-left">
+          {t("shipping_title")}
+        </h2>
         <ul className="text-[#bcbcbc] text-sm list-disc pl-6 mb-2 text-left w-full">
-          <li>{t('shipping_boxnow')}</li>
-          <li>{t('shipping_geniki')}</li>
-          <li>{t('shipping_free')}</li>
-          <li>{t('shipping_time')}</li>
+          <li>{t("shipping_boxnow")}</li>
+          <li>{t("shipping_geniki")}</li>
+          <li>{t("shipping_free")}</li>
+          <li>{t("shipping_time")}</li>
         </ul>
-        <p className="text-[#e5e5e5] text-sm mt-2">{t('shipping_notice')}</p>
+        <p className="text-[#e5e5e5] text-sm mt-2">{t("shipping_notice")}</p>
       </section>
       {/* Divider for mobile only */}
       <div className="flex w-full my-6 md:hidden">
         <div className="h-px w-full mx-auto bg-gradient-to-r from-transparent via-[#bcbcbc33] to-transparent" />
       </div>
       <section className="mb-8 text-center md:text-left">
-        <p className="text-xl text-[#e5e5e5]">{t('returns_policy')}</p>
-        <p className="text-[#e5e5e5] text-sm mt-2">{t('returns_notice')}</p>
+        <p className="text-xl text-[#e5e5e5]">{t("returns_policy")}</p>
+        <p className="text-[#e5e5e5] text-sm mt-2">{t("returns_notice")}</p>
       </section>
     </main>
   );

@@ -1,9 +1,7 @@
-"use client"
+"use client";
 
 import CategoryPage from "../../../components/shop/CategoryPage";
 
-export default function RingsPage() {
- 
-  
-  return <CategoryPage category="rings" />;
+export default function NecklacesPage() {
+  return <CategoryPage category="necklaces" />;
 }
