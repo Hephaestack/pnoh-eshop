@@ -4,14 +4,97 @@ import React from "react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 
 export default function RingsPage({ params }) {
   const routeParams = React.use(params);
+  const router = useRouter();
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
+  const [backUrl, setBackUrl] = useState("/shop/rings"); // Default fallback
 
   const { t } = useTranslation();
+
+  // Determine back URL based on referrer and navigation history
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    if (typeof window !== "undefined") {
+      const referrer = document.referrer;
+      const currentOrigin = window.location.origin;
+
+      console.log("Rings - Full referrer URL:", referrer); // Debug log
+      console.log("Rings - Current origin:", currentOrigin); // Debug log
+
+      // First try to get from session storage (more reliable for SPA navigation)
+      const previousPath = sessionStorage.getItem("previousPath");
+      console.log("Rings - Previous path from storage:", previousPath); // Debug log
+
+      let detectedPath = null;
+
+      // Check session storage first (for SPA navigation)
+      if (previousPath) {
+        detectedPath = previousPath;
+      }
+      // Fall back to document.referrer (for direct navigation/refresh)
+      else if (referrer && referrer.startsWith(currentOrigin)) {
+        detectedPath = referrer.replace(currentOrigin, "");
+      }
+
+      console.log("Rings - Detected path:", detectedPath); // Debug log
+
+      if (detectedPath) {
+        // More precise matching for all products page
+        if (
+          detectedPath === "/shop/products" ||
+          detectedPath.startsWith("/shop/products?") ||
+          detectedPath.startsWith("/shop/products#")
+        ) {
+          console.log(
+            "Rings - ✅ DETECTED ALL PRODUCTS PAGE - Setting back to /shop/products"
+          ); // Debug log
+          setBackUrl("/shop/products");
+        }
+        // If coming from rings category page
+        else if (
+          (detectedPath === "/shop/rings" ||
+            detectedPath.startsWith("/shop/rings?")) &&
+          !detectedPath.includes("[id]")
+        ) {
+          console.log(
+            "Rings - ✅ DETECTED RINGS CATEGORY - Setting back to /shop/rings"
+          ); // Debug log
+          setBackUrl("/shop/rings");
+        }
+        // If coming from other category pages, still go to rings
+        else if (detectedPath.includes("/shop/")) {
+          console.log(
+            "Rings - ✅ DETECTED OTHER SHOP PAGE - Setting back to /shop/rings",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/rings");
+        }
+        // Default fallback
+        else {
+          console.log(
+            "Rings - ⚠️ FALLBACK - Using default /shop/rings for path:",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/rings");
+        }
+      } else {
+        console.log(
+          "Rings - ❌ NO VALID PATH DETECTED - Using default /shop/rings"
+        ); // Debug log
+        setBackUrl("/shop/rings");
+      }
+    }
+  }, []);
 
   // Fetch product from API
   useEffect(() => {
@@ -19,7 +102,14 @@ export default function RingsPage({ params }) {
       try {
         setIsLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`);
+        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Product not found: ${response.status}`);
@@ -114,13 +204,53 @@ export default function RingsPage({ params }) {
     current.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
   }
 
+  // Show loading state while fetching product data
+  if (isLoading) {
+    return (
+      <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+        <Link
+          href="/products"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
+        >
+          {t("back_to_collection")}
+        </Link>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f8f8f8] mb-4"></div>
+          <p className="text-[#bcbcbc]">Loading product...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Show error state if product data failed to load
+  if (!productData) {
+    return (
+      <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+        <Link
+          href="/products"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
+        >
+          {t("back_to_collection")}
+        </Link>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <p className="text-[#f8f8f8] text-xl mb-2">Product not found</p>
+          <p className="text-[#bcbcbc]">
+            The product you're looking for doesn't exist.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
       <Link
-        href="/products"
+        href={backUrl}
         className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
       >
-        {t("back_to_collection")}
+        {backUrl.includes("/products")
+          ? t("back_to_all_products")
+          : t("back_to_collection")}
       </Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
@@ -129,8 +259,8 @@ export default function RingsPage({ params }) {
         >
           <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
             <img
-              src={productData?.image || "/images/test2.jpg"}
-              alt={productData?.name || "Product Image"}
+              src={productData.image}
+              alt={productData.name}
               className="object-cover w-full h-full"
               style={{ cursor: "zoom-in" }}
             />
@@ -150,8 +280,8 @@ export default function RingsPage({ params }) {
               }}
             >
               <img
-                src={productData?.image || "/images/test2.jpg"}
-                alt={productData?.name || "Product Image"}
+                src={productData.image}
+                alt={productData.name}
                 className="rounded-xl shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
                 style={{ cursor: "zoom-out" }}
               />
@@ -178,19 +308,19 @@ export default function RingsPage({ params }) {
         )}
         <div className="flex flex-col items-center justify-center flex-1 text-center md:items-start md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">
-            {productData?.name || t("bracelet_title")}
+            {productData.name}
           </h1>
           <span className="text-[#bcbcbc] text-lg mb-2">
-            {productData?.category || t("bracelet_material")}
+            {productData.category}
           </span>
           <span className="text-[#bcbcbc] text-base mb-2">
-            {productData?.description || t("bracelet_design")}
+            {productData.description}
           </span>
           <span className="text-[#bcbcbc] text-base mb-4">
             {t("bracelet_gender")}
           </span>
           <span className="text-[#f8f8f8] text-xl font-semibold mb-4">
-            €{productData?.price || t("bracelet_price")}
+            €{productData.price}
           </span>
           <div className="flex items-center gap-2 mt-2">
             <button className="px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black">
@@ -206,9 +336,7 @@ export default function RingsPage({ params }) {
         <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">
           {t("bracelet_description_title")}
         </h2>
-        <p className="text-[#e5e5e5] mb-2">
-          {productData?.description || t("bracelet_description")}
-        </p>
+        <p className="text-[#e5e5e5] mb-2">{productData.description}</p>
       </section>
       {/* Divider for mobile only */}
       <div className="flex w-full my-6 md:hidden">

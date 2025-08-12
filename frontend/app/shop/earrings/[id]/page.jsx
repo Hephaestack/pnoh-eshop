@@ -4,12 +4,15 @@ import React from "react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 
 export default function EarringPage({ params }) {
   const routeParams = React.use(params);
+  const router = useRouter();
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
+  const [backUrl, setBackUrl] = useState("/shop/earrings"); // Default fallback
   const imgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -19,13 +22,100 @@ export default function EarringPage({ params }) {
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
   const current = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
 
+  // Determine back URL based on referrer and navigation history
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    if (typeof window !== "undefined") {
+      const referrer = document.referrer;
+      const currentOrigin = window.location.origin;
+
+      console.log("Earrings - Full referrer URL:", referrer); // Debug log
+      console.log("Earrings - Current origin:", currentOrigin); // Debug log
+
+      // First try to get from session storage (more reliable for SPA navigation)
+      const previousPath = sessionStorage.getItem("previousPath");
+      console.log("Earrings - Previous path from storage:", previousPath); // Debug log
+
+      let detectedPath = null;
+
+      // Check session storage first (for SPA navigation)
+      if (previousPath) {
+        detectedPath = previousPath;
+      }
+      // Fall back to document.referrer (for direct navigation/refresh)
+      else if (referrer && referrer.startsWith(currentOrigin)) {
+        detectedPath = referrer.replace(currentOrigin, "");
+      }
+
+      console.log("Earrings - Detected path:", detectedPath); // Debug log
+
+      if (detectedPath) {
+        // More precise matching for all products page
+        if (
+          detectedPath === "/shop/products" ||
+          detectedPath.startsWith("/shop/products?") ||
+          detectedPath.startsWith("/shop/products#")
+        ) {
+          console.log(
+            "Earrings - ✅ DETECTED ALL PRODUCTS PAGE - Setting back to /shop/products"
+          ); // Debug log
+          setBackUrl("/shop/products");
+        }
+        // If coming from earrings category page
+        else if (
+          (detectedPath === "/shop/earrings" ||
+            detectedPath.startsWith("/shop/earrings?")) &&
+          !detectedPath.includes("[id]")
+        ) {
+          console.log(
+            "Earrings - ✅ DETECTED EARRINGS CATEGORY - Setting back to /shop/earrings"
+          ); // Debug log
+          setBackUrl("/shop/earrings");
+        }
+        // If coming from other category pages, still go to earrings
+        else if (detectedPath.includes("/shop/")) {
+          console.log(
+            "Earrings - ✅ DETECTED OTHER SHOP PAGE - Setting back to /shop/earrings",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/earrings");
+        }
+        // Default fallback
+        else {
+          console.log(
+            "Earrings - ⚠️ FALLBACK - Using default /shop/earrings for path:",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/earrings");
+        }
+      } else {
+        console.log(
+          "Earrings - ❌ NO VALID PATH DETECTED - Using default /shop/earrings"
+        ); // Debug log
+        setBackUrl("/shop/earrings");
+      }
+    }
+  }, []);
+
   // Fetch product from API
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setIsLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`);
+        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Product not found: ${response.status}`);
@@ -142,17 +232,19 @@ export default function EarringPage({ params }) {
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
       <Link
-        href="/collections"
+        href={backUrl}
         className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
       >
-        {t("back_to_collection")}
+        {backUrl.includes("/products")
+          ? t("back_to_all_products")
+          : t("back_to_collection")}
       </Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
           className="flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
           onClick={() => setEnlarged(true)}
         >
-          <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
+          <div className="relative border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
             <img
               src={productData?.image || "/images/test2.jpg"}
               alt={productData?.name || "Product Image"}
@@ -177,7 +269,7 @@ export default function EarringPage({ params }) {
               <img
                 src={productData?.image || "/images/test2.jpg"}
                 alt={productData?.name || "Product Image"}
-                className="rounded-xl shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
+                className="shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
                 style={{ cursor: "zoom-out" }}
               />
             </div>

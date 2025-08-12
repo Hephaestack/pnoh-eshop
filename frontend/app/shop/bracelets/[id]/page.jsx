@@ -4,20 +4,97 @@ import React from "react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 
 export default function BraceletPage({ params }) {
   const routeParams = React.use(params);
+  const router = useRouter();
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
-  const imgRef = useRef(null);
-  const containerRef = useRef(null);
+  const [backUrl, setBackUrl] = useState("/shop/bracelets"); // Default fallback
 
   const { t } = useTranslation();
-  // Animation state (must be refs to persist across renders)
-  const animationFrame = useRef(null);
-  const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
-  const current = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
+
+  // Determine back URL based on referrer and navigation history
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    if (typeof window !== "undefined") {
+      const referrer = document.referrer;
+      const currentOrigin = window.location.origin;
+
+      console.log("Bracelets - Full referrer URL:", referrer); // Debug log
+      console.log("Bracelets - Current origin:", currentOrigin); // Debug log
+
+      // First try to get from session storage (more reliable for SPA navigation)
+      const previousPath = sessionStorage.getItem("previousPath");
+      console.log("Bracelets - Previous path from storage:", previousPath); // Debug log
+
+      let detectedPath = null;
+
+      // Check session storage first (for SPA navigation)
+      if (previousPath) {
+        detectedPath = previousPath;
+      }
+      // Fall back to document.referrer (for direct navigation/refresh)
+      else if (referrer && referrer.startsWith(currentOrigin)) {
+        detectedPath = referrer.replace(currentOrigin, "");
+      }
+
+      console.log("Bracelets - Detected path:", detectedPath); // Debug log
+
+      if (detectedPath) {
+        // More precise matching for all products page
+        if (
+          detectedPath === "/shop/products" ||
+          detectedPath.startsWith("/shop/products?") ||
+          detectedPath.startsWith("/shop/products#")
+        ) {
+          console.log(
+            "Bracelets - ✅ DETECTED ALL PRODUCTS PAGE - Setting back to /shop/products"
+          ); // Debug log
+          setBackUrl("/shop/products");
+        }
+        // If coming from bracelets category page
+        else if (
+          (detectedPath === "/shop/bracelets" ||
+            detectedPath.startsWith("/shop/bracelets?")) &&
+          !detectedPath.includes("[id]")
+        ) {
+          console.log(
+            "Bracelets - ✅ DETECTED BRACELETS CATEGORY - Setting back to /shop/bracelets"
+          ); // Debug log
+          setBackUrl("/shop/bracelets");
+        }
+        // If coming from other category pages, still go to bracelets
+        else if (detectedPath.includes("/shop/")) {
+          console.log(
+            "Bracelets - ✅ DETECTED OTHER SHOP PAGE - Setting back to /shop/bracelets",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/bracelets");
+        }
+        // Default fallback
+        else {
+          console.log(
+            "Bracelets - ⚠️ FALLBACK - Using default /shop/bracelets for path:",
+            detectedPath
+          ); // Debug log
+          setBackUrl("/shop/bracelets");
+        }
+      } else {
+        console.log(
+          "Bracelets - ❌ NO VALID PATH DETECTED - Using default /shop/bracelets"
+        ); // Debug log
+        setBackUrl("/shop/bracelets");
+      }
+    }
+  }, []);
 
   // Fetch product from API
   useEffect(() => {
@@ -25,7 +102,14 @@ export default function BraceletPage({ params }) {
       try {
         setIsLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`);
+        const response = await fetch(`${apiUrl}/products/${routeParams?.id}`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Product not found: ${response.status}`);
@@ -78,81 +162,43 @@ export default function BraceletPage({ params }) {
     );
   }
 
-  function clamp(val, min, max) {
-    return Math.max(min, Math.min(max, val));
-  }
-
-  function animate() {
-    // Lower lerp for more stickiness
-    const lerp = (a, b, n) => a + (b - a) * n;
-    current.current.tx = lerp(current.current.tx, target.current.tx, 0.1);
-    current.current.ty = lerp(current.current.ty, target.current.ty, 0.1);
-    current.current.rx = lerp(current.current.rx, target.current.rx, 0.1);
-    current.current.ry = lerp(current.current.ry, target.current.ry, 0.1);
-    // Clamp for more physical feel
-    const tx = clamp(current.current.tx, -60, 60);
-    const ty = clamp(current.current.ty, -60, 60);
-    const rx = clamp(current.current.rx, -22, 22);
-    const ry = clamp(current.current.ry, -22, 22);
-    const img = imgRef.current;
-    if (img) {
-      img.style.transform = `translate(${tx}px, ${ty}px) rotateX(${-rx}deg) rotateY(${ry}deg) scale(1.10)`;
-    }
-    animationFrame.current = requestAnimationFrame(animate);
-  }
-
-  function handleMouseMove(e) {
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    // Strong, smooth pull: max 48px translate, max 18deg rotate
-    target.current.tx = ((x - centerX) / centerX) * 48;
-    target.current.ty = ((y - centerY) / centerY) * 48;
-    target.current.rx = ((y - centerY) / centerY) * 18;
-    target.current.ry = ((x - centerX) / centerX) * 18;
-    if (!animationFrame.current) animate();
-  }
-
-  function handleMouseLeave() {
-    // Add a slight delay before returning for a sticky feel
-    setTimeout(() => {
-      target.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
-    }, 80);
-    if (animationFrame.current) {
-      cancelAnimationFrame(animationFrame.current);
-      animationFrame.current = null;
-    }
-    // Animate back to center
-    const img = imgRef.current;
-    if (!img) return;
-    img.style.transition = "transform 0.7s cubic-bezier(.22,1,.36,1)";
-    img.style.transform =
-      "translate(0px,0px) rotateX(0deg) rotateY(0deg) scale(1)";
-    setTimeout(() => {
-      if (img) img.style.transition = "";
-    }, 700);
-    // Reset current for next hover
-    current.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
+  // Show error state
+  if (!productData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#18181b] px-4 py-8">
+        <div className="bg-[#232326]/60 rounded-2xl shadow-2xl px-8 py-12 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 w-full max-w-md">
+          <div className="flex flex-col items-center">
+            <p className="text-center text-[#f8f8f8] font-medium text-lg mb-4">
+              Product not found
+            </p>
+            <Link
+              href="/shop/bracelets"
+              className="px-6 py-3 text-black transition-colors rounded-lg bg-slate-200 hover:bg-slate-300"
+            >
+              Back to Bracelets
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
       <Link
-        href="/collections"
+        href={backUrl}
         className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
       >
-        {t("back_to_collection")}
+        {backUrl.includes("/products")
+          ? t("back_to_all_products")
+          : t("back_to_collection")}
       </Link>
       <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
         <div
           className="flex items-center justify-center flex-shrink-0 w-full cursor-pointer md:w-1/2"
           onClick={() => setEnlarged(true)}
         >
-          <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
+          <div className="relative border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 w-full max-w-xs">
             <img
               src={productData?.image || "/images/test2.jpg"}
               alt={productData?.name || "Product Image"}
@@ -177,11 +223,10 @@ export default function BraceletPage({ params }) {
               <img
                 src={productData?.image || "/images/test2.jpg"}
                 alt={productData?.name || "Product Image"}
-                className="rounded-xl shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
+                className="shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
                 style={{ cursor: "zoom-out" }}
               />
             </div>
-            {/* Close button outside image, fixed at overlay top right */}
             <button
               className="fixed z-50 p-0 m-0 text-5xl font-bold text-white transition-transform duration-200 bg-transparent border-none shadow-none top-6 right-6 hover:scale-110"
               style={{ lineHeight: 1, background: "none", border: "none" }}
@@ -203,19 +248,19 @@ export default function BraceletPage({ params }) {
         )}
         <div className="flex flex-col items-center justify-center flex-1 text-center md:items-start md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold text-[#f8f8f8] mb-2">
-            {productData?.name || t("bracelet_title")}
+            {productData?.name}
           </h1>
           <span className="text-[#bcbcbc] text-lg mb-2">
-            {productData?.category || t("bracelet_material")}
+            {productData?.category}
           </span>
           <span className="text-[#bcbcbc] text-base mb-2">
-            {productData?.description || t("bracelet_design")}
+            {productData?.description}
           </span>
           <span className="text-[#bcbcbc] text-base mb-4">
             {t("bracelet_gender")}
           </span>
           <span className="text-[#f8f8f8] text-xl font-semibold mb-4">
-            €{productData?.price || t("bracelet_price")}
+            €{productData?.price}
           </span>
           <div className="flex items-center gap-2 mt-2">
             <button className="px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black">
@@ -229,11 +274,9 @@ export default function BraceletPage({ params }) {
       </div>
       <section className="mb-8 text-center md:text-left">
         <h2 className="text-xl font-semibold text-[#bcbcbc] mb-2">
-          {t("description", "Description")}
+          {t("bracelet_description_title")}
         </h2>
-        <p className="text-[#e5e5e5] mb-2">
-          {productData?.description || t("bracelet_description")}
-        </p>
+        <p className="text-[#e5e5e5] mb-2">{productData?.description}</p>
       </section>
       {/* Divider for mobile only */}
       <div className="flex w-full my-6 md:hidden">

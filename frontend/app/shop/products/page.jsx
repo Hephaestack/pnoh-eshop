@@ -14,8 +14,8 @@ const EnhancedProductCard = ({ product, viewMode }) => {
     <motion.div
       className={
         viewMode === "grid"
-          ? "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group backdrop-blur-md backdrop-saturate-150"
-          : "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group flex flex-row gap-4 backdrop-blur-md backdrop-saturate-150"
+          ? "relative border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group backdrop-blur-md backdrop-saturate-150"
+          : "relative border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group flex flex-row gap-4 backdrop-blur-md backdrop-saturate-150"
       }
       whileHover={{
         y: -4,
@@ -27,8 +27,8 @@ const EnhancedProductCard = ({ product, viewMode }) => {
       <motion.div
         className={
           viewMode === "grid"
-            ? "relative w-full aspect-square bg-[#18181b] rounded-lg mb-4 flex items-center justify-center overflow-hidden"
-            : "relative w-24 h-24 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+            ? "relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden"
+            : "relative w-24 h-24 bg-[#18181b] flex items-center justify-center overflow-hidden flex-shrink-0"
         }
       >
         {!imgLoaded && (
@@ -105,11 +105,21 @@ export default function AllProductsPage() {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const { t } = useTranslation();
 
   // Pagination settings - 4 rows with 3 columns = 12 products per page
   const productsPerPage = 12;
+
+  // Save current path for smart back navigation
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      sessionStorage.setItem("previousPath", currentPath);
+      console.log("AllProductsPage - Saved current path:", currentPath);
+    }
+  }, []);
 
   // Fetch categories and subcategories from backend
   useEffect(() => {
@@ -119,8 +129,22 @@ export default function AllProductsPage() {
 
         // Fetch categories and subcategories in parallel
         const [categoriesRes, subcategoriesRes] = await Promise.all([
-          fetch(`${apiUrl}/categories`),
-          fetch(`${apiUrl}/subcategories`),
+          fetch(`${apiUrl}/categories`, {
+            method: "GET",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }),
+          fetch(`${apiUrl}/subcategories`, {
+            method: "GET",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }),
         ]);
 
         if (categoriesRes.ok) {
@@ -140,9 +164,9 @@ export default function AllProductsPage() {
           const formattedSubcategories = [
             { value: "all", label: t("all_themes", "All Themes") },
             ...subcategoriesData.map((sub) => ({
-              value: sub.replace(/ /g, "-"),
+              value: sub.replace(/ /g, "-"), // Store with dashes for URL-friendly format
               label: t(
-                sub.replace(/ /g, "_"),
+                sub.replace(/ /g, "_"), // Use underscores for translation keys
                 sub.charAt(0).toUpperCase() + sub.slice(1)
               ),
             })),
@@ -175,15 +199,60 @@ export default function AllProductsPage() {
     fetchFilters();
   }, [t]);
 
-  // Fetch all products once on component mount
+  // Fetch products based on filters and pagination
   useEffect(() => {
-    const fetchAllProducts = async () => {
+    const fetchFilteredProducts = async () => {
       try {
-        setLoading(true);
+        // Only show loading state on initial load or if it takes more than 300ms
+        let loadingTimeout;
+        if (isInitialLoad) {
+          setLoading(true);
+        } else {
+          loadingTimeout = setTimeout(() => {
+            setLoading(true);
+          }, 300); // Show loading only if request takes longer than 300ms
+        }
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-        // Fetch ALL products once
-        const response = await fetch(`${apiUrl}/products/all`);
+        // Calculate skip value based on current page
+        const skip = (currentPage - 1) * productsPerPage;
+        const limit = productsPerPage;
+
+        let url;
+
+        // Determine which API endpoint to use based on filters
+        if (selectedCategory !== "all" && selectedTheme !== "all") {
+          // Both category and theme selected
+          const categoryValue = selectedCategory;
+          const themeValue = selectedTheme.replace(/-/g, " "); // Convert back to backend format (spaces)
+          url = `${apiUrl}/products/category/${categoryValue}/subcategory/${encodeURIComponent(
+            themeValue
+          )}?skip=${skip}&limit=${limit}`;
+        } else if (selectedCategory !== "all") {
+          // Only category selected
+          url = `${apiUrl}/products/category/${selectedCategory}?skip=${skip}&limit=${limit}`;
+        } else if (selectedTheme !== "all") {
+          // Only theme selected
+          const themeValue = selectedTheme.replace(/-/g, " "); // Convert back to backend format (spaces)
+          url = `${apiUrl}/products/subcategory/${encodeURIComponent(
+            themeValue
+          )}?skip=${skip}&limit=${limit}`;
+        } else {
+          // No filters selected - get all products
+          url = `${apiUrl}/products/all?skip=${skip}&limit=${limit}`;
+        }
+
+        console.log("Fetching from URL:", url); // Debug log
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
         if (!response.ok) {
           throw new Error(`Failed to fetch products: ${response.status}`);
         }
@@ -203,37 +272,44 @@ export default function AllProductsPage() {
               : "/placeholder-product.jpg",
         }));
         setAllProducts(mappedProducts);
+
+        // Clear the loading timeout if request completed quickly
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+        }
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
       } finally {
         setLoading(false);
+        setIsInitialLoad(false); // Mark initial load as complete
       }
     };
-    fetchAllProducts();
-  }, []); // Only run once on mount
+    fetchFilteredProducts();
+  }, [currentPage, selectedCategory, selectedTheme, isInitialLoad]); // Refetch when page or filters change
 
-  // Client-side filtering of cached products
-  const filteredProducts = React.useMemo(() => {
-    return allProducts.filter((product) => {
-      const categoryMatch =
-        selectedCategory === "all" || product.category === selectedCategory;
-      const themeMatch =
-        selectedTheme === "all" || product.theme === selectedTheme;
-      return categoryMatch && themeMatch;
-    });
-  }, [allProducts, selectedCategory, selectedTheme]);
+  // Since we're using backend filtering, filteredProducts is the same as allProducts
+  const filteredProducts = allProducts;
 
-  // Pagination calculations - using filtered products
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  // For server-side pagination, we need to estimate total pages
+  // Since we don't know the total count, we'll show next page button if current page has full results
+  const hasMorePages = allProducts.length === productsPerPage;
+  const currentProducts = filteredProducts;
 
   // Reset to page 1 when filters change
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, selectedTheme]);
+
+  // Scroll to top when filters change (not pagination)
+  useEffect(() => {
+    if (!isInitialLoad) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [selectedCategory, selectedTheme, isInitialLoad]);
 
   // Pagination handlers
   const goToPage = (page) => {
@@ -252,7 +328,7 @@ export default function AllProductsPage() {
   };
 
   const goToNextPage = () => {
-    if (currentPage < totalPages) {
+    if (hasMorePages) {
       goToPage(currentPage + 1);
     }
   };
@@ -383,49 +459,57 @@ export default function AllProductsPage() {
           {t("showing_products", "Showing {{count}} products", {
             count: filteredProducts.length,
           })}
-          {totalPages > 1 && (
-            <span className="ml-2">
-              • {t("page", "Page")} {currentPage} {t("of", "of")} {totalPages}
-            </span>
-          )}
+          <span className="ml-2">
+            • {t("page", "Page")} {currentPage}
+          </span>
         </p>
       </div>
       {/* Products Grid/List */}
       <div
-        className={`product-grid relative ${
-          viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
-            : "space-y-4"
-        }`}
+        className="relative product-grid"
         style={{ minHeight: "400px" }} // Prevent layout shift
-        key={`${selectedCategory}-${selectedTheme}-${currentPage}`} // Re-trigger animations on filter change
       >
-        {currentProducts.map((product, index) => (
+        <AnimatePresence mode="wait">
           <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: index * 0.05, // 50ms delay between items
-              ease: "easeOut",
-            }}
+            key={`${selectedCategory}-${selectedTheme}-${currentPage}`} // Re-trigger animations on filter/page change
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 w-full"
+                : "space-y-4 w-full"
+            }
           >
-            <Link
-              href={`/shop/${product.category}/${product.id}`}
-              prefetch={false}
-            >
-              <EnhancedProductCard product={product} viewMode={viewMode} />
-            </Link>
+            {currentProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.05, // 50ms delay between items
+                  ease: "easeOut",
+                }}
+              >
+                <Link
+                  href={`/shop/${product.category}/${product.id}`}
+                  prefetch={false}
+                >
+                  <EnhancedProductCard product={product} viewMode={viewMode} />
+                </Link>
+              </motion.div>
+            ))}
           </motion.div>
-        ))}
+        </AnimatePresence>
       </div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
+      {(currentPage > 1 || hasMorePages) && (
         <motion.div
           className="flex items-center justify-center gap-4 mt-12"
           initial={{ opacity: 0, y: 20 }}
@@ -451,39 +535,17 @@ export default function AllProductsPage() {
             {t("previous_page", "Previous")}
           </motion.button>
 
-          {/* Page numbers */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <motion.button
-                key={page}
-                onClick={() => goToPage(page)}
-                className={`px-4 py-2 rounded-md font-serif ${
-                  page === currentPage
-                    ? "bg-slate-200 text-black"
-                    : "border border-slate-300 bg-transparent text-slate-200"
-                }`}
-                whileHover={
-                  page !== currentPage
-                    ? {
-                        backgroundColor: "rgb(203 213 225)",
-                        color: "rgb(0 0 0)",
-                        transition: { duration: 0.15 },
-                      }
-                    : {}
-                }
-                whileTap={{ scale: 0.98 }}
-              >
-                {page}
-              </motion.button>
-            ))}
-          </div>
+          {/* Current page indicator */}
+          <span className="px-4 py-2 text-slate-200">
+            {t("page", "Page")} {currentPage}
+          </span>
 
           <motion.button
             onClick={goToNextPage}
-            disabled={currentPage === totalPages}
+            disabled={!hasMorePages}
             className="flex items-center gap-2 px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={
-              currentPage !== totalPages
+              hasMorePages
                 ? {
                     backgroundColor: "rgb(203 213 225)",
                     color: "rgb(0 0 0)",
@@ -491,7 +553,7 @@ export default function AllProductsPage() {
                   }
                 : {}
             }
-            whileTap={currentPage !== totalPages ? { scale: 0.98 } : {}}
+            whileTap={hasMorePages ? { scale: 0.98 } : {}}
           >
             {t("next_page", "Next")}
             <ChevronRight className="w-4 h-4" />

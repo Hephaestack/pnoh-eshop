@@ -28,7 +28,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
       <div
         className={
           viewMode === "grid"
-            ? "relative w-full aspect-square bg-[#18181b] rounded-lg mb-4 flex items-center justify-center overflow-hidden"
+            ? "relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden"
             : "relative w-24 h-24 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
         }
       >
@@ -102,12 +102,28 @@ export default function CategoryPage({ category }) {
 
   const productsPerPage = 12;
 
+  // Save current path for smart back navigation
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      sessionStorage.setItem("previousPath", currentPath);
+      console.log("CategoryPage - Saved current path:", currentPath);
+    }
+  }, []);
+
   // Fetch subcategories from backend
   useEffect(() => {
     const fetchSubcategories = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/subcategories`);
+        const response = await fetch(`${apiUrl}/subcategories`, {
+          method: "GET",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
 
         if (response.ok) {
           const subcategoriesData = await response.json();
@@ -150,7 +166,17 @@ export default function CategoryPage({ category }) {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         // Fetch ALL products for this category once
-        const response = await fetch(`${apiUrl}/products/category/${category}`);
+        const response = await fetch(
+          `${apiUrl}/products/category/${category}`,
+          {
+            method: "GET",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }
+        );
         if (!response.ok) {
           throw new Error(`Failed to fetch products: ${response.status}`);
         }
@@ -264,6 +290,11 @@ export default function CategoryPage({ category }) {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
+    // Scroll to top when theme filter changes
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }, [selectedTheme]);
 
   // Pagination handlers
