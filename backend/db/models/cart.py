@@ -1,15 +1,17 @@
-# import uuid
-# from sqlalchemy import Column, ForeignKey, Integer
-# from sqlalchemy.dialects.postgresql import UUID
-# from sqlalchemy.orm import relationship
+import uuid
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
-# from db.database import Base
+from db.database import Base
 
-# class Cart(Base):
-#     __tablename__ = "carts"
+class Cart(Base):
+    __tablename__ = "carts"
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(String, nullable=False)
     
-#     user = relationship("User", back_populates="cart")
-#     items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+
+    class Config:
+        from_attributes = True

@@ -35,8 +35,7 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
     updated_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), onupdate=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
 
-    # wishlist_items = relationship("Wishlist", back_populates="product")
-    # cart_items = relationship("CartItem", back_populates="product")
+    cart_items = relationship("CartItem", back_populates="product")
     # order_items = relationship("OrderItem", back_populates="product")
 
     class Config:
