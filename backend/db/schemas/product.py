@@ -16,3 +16,10 @@ class ProductSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ProductImageOut(BaseModel):
+    id: UUID
+    big_image_url: Optional[str]
+
+    class Config:
+        from_attributes = True
