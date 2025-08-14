@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 
 from db.database import SessionLocal
 from db.models.product import Product, Category, SubCategory
-from db.schemas.product import ProductSummary
+from db.schemas.product import ProductSummary, ProductImageOut
 from utils.database import get_db
 
 router = APIRouter()
@@ -97,3 +97,15 @@ def get_categories():
 @router.get("/subcategories", response_model=list[str])
 def get_subcategories():
     return [sub_category.value for sub_category in SubCategory]
+
+@router.get("/products/image/{product_id}", response_model=list[ProductImageOut])
+def get_product_image(
+    product_id: UUID,
+    db: Session = Depends(get_db)
+):
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found.")
+    
+    return JSONResponse(content={"zoomed_image_url": product.big_image_url})
