@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
-from routes import product_router
+from routes import product_router, admin_router
 
 app = FastAPI()
 
@@ -24,3 +24,4 @@ def root():
     return {"message": "PNOH API is running!"}
 
 app.include_router(product_router)
+app.include_router(admin_router)
