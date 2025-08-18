@@ -1,14 +1,16 @@
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Response, status, Cookie
 from sqlalchemy.orm import Session
+from typing import Optional, List
 
 from db.models.product import Product
 from db.models.cart import Cart
 from db.models.cart_item import CartItem
 from db.schemas.product import ProductSummary
-from db.schemas.cart import AddToCartBody
+from db.schemas.cart import AddToCartBody, CartSummary
+from db.schemas.cart_item import CartItemOut, CartItemProduct
 from utils.database import get_db
-from utils.user_auth import get_current_user, get_or_create_guest_session
+from utils.user_auth import get_current_user_optional, get_or_create_guest_session
 
 router = APIRouter()
 
@@ -17,9 +19,9 @@ def add_to_cart(
     product_id: UUID,
     body: AddToCartBody,
     db: Session = Depends(get_db),
-    auth = Depends(get_current_user),
-    guest_session_id: str | None = Cookie(None),
-    response: Response = None,
+    auth: Optional[dict] = Depends(get_current_user_optional),
+    guest_session_id: str = Cookie(None),
+    response: Response = Depends(),
 ):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
@@ -61,8 +63,8 @@ def add_to_cart(
 def remove_from_cart(
     product_id: UUID,
     db: Session = Depends(get_db),
-    auth = Depends(get_current_user),
-    guest_session_id: str | None = Cookie(None),
+    auth: Optional[dict] = Depends(get_current_user_optional),
+    guest_session_id: str = Cookie(None),
     response: Response = None
 ):
     cart = None
@@ -89,3 +91,51 @@ def remove_from_cart(
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/cart", response_model=CartSummary)
+def get_cart(
+    db: Session = Depends(get_db),
+    auth: Optional[dict] = Depends(get_current_user_optional),
+    guest_session_id: Optional[str] = Cookie(None),
+    response: Response = None,
+):
+    if auth:
+        cart = db.query(Cart).filter(Cart.user_id == auth["user_id"]).first()
+    else:
+        session_id = guest_session_id
+        if not session_id:
+            return CartSummary(items=[], total_items=0, subtotal=0.0)
+        cart = db.query(Cart).filter(Cart.guest_session_id == session_id).first()
+
+    if not cart:
+        return CartSummary(items=[], total_items=0, subtotal=0.0)
+
+    rows = (
+        db.query(CartItem, Product)
+        .join(Product, CartItem.product_id == Product.id)
+        .filter(CartItem.cart_id == cart.id)
+        .all()
+    )
+
+    items: List[CartItemOut] = []
+    total_items = 0
+    subtotal = 0.0
+
+    for ci, p in rows:
+        line_total = float((p.price or 0) * ci.quantity)
+        items.append(
+            CartItemOut(
+                product=CartItemProduct(
+                    id=p.id,
+                    name=p.name,
+                    price=p.price,
+                    image_url=p.image_url,
+                ),
+                quantity=ci.quantity,
+                line_total=line_total,
+            )
+        )
+        total_items += ci.quantity
+        subtotal += line_total
+
+    return CartSummary(items=items, total_items=total_items, subtotal=subtotal)

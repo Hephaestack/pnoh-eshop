@@ -3,7 +3,7 @@
 # from .address import AddressSummary
 from .product import ProductSummary
 # from .wishlist import WishlistSummary
-from .cart_item import CartItemSummary, CartItemOut
+from .cart_item import CartItemSummary, CartItemOut, CartItemProduct
 from .cart import CartSummary, AddToCartBody
 from .admin import AdminLogin
 # from .order_item import OrderItem
