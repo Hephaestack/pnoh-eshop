@@ -1,8 +1,7 @@
-import os
-import uuid
-from fastapi import HTTPException, Header, Response
+# utils/user_auth.py
+import os, uuid, requests
 from typing import Optional, Dict, Any
-import requests
+from fastapi import HTTPException, Header, Response
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -10,11 +9,7 @@ load_dotenv(override=True)
 CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_VERIFY_URL = os.getenv("CLERK_VERIFY_URL")
 
-def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
-    session_token = authorization.split(" ", 1)[1].strip()
+def _verify_token(session_token: str) -> Dict[str, Any]:
     try:
         res = requests.get(
             CLERK_VERIFY_URL,
@@ -32,12 +27,38 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, A
     user_id = data.get("user_id") or data.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Token verified but user_id missing")
-
+    
     return {"user_id": user_id, "session_id": data.get("id"), "raw": data}
 
-def get_or_create_guest_session(guest_session_id: str | None, response: Response) -> str:
+def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    
+    token = authorization.split(" ", 1)[1].strip()
+    
+    return _verify_token(token)
+
+def get_current_user_optional(authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    token = authorization.split(" ", 1)[1].strip()
+    
+    try:
+        return _verify_token(token)
+    except HTTPException:
+        return None
+
+def get_or_create_guest_session(guest_session_id: Optional[str], response: Response) -> str:
     if guest_session_id:
         return guest_session_id
     new_session = str(uuid.uuid4())
-    response.set_cookie(key="guest_session_id", value=new_session, httponly=True, max_age=60*60*24*7)
+    response.set_cookie(
+        key="guest_session_id",
+        value=new_session,
+        httponly=True,
+        samesite="lax",
+        max_age=60*60*24*7,
+        secure=True, 
+    )
     return new_session
