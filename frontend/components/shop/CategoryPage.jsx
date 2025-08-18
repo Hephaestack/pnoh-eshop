@@ -297,14 +297,29 @@ export default function CategoryPage({ category }) {
     });
   }, [selectedTheme]);
 
+  // Scroll to top when page changes (pagination)
+  useEffect(() => {
+    if (currentPage > 1) {
+      const timer = setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
+
   // Pagination handlers
   const goToPage = (page) => {
     setCurrentPage(page);
-    // Smooth scroll to top of page
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    // Use setTimeout to ensure scroll happens after state update and re-render
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 100);
   };
 
   const goToPreviousPage = () => {

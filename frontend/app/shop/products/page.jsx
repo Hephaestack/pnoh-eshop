@@ -301,6 +301,19 @@ export default function AllProductsPage() {
     setCurrentPage(1);
   }, [selectedCategory, selectedTheme]);
 
+  // Scroll to top when page changes (pagination)
+  useEffect(() => {
+    if (!isInitialLoad && currentPage > 1) {
+      const timer = setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
+
   // Scroll to top when filters change (not pagination)
   useEffect(() => {
     if (!isInitialLoad) {
@@ -314,11 +327,13 @@ export default function AllProductsPage() {
   // Pagination handlers
   const goToPage = (page) => {
     setCurrentPage(page);
-    // Smooth scroll to top of page
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    // Use setTimeout to ensure scroll happens after state update
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 100);
   };
 
   const goToPreviousPage = () => {
