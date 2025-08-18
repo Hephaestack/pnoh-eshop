@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
-from typing import List, Optional
-from datetime import datetime
+from typing import List
 from .cart_item import CartItemSummary
 
 class AddToCartBody(BaseModel):
@@ -11,8 +10,7 @@ class CartSummary(BaseModel):
     id: UUID
     user_id: UUID
     items: List[CartItemSummary]
-    created_at: datetime
-    updated_at: datetime
+    subtotal: float
 
     class Config:
         from_attributes = True
