@@ -1,13 +1,10 @@
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import List
-from .cart_item import CartItemSummary
-
-class AddToCartBody(BaseModel):
-    quantity: int = Field(..., gt=0)
+from .cart_item import CartItemOut
 
 class CartSummary(BaseModel):
-    items: List[CartItemSummary]
+    items: List[CartItemOut] = Field(default_factory=list)
     total_items: int
     subtotal: float
 

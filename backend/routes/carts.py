@@ -128,7 +128,7 @@ def get_cart(
                 line_total=line_total,
             )
         )
-        total_items += ci.quantity
+        total_items += 1
         subtotal += line_total
 
     return CartSummary(items=items, total_items=total_items, subtotal=subtotal)
