@@ -98,10 +98,17 @@ export function CartProvider({ children, token }) {
   // Remove from cart
   const handleRemoveFromCart = useCallback(
     async (itemId) => {
-      await removeFromCart(itemId, token);
-      const updated = await getCart(token);
-      setCart(updated);
-      localStorage.setItem("cart", JSON.stringify(updated));
+      try {
+        await removeFromCart(itemId, token);
+        const updated = await getCart(token);
+        setCart(updated);
+        localStorage.setItem("cart", JSON.stringify(updated));
+        return true;
+      } catch (error) {
+        console.error("Error removing from cart:", error);
+        // Optionally, keep the existing cart state and surface the error to the UI
+        return false;
+      }
     },
     [token]
   );
@@ -109,10 +116,16 @@ export function CartProvider({ children, token }) {
   // Update cart item
   const handleUpdateCartItem = useCallback(
     async (itemId, quantity) => {
-      await updateCartItem(itemId, quantity, token);
-      const updated = await getCart(token);
-      setCart(updated);
-      localStorage.setItem("cart", JSON.stringify(updated));
+      try {
+        await updateCartItem(itemId, quantity, token);
+        const updated = await getCart(token);
+        setCart(updated);
+        localStorage.setItem("cart", JSON.stringify(updated));
+        return true;
+      } catch (error) {
+        console.error("Error updating cart item:", error);
+        return false;
+      }
     },
     [token]
   );

@@ -26,15 +26,17 @@ function CartPageInner() {
   const [mounted, setMounted] = useState(false);
 
   const { cart, removeFromCart, updateCartItem, loading } = useCart();
+  const [removing, setRemoving] = useState(null);
 
   // Calculate totals from cart data
   const getTotals = () => {
     if (!cart?.items)
       return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
 
-    const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    // No quantity support for now: each item counts as 1
+    const itemCount = cart.items.length;
     const subtotal = cart.items.reduce(
-      (sum, item) => sum + (item.product?.price || 0) * item.quantity,
+      (sum, item) => sum + (item.product?.price || 0),
       0
     );
     const shipping = subtotal >= 50 ? 0 : 5; // Free shipping over €50
@@ -135,9 +137,9 @@ function CartPageInner() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <AnimatePresence>
-                  {cart.items.map((item) => (
+                  {cart.items.map((item, idx) => (
                     <motion.div
-                      key={item.id}
+                      key={item.product_id || item.id || idx}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
@@ -167,41 +169,39 @@ function CartPageInner() {
                         </p>
                       </div>
 
-                      {/* Quantity Controls */}
+                      {/* Quantity not supported yet — show static 1 */}
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            updateCartItem(
-                              item.id,
-                              Math.max(0, item.quantity - 1)
-                            )
-                          }
-                          className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </Button>
                         <span className="text-white font-semibold min-w-[2rem] text-center">
-                          {item.quantity}
+                          1
                         </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            updateCartItem(item.id, item.quantity + 1)
-                          }
-                          className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
                       </div>
 
                       {/* Remove Button */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={async () => {
+                          const id =
+                            item.product?.id || item.product_id || item.id;
+                          if (!id) return;
+                          setRemoving(id);
+                          const ok = await removeFromCart(id);
+                          setRemoving(null);
+                          if (!ok) {
+                            console.error(
+                              "Failed to remove item from cart",
+                              id
+                            );
+                            alert(
+                              t("error_removing_item") ||
+                                "Failed to remove item from cart"
+                            );
+                          }
+                        }}
+                        disabled={
+                          removing ===
+                          (item.product?.id || item.product_id || item.id)
+                        }
                         className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -270,7 +270,7 @@ function CartPageInner() {
                       </Button>
                     </Link>
 
-                    <div className="flex items-center justify-center space-x-2 text-xs text-gray-400">
+                    <div className="flex items-center justify-center space-x-2 text-xs text-gray-400 mt-4">
                       <CreditCard className="w-4 h-4" />
                       <span>Ασφαλής πληρωμή με SSL</span>
                     </div>
