@@ -1,15 +1,40 @@
 from uuid import UUID, uuid4
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from typing import Optional, List
+from sqlalchemy import or_
 
 from utils.database import get_db
+from db.models.product import Product, Category, SubCategory
 from db.models import Admin, Product
-from db.schemas.product import ProductCreate, ProductOut, ProductUpdateRequest
+from db.schemas.product import ProductCreate, ProductOut, ProductUpdateRequest, ProductSummary
 from db.schemas.admin import AdminLogin
 from utils.admin_auth import create_access_token, verify_password, get_current_admin
 
 router = APIRouter()
+
+@router.get("/admin/products/all", response_model=List[ProductSummary], tags=["Admin Products"])
+def admin_get_products(
+    db: Session = Depends(get_db),
+    category: Optional[Category] = Query(None),
+    subcategory: Optional[SubCategory] = Query(None),
+    q: Optional[str] = Query(None, description="search in name/description"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(12, ge=1, le=100),
+):
+    query = db.query(Product)
+
+    if category is not None:
+        query = query.filter(Product.category == category)
+    if subcategory is not None:
+        query = query.filter(Product.sub_category == subcategory)
+    if q:
+        like = f"%{q}%"
+        query = query.filter(or_(Product.name.ilike(like), Product.description.ilike(like)))
+
+    products = query.offset(skip).limit(limit).all()
+    return products
 
 @router.get("/admin/dev-token", tags=["Admin Login"])
 def dev_token(
