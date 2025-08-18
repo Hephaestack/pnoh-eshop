@@ -18,10 +18,10 @@ router = APIRouter()
 def add_to_cart(
     product_id: UUID,
     body: AddToCartBody,
+    response: Response,
     db: Session = Depends(get_db),
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
-    response: Response = Depends(),
 ):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
@@ -62,10 +62,10 @@ def add_to_cart(
 @router.delete("/cart/{product_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Cart"])
 def remove_from_cart(
     product_id: UUID,
+    response: Response,
     db: Session = Depends(get_db),
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
-    response: Response = Depends()
 ):
     cart = None
 
