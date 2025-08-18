@@ -11,7 +11,7 @@ from utils.database import get_db
 
 router = APIRouter()
 
-@router.get("/products/all", response_model=list[ProductSummary])
+@router.get("/products/all", response_model=list[ProductSummary], tags=["Products"])
 def get_all_products(
     db: Session = Depends(get_db),
     skip: int = 0,
@@ -24,7 +24,7 @@ def get_all_products(
     response.headers['Cache-Control'] = 'public, max-age=3600'
     return response
 
-@router.get("/products/{product_id}", response_model=ProductSummary)
+@router.get("/products/{product_id}", response_model=ProductSummary, tags=["Products"])
 def get_product(
     product_id: UUID,
     db: Session = Depends(get_db)
@@ -38,7 +38,7 @@ def get_product(
     response.headers['Cache-Control'] = 'public, max-age=3600'
     return response
 
-@router.get("/products/category/{category}", response_model=list[ProductSummary])
+@router.get("/products/category/{category}", response_model=list[ProductSummary], tags=["Products"])
 def get_products_by_category(
     category: Category,
     db: Session = Depends(get_db),
@@ -54,7 +54,7 @@ def get_products_by_category(
     response.headers['Cache-Control'] = 'public, max-age=3600'
     return response
 
-@router.get("/products/subcategory/{sub_category}", response_model=list[ProductSummary])
+@router.get("/products/subcategory/{sub_category}", response_model=list[ProductSummary], tags=["Products"])
 def get_products_by_subcategory(
     sub_category: SubCategory,
     db: Session = Depends(get_db),
@@ -70,7 +70,7 @@ def get_products_by_subcategory(
     response.headers['Cache-Control'] = 'public, max-age=3600'
     return response
 
-@router.get("/products/category/{category}/subcategory/{sub_category}", response_model=list[ProductSummary])
+@router.get("/products/category/{category}/subcategory/{sub_category}", response_model=list[ProductSummary], tags=["Products"])
 def get_products_by_category_and_subcategory(
     category: Category,
     sub_category: SubCategory,
@@ -90,15 +90,15 @@ def get_products_by_category_and_subcategory(
     response.headers['Cache-Control'] = 'public, max-age=3600'    
     return response
 
-@router.get("/categories", response_model=list[str])
+@router.get("/categories", response_model=list[str], tags=["Products"])
 def get_categories():
     return [category.value for category in Category]
 
-@router.get("/subcategories", response_model=list[str])
+@router.get("/subcategories", response_model=list[str], tags=["Products"])
 def get_subcategories():
     return [sub_category.value for sub_category in SubCategory]
 
-@router.get("/products/image/{product_id}", response_model=list[ProductImageOut])
+@router.get("/products/image/{product_id}", response_model=list[ProductImageOut], tags=["Products"])
 def get_product_image(
     product_id: UUID,
     db: Session = Depends(get_db)
