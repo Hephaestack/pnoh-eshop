@@ -7,7 +7,7 @@ from db.models.product import Product
 from db.models.cart import Cart
 from db.models.cart_item import CartItem
 from db.schemas.product import ProductSummary
-from db.schemas.cart import AddToCartBody, CartSummary
+from db.schemas.cart import CartSummary
 from db.schemas.cart_item import CartItemOut, CartItemProduct
 from utils.database import get_db
 from utils.user_auth import get_current_user_optional, get_or_create_guest_session
@@ -17,7 +17,6 @@ router = APIRouter()
 @router.post("/cart/{product_id}", response_model=ProductSummary, tags=["Cart"])
 def add_to_cart(
     product_id: UUID,
-    body: AddToCartBody,
     response: Response,
     db: Session = Depends(get_db),
     auth: Optional[dict] = Depends(get_current_user_optional),
@@ -48,14 +47,10 @@ def add_to_cart(
         CartItem.product_id == product_id
     ).first()
 
-    if cart_item:
-        cart_item.quantity += body.quantity
-    else:
-        cart_item = CartItem(cart_id=cart.id, product_id=product_id, quantity=body.quantity)
+    if not cart_item:
+        cart_item = CartItem(cart_id = cart.id, product_id = product_id)
         db.add(cart_item)
-
-    db.commit()
-    db.refresh(cart_item)
+        db.commit()
 
     return product
 
@@ -121,7 +116,7 @@ def get_cart(
     subtotal = 0.0
 
     for ci, p in rows:
-        line_total = float((p.price or 0) * ci.quantity)
+        line_total = float(p.price or 0)
         items.append(
             CartItemOut(
                 product=CartItemProduct(
@@ -130,7 +125,6 @@ def get_cart(
                     price=p.price,
                     image_url=p.image_url,
                 ),
-                quantity=ci.quantity,
                 line_total=line_total,
             )
         )
