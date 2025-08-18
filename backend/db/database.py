@@ -1,4 +1,4 @@
-from sqlalchemy import QueuePool, create_engine
+from sqlalchemy import NullPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
@@ -14,11 +14,8 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=1800
+    poolclass=NullPool,
+    pool_pre_ping=True,
 )
 
 try:
