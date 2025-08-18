@@ -1,8 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import List, Optional
 from datetime import datetime
 from .cart_item import CartItemSummary
+
+class AddToCartBody(BaseModel):
+    quantity: int = Field(..., gt=0)
 
 class CartSummary(BaseModel):
     id: UUID

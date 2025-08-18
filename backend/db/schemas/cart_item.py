@@ -9,7 +9,7 @@ class CartItemSummary(BaseModel):
     class Config:
         from_attributes = True
 
-class CartItem(BaseModel):
+class CartItemOut(BaseModel):
     id: UUID
     cart_id: UUID
     product_id: UUID
