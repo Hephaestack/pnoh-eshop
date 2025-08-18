@@ -7,9 +7,8 @@ class AddToCartBody(BaseModel):
     quantity: int = Field(..., gt=0)
 
 class CartSummary(BaseModel):
-    id: UUID
-    user_id: UUID
     items: List[CartItemSummary]
+    total_items: int
     subtotal: float
 
     class Config:
