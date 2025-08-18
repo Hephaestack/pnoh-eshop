@@ -1,5 +1,6 @@
 import os
-from fastapi import HTTPException, Header
+import uuid
+from fastapi import HTTPException, Header, Response
 from typing import Optional, Dict, Any
 import requests
 from dotenv import load_dotenv
@@ -33,3 +34,10 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, A
         raise HTTPException(status_code=401, detail="Token verified but user_id missing")
 
     return {"user_id": user_id, "session_id": data.get("id"), "raw": data}
+
+def get_or_create_guest_session(guest_session_id: str | None, response: Response) -> str:
+    if guest_session_id:
+        return guest_session_id
+    new_session = str(uuid.uuid4())
+    response.set_cookie(key="guest_session_id", value=new_session, httponly=True, max_age=60*60*24*7)
+    return new_session
