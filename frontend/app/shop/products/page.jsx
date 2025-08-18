@@ -87,7 +87,9 @@ const EnhancedProductCard = ({ product, viewMode }) => {
         </div>
         <div className="flex items-center justify-center gap-2 mt-3">
           <motion.button
-            className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${added ? 'bg-green-600 text-white' : ''}`}
+            className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+              added ? "bg-green-600 text-white" : ""
+            }`}
             whileHover={{
               backgroundColor: added ? "rgb(22 163 74)" : "rgb(203 213 225)",
               color: added ? "#fff" : "rgb(0 0 0)",
@@ -97,7 +99,11 @@ const EnhancedProductCard = ({ product, viewMode }) => {
             onClick={handleAddToCart}
             disabled={adding}
           >
-            {added ? t("added", "Added!") : adding ? t("adding", "Adding...") : t("add_to_cart")}
+            {added
+              ? t("added", "Added!")
+              : adding
+              ? t("adding", "Adding...")
+              : t("add_to_cart")}
           </motion.button>
           <motion.button
             className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"

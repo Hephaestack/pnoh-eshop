@@ -1,39 +1,46 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ShoppingBag, Trash2, Plus, Minus, Lock, CreditCard } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import {
+  ArrowLeft,
+  ShoppingBag,
+  Trash2,
+  Plus,
+  Minus,
+  Lock,
+  CreditCard,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-import { CartProvider, useCart } from '../cart-context';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useUser } from '@clerk/nextjs';
+import { CartProvider, useCart } from "../cart-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useUser } from "@clerk/nextjs";
 
 function CartPageInner() {
   const { t } = useTranslation();
   const { isSignedIn } = useUser();
   const [mounted, setMounted] = useState(false);
-  
-  const {
-    cart,
-    removeFromCart,
-    updateCartItem,
-    loading
-  } = useCart();
+
+  const { cart, removeFromCart, updateCartItem, loading } = useCart();
 
   // Calculate totals from cart data
   const getTotals = () => {
-    if (!cart?.items) return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
-    
+    if (!cart?.items)
+      return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
+
     const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = cart.items.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
+    const subtotal = cart.items.reduce(
+      (sum, item) => sum + (item.product?.price || 0) * item.quantity,
+      0
+    );
     const shipping = subtotal >= 50 ? 0 : 5; // Free shipping over €50
     const tax = subtotal * 0.24; // 24% VAT
     const total = subtotal + shipping + tax;
-    
+
     return { itemCount, subtotal, shipping, tax, total };
   };
 
@@ -51,7 +58,7 @@ function CartPageInner() {
             <div className="w-1/4 h-8 mb-8 bg-gray-700 rounded"></div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="space-y-4 lg:col-span-2">
-                {[1, 2, 3].map(i => (
+                {[1, 2, 3].map((i) => (
                   <div key={i} className="h-32 bg-gray-700 rounded"></div>
                 ))}
               </div>
@@ -77,7 +84,7 @@ function CartPageInner() {
               Το καλάθι σας είναι άδειο
             </h1>
             <p className="max-w-md mx-auto mb-8 text-gray-400">
-              Φαίνεται ότι δεν έχετε προσθέσει ακόμα προϊόντα στο καλάθι σας. 
+              Φαίνεται ότι δεν έχετε προσθέσει ακόμα προϊόντα στο καλάθι σας.
               Ανακαλύψτε τη συλλογή μας και βρείτε κάτι όμορφο!
             </p>
             <Link href="/shop/products">
@@ -103,7 +110,10 @@ function CartPageInner() {
         >
           <div className="flex items-center space-x-4">
             <Link href="/shop/products">
-              <Button variant="ghost" className="text-white hover:text-gray-300">
+              <Button
+                variant="ghost"
+                className="text-white hover:text-gray-300"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Συνέχεια Αγορών
               </Button>
@@ -119,7 +129,9 @@ function CartPageInner() {
           <div className="lg:col-span-2">
             <Card className="bg-[#232326] border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white">Προϊόντα στο Καλάθι</CardTitle>
+                <CardTitle className="text-white">
+                  Προϊόντα στο Καλάθι
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <AnimatePresence>
@@ -134,8 +146,13 @@ function CartPageInner() {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         <img
-                          src={item.product?.image_url?.[0]?.replace("dl=0", "raw=1") || '/placeholder-product.jpg'}
-                          alt={item.product?.name || 'Product'}
+                          src={
+                            item.product?.image_url?.[0]?.replace(
+                              "dl=0",
+                              "raw=1"
+                            ) || "/placeholder-product.jpg"
+                          }
+                          alt={item.product?.name || "Product"}
                           className="object-cover w-20 h-20 rounded-lg"
                         />
                       </div>
@@ -143,7 +160,7 @@ function CartPageInner() {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-white truncate">
-                          {item.product?.name || 'Unknown Product'}
+                          {item.product?.name || "Unknown Product"}
                         </h3>
                         <p className="mt-2 text-2xl font-bold text-white">
                           €{item.product?.price || 0}
@@ -155,7 +172,12 @@ function CartPageInner() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateCartItem(item.id, Math.max(0, item.quantity - 1))}
+                          onClick={() =>
+                            updateCartItem(
+                              item.id,
+                              Math.max(0, item.quantity - 1)
+                            )
+                          }
                           className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Minus className="w-3 h-3" />
@@ -166,7 +188,9 @@ function CartPageInner() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateCartItem(item.id, item.quantity + 1)}
+                          onClick={() =>
+                            updateCartItem(item.id, item.quantity + 1)
+                          }
                           className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Plus className="w-3 h-3" />
@@ -198,7 +222,9 @@ function CartPageInner() {
             >
               <Card className="bg-[#232326] border-gray-700">
                 <CardHeader>
-                  <CardTitle className="text-white">Σύνοψη Παραγγελίας</CardTitle>
+                  <CardTitle className="text-white">
+                    Σύνοψη Παραγγελίας
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -208,7 +234,11 @@ function CartPageInner() {
                     </div>
                     <div className="flex justify-between text-gray-300">
                       <span>Μεταφορικά</span>
-                      <span>{totals.shipping === 0 ? 'Δωρεάν' : `€${totals.shipping}`}</span>
+                      <span>
+                        {totals.shipping === 0
+                          ? "Δωρεάν"
+                          : `€${totals.shipping}`}
+                      </span>
                     </div>
                     <div className="flex justify-between text-gray-300">
                       <span>ΦΠΑ (24%)</span>
@@ -231,7 +261,7 @@ function CartPageInner() {
 
                   <div className="space-y-3">
                     <Link href="/checkout">
-                      <Button 
+                      <Button
                         className="w-full font-semibold text-black bg-white hover:bg-gray-100"
                         disabled={loading}
                       >
@@ -239,7 +269,7 @@ function CartPageInner() {
                         Ασφαλής Ολοκλήρωση
                       </Button>
                     </Link>
-                    
+
                     <div className="flex items-center justify-center space-x-2 text-xs text-gray-400">
                       <CreditCard className="w-4 h-4" />
                       <span>Ασφαλής πληρωμή με SSL</span>

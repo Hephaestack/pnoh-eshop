@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
+import { CartProvider, useCart } from "../../../cart-context";
 
-export default function EarringPage({ params }) {
+function EarringPageInner({ params }) {
   const routeParams = React.use(params);
   const router = useRouter();
   const [enlarged, setEnlarged] = useState(false);
@@ -15,8 +16,25 @@ export default function EarringPage({ params }) {
   const [backUrl, setBackUrl] = useState("/shop/earrings"); // Default fallback
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+  const { addToCart } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
 
   const { t } = useTranslation();
+
+  const handleAddToCart = async () => {
+    if (!productData) return;
+    setAdding(true);
+    try {
+      await addToCart(productData.id, 1);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1200);
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+    } finally {
+      setAdding(false);
+    }
+  };
   // Animation state (must be refs to persist across renders)
   const animationFrame = useRef(null);
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });
@@ -310,8 +328,18 @@ export default function EarringPage({ params }) {
             €{productData?.price || t("bracelet_price")}
           </span>
           <div className="flex items-center gap-2 mt-2">
-            <button className="px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black">
-              {t("add_to_cart", "Add to Cart")}
+            <button
+              className={`px-4 py-2 font-serif transition-colors duration-150 bg-transparent border rounded-md border-slate-300 text-slate-200 hover:bg-slate-300 hover:text-black ${
+                added ? "bg-green-600 text-white hover:bg-green-700" : ""
+              }`}
+              onClick={handleAddToCart}
+              disabled={adding}
+            >
+              {added
+                ? t("added", "Added!")
+                : adding
+                ? t("adding", "Adding...")
+                : t("add_to_cart", "Add to Cart")}
             </button>
             <button className="px-4 py-2 font-serif text-black transition-colors duration-150 border rounded-md border-slate-300 bg-slate-200 hover:bg-slate-300">
               {t("buy_now", "Buy Now")}
@@ -352,5 +380,13 @@ export default function EarringPage({ params }) {
         <p className="text-[#e5e5e5] text-sm mt-2">{t("returns_notice")}</p>
       </section>
     </main>
+  );
+}
+
+export default function EarringPage({ params }) {
+  return (
+    <CartProvider>
+      <EarringPageInner params={params} />
+    </CartProvider>
   );
 }

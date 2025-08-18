@@ -33,7 +33,7 @@ import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSwitcher from "./language-switcher";
-import useCartStore from "@/lib/store/cart";
+import { useCart } from "@/app/cart-context";
 
 export function Header() {
   const { t } = useTranslation();
@@ -46,8 +46,8 @@ export function Header() {
   const headerRef = useRef(null);
 
   // Get cart state
-  const { getTotals } = useCartStore();
-  const totals = mounted ? getTotals() : { itemCount: 0 };
+  const { cart } = useCart();
+  const itemCount = cart?.items?.length || 0;
 
   // Handle mounting
   useEffect(() => {
@@ -259,9 +259,9 @@ export function Header() {
                   className="hover:bg-[#232326] border border-white rounded-full relative"
                 >
                   <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
-                  {totals.itemCount > 0 && (
+                  {itemCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold">
-                      {totals.itemCount > 99 ? "99+" : totals.itemCount}
+                      {itemCount > 99 ? "99+" : itemCount}
                     </span>
                   )}
                 </Button>
@@ -339,9 +339,7 @@ export function Header() {
                 </Button>
               </div>
 
-            
               <div className="flex flex-col flex-1 gap-6 p-6">
-           
                 <MobileDropdownNav
                   onLinkClick={() => setMobileMenuOpen(false)}
                 />
@@ -365,7 +363,7 @@ export function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <ShoppingBag className="w-5 h-5 mr-2" />
-                  Καλάθι {totals.itemCount > 0 && `(${totals.itemCount})`}
+                  Καλάθι {itemCount > 0 && `(${itemCount})`}
                 </Link>
               </div>
             </motion.nav>

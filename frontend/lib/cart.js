@@ -1,19 +1,20 @@
 // cart.js - Utility for cart API operations
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export async function addToCart(productId, quantity, token) {
   const res = await fetch(`${API_BASE}/cart/${productId}`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ quantity }),
-    credentials: 'include', // if using cookies for auth
+    credentials: "include", // Important for guest session cookies
   });
   if (!res.ok) {
-    throw new Error(await res.text());
+    const errorText = await res.text();
+    throw new Error(errorText);
   }
   return res.json();
 }
@@ -23,40 +24,49 @@ export async function getCart(token) {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    credentials: 'include',
+    credentials: "include",
   });
   if (!res.ok) {
-    throw new Error(await res.text());
+    if (res.status === 404) {
+      // No cart found, return empty cart
+      return { items: [] };
+    }
+    const errorText = await res.text();
+    throw new Error(errorText);
   }
   return res.json();
 }
 
-export async function removeFromCart(itemId, token) {
-  const res = await fetch(`${API_BASE}/cart/items/${itemId}`, {
-    method: 'DELETE',
+export async function removeFromCart(productId, token) {
+  const res = await fetch(`${API_BASE}/cart/${productId}`, {
+    method: "DELETE",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    credentials: 'include',
+    credentials: "include",
   });
   if (!res.ok) {
-    throw new Error(await res.text());
+    const errorText = await res.text();
+    throw new Error(errorText);
   }
-  return res.json();
+  return;
 }
 
 export async function updateCartItem(itemId, quantity, token) {
+  // For now, this will need a backend endpoint to be implemented
+  // Using placeholder for API structure
   const res = await fetch(`${API_BASE}/cart/items/${itemId}`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ quantity }),
-    credentials: 'include',
+    credentials: "include",
   });
   if (!res.ok) {
-    throw new Error(await res.text());
+    const errorText = await res.text();
+    throw new Error(errorText);
   }
   return res.json();
 }
