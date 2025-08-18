@@ -6,24 +6,36 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ShoppingBag, Trash2, Plus, Minus, Lock, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import useCartStore from '@/lib/store/cart';
+import { CartProvider, useCart } from '../cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@clerk/nextjs';
 
-export default function CartPage() {
+function CartPageInner() {
   const { t } = useTranslation();
   const { isSignedIn } = useUser();
   const [mounted, setMounted] = useState(false);
   
   const {
-    items,
-    updateQuantity,
-    removeItem,
-    getTotals,
-    isLoading
-  } = useCartStore();
+    cart,
+    removeFromCart,
+    updateCartItem,
+    loading
+  } = useCart();
+
+  // Calculate totals from cart data
+  const getTotals = () => {
+    if (!cart?.items) return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
+    
+    const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = cart.items.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
+    const shipping = subtotal >= 50 ? 0 : 5; // Free shipping over €50
+    const tax = subtotal * 0.24; // 24% VAT
+    const total = subtotal + shipping + tax;
+    
+    return { itemCount, subtotal, shipping, tax, total };
+  };
 
   const totals = getTotals();
 
@@ -31,7 +43,7 @@ export default function CartPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#18181b] pt-8">
         <div className="container px-4 mx-auto">
@@ -51,7 +63,7 @@ export default function CartPage() {
     );
   }
 
-  if (items.length === 0) {
+  if (!cart?.items || cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-[#18181b] pt-8">
         <div className="container px-4 mx-auto">
@@ -68,7 +80,7 @@ export default function CartPage() {
               Φαίνεται ότι δεν έχετε προσθέσει ακόμα προϊόντα στο καλάθι σας. 
               Ανακαλύψτε τη συλλογή μας και βρείτε κάτι όμορφο!
             </p>
-            <Link href="/products">
+            <Link href="/shop/products">
               <Button className="text-black bg-white hover:bg-gray-100">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Συνέχεια Αγορών
@@ -90,7 +102,7 @@ export default function CartPage() {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center space-x-4">
-            <Link href="/collections">
+            <Link href="/shop/products">
               <Button variant="ghost" className="text-white hover:text-gray-300">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Συνέχεια Αγορών
@@ -111,9 +123,9 @@ export default function CartPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <AnimatePresence>
-                  {items.map((item) => (
+                  {cart.items.map((item) => (
                     <motion.div
-                      key={`${item.id}-${item.variant?.size || ''}-${item.variant?.color || ''}`}
+                      key={item.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
@@ -122,8 +134,8 @@ export default function CartPage() {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         <img
-                          src={item.image || '/placeholder-product.jpg'}
-                          alt={item.name}
+                          src={item.product?.image_url?.[0]?.replace("dl=0", "raw=1") || '/placeholder-product.jpg'}
+                          alt={item.product?.name || 'Product'}
                           className="object-cover w-20 h-20 rounded-lg"
                         />
                       </div>
@@ -131,24 +143,10 @@ export default function CartPage() {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-white truncate">
-                          {item.name}
+                          {item.product?.name || 'Unknown Product'}
                         </h3>
-                        {item.variant && (
-                          <div className="flex mt-1 space-x-2">
-                            {item.variant.size && (
-                              <Badge variant="secondary" className="text-xs">
-                                Μέγεθος: {item.variant.size}
-                              </Badge>
-                            )}
-                            {item.variant.color && (
-                              <Badge variant="secondary" className="text-xs">
-                                Χρώμα: {item.variant.color}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
                         <p className="mt-2 text-2xl font-bold text-white">
-                          €{item.price}
+                          €{item.product?.price || 0}
                         </p>
                       </div>
 
@@ -157,7 +155,7 @@ export default function CartPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant)}
+                          onClick={() => updateCartItem(item.id, Math.max(0, item.quantity - 1))}
                           className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Minus className="w-3 h-3" />
@@ -168,7 +166,7 @@ export default function CartPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant)}
+                          onClick={() => updateCartItem(item.id, item.quantity + 1)}
                           className="w-8 h-8 p-0 text-white border-gray-600 hover:bg-gray-700"
                         >
                           <Plus className="w-3 h-3" />
@@ -179,7 +177,7 @@ export default function CartPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeItem(item.id, item.variant)}
+                        onClick={() => removeFromCart(item.id)}
                         className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -235,7 +233,7 @@ export default function CartPage() {
                     <Link href="/checkout">
                       <Button 
                         className="w-full font-semibold text-black bg-white hover:bg-gray-100"
-                        disabled={isLoading}
+                        disabled={loading}
                       >
                         <Lock className="w-4 h-4 mr-2" />
                         Ασφαλής Ολοκλήρωση
@@ -274,5 +272,13 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <CartProvider>
+      <CartPageInner />
+    </CartProvider>
   );
 }

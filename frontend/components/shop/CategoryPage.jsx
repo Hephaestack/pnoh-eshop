@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
+import { CartProvider, useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
@@ -15,6 +16,23 @@ import {
 // Product Card Component with image optimization
 const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { addToCart } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    setAdding(true);
+    try {
+      await addToCart(product.id, 1);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1200);
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <motion.div
@@ -63,15 +81,17 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
         </div>
         <div className="flex items-center justify-center gap-2 mt-3">
           <motion.button
-            className="px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200"
+            className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${added ? 'bg-green-600 text-white' : ''}`}
             whileHover={{
-              backgroundColor: "rgb(203 213 225)",
-              color: "rgb(0 0 0)",
+              backgroundColor: added ? "rgb(22 163 74)" : "rgb(203 213 225)",
+              color: added ? "#fff" : "rgb(0 0 0)",
               transition: { duration: 0.15 },
             }}
             whileTap={{ scale: 0.98 }}
+            onClick={handleAddToCart}
+            disabled={adding}
           >
-            {t("add_to_cart")}
+            {added ? t("added", "Added!") : adding ? t("adding", "Adding...") : t("add_to_cart")}
           </motion.button>
           <motion.button
             className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
@@ -89,7 +109,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
   );
 };
 
-export default function CategoryPage({ category }) {
+function CategoryPageInner({ category }) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
@@ -641,5 +661,13 @@ export default function CategoryPage({ category }) {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function CategoryPage({ category }) {
+  return (
+    <CartProvider>
+      <CategoryPageInner category={category} />
+    </CartProvider>
   );
 }
