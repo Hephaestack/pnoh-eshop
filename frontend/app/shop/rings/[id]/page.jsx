@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
+// Page transition fade-in used when content mounts
+const _fadeStyle = `@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }`;
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { CartProvider, useCart } from "../../../cart-context";
@@ -13,12 +15,40 @@ function RingsPageInner({ params }) {
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
+  const [notFound, setNotFound] = useState(false);
   const [backUrl, setBackUrl] = useState("/shop/rings"); // Default fallback
+  const requestIdRef = React.useRef(0);
+  const loadingStartRef = React.useRef(0);
+  const imageLoadedRef = React.useRef(false);
+  const SKELETON_MIN_MS = 300;
+  const SKELETON_SHOW_DELAY_MS = 80;
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const skeletonTimerRef = React.useRef(null);
+
+  const checkHideSkeleton = () => {
+    // only hide skeleton when image loaded and minimum time elapsed
+    const elapsed = Date.now() - loadingStartRef.current;
+    if (imageLoadedRef.current && elapsed >= SKELETON_MIN_MS) {
+      setIsLoading(false);
+    }
+  };
   const { addToCart } = useCart();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
   const { t } = useTranslation();
+
+  // Signal to the root layout that this page is ready (used to remove the universal loader)
+  useEffect(() => {
+    if (!isLoading) {
+      // wait two animation frames to ensure DOM has painted
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new Event("page-ready"));
+        });
+      });
+    }
+  }, [isLoading]);
 
   const handleAddToCart = async () => {
     if (!productData) return;
@@ -116,12 +146,27 @@ function RingsPageInner({ params }) {
 
   // Fetch product from API
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
+      const reqId = ++requestIdRef.current; // capture this fetch id
       try {
+        // clear stale data and reset notFound when starting a new fetch
         setIsLoading(true);
+        setShowSkeleton(false);
+        if (skeletonTimerRef.current) clearTimeout(skeletonTimerRef.current);
+        skeletonTimerRef.current = setTimeout(
+          () => setShowSkeleton(true),
+          SKELETON_SHOW_DELAY_MS
+        );
+        loadingStartRef.current = Date.now();
+        imageLoadedRef.current = false;
+        setNotFound(false);
+        setProductData(null);
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(`${apiUrl}/products/${routeParams?.id}`, {
           method: "GET",
+          signal: controller.signal,
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
             Pragma: "no-cache",
@@ -129,12 +174,22 @@ function RingsPageInner({ params }) {
           },
         });
 
+        // ignore if this response belongs to an earlier request
+        if (reqId !== requestIdRef.current) return;
+
+        if (response.status === 404) {
+          setNotFound(true);
+          setIsLoading(false);
+          return;
+        }
+
         if (!response.ok) {
-          throw new Error(`Product not found: ${response.status}`);
+          throw new Error(`Failed to fetch product: ${response.status}`);
         }
 
         const data = await response.json();
-        setProductData({
+        if (reqId !== requestIdRef.current) return;
+        const mapped = {
           id: data.id,
           name: data.name,
           price: data.price,
@@ -148,17 +203,50 @@ function RingsPageInner({ params }) {
           images: data.image_url
             ? data.image_url.map((url) => url.replace("dl=0", "raw=1"))
             : [],
-        });
-        setIsLoading(false);
+        };
+        setProductData(mapped);
+
+        // Preload the main image (so skeleton can hide once image is ready)
+        try {
+          const imgLoader = new Image();
+          imgLoader.onload = () => {
+            if (reqId !== requestIdRef.current) return;
+            imageLoadedRef.current = true;
+            checkHideSkeleton();
+          };
+          imgLoader.onerror = () => {
+            if (reqId !== requestIdRef.current) return;
+            imageLoadedRef.current = true; // treat error as loaded
+            checkHideSkeleton();
+          };
+          imgLoader.src = mapped.image;
+        } catch (e) {
+          imageLoadedRef.current = true;
+          checkHideSkeleton();
+        }
       } catch (error) {
+        if (error.name === "AbortError") return; // ignore aborted fetch
         console.error("Error fetching product:", error);
-        setIsLoading(false);
+      } finally {
+        // ensure skeleton stays for minimum time; actual hiding occurs in checkHideSkeleton
+        const elapsed = Date.now() - loadingStartRef.current;
+        const remaining = Math.max(0, SKELETON_MIN_MS - elapsed);
+        if (remaining > 0) setTimeout(checkHideSkeleton, remaining);
+        else checkHideSkeleton();
       }
     };
 
     if (routeParams?.id) {
       fetchProduct();
     }
+
+    return () => {
+      controller.abort();
+      if (skeletonTimerRef.current) {
+        clearTimeout(skeletonTimerRef.current);
+        skeletonTimerRef.current = null;
+      }
+    };
   }, [routeParams?.id]);
 
   function clamp(val, min, max) {
@@ -222,25 +310,84 @@ function RingsPageInner({ params }) {
     current.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
   }
 
-  // Show loading state while fetching product data
+  // while loading: wait briefly before showing the skeleton to avoid a flash.
   if (isLoading) {
+    if (!showSkeleton) {
+      // invisible placeholder preserves layout so footer doesn't jump
+      return (
+        <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+          <div className="invisible w-full" style={{ minHeight: "640px" }} />
+        </main>
+      );
+    }
+
+    return (
+      <main
+        className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left"
+        aria-hidden
+      >
+        <div className="animate-pulse">
+          {/* back link skeleton */}
+          <div className="h-5 mx-auto mb-6 bg-gray-600 rounded w-28 md:mx-0" />
+
+          <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
+            {/* image skeleton */}
+            <div className="flex items-center justify-center flex-shrink-0 w-full md:w-1/2">
+              <div className="w-full h-64 max-w-xs bg-gray-600 rounded-md" />
+            </div>
+
+            {/* content skeleton */}
+            <div className="flex flex-col items-center justify-center flex-1 w-full text-center md:items-start md:text-left">
+              <div className="w-3/4 mb-3 bg-gray-600 rounded h-7" />
+              <div className="w-1/2 h-5 mb-3 bg-gray-600 rounded" />
+              <div className="w-full h-4 mb-2 bg-gray-600 rounded" />
+              <div className="w-full h-4 mb-2 bg-gray-600 rounded" />
+              <div className="w-32 h-8 mt-4 mb-3 bg-gray-600 rounded" />
+              <div className="flex items-center gap-2">
+                <div className="w-32 h-10 bg-gray-600 rounded" />
+                <div className="w-32 h-10 bg-gray-600 rounded" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <div className="w-full h-4 bg-gray-600 rounded" />
+            <div className="w-full h-4 bg-gray-600 rounded" />
+            <div className="w-2/3 h-4 bg-gray-600 rounded" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // show not-found only when we've finished loading and the API returned 404
+  if (notFound) {
     return (
       <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
         <Link
           href="/products"
           className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
         >
-          {t("back_to_collection")}
+          {t("back_to_collection")}``
         </Link>
         <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f8f8f8] mb-4"></div>
-          <p className="text-[#bcbcbc]">Loading product...</p>
+          <p className="text-[#f8f8f8] text-xl mb-2">
+            {t("product_not_found", "Product not found")}
+          </p>
+          <p className="text-[#bcbcbc]">
+            {t(
+              "product_not_found_desc",
+              "The product you're looking for doesn't exist."
+            )}
+          </p>
         </div>
       </main>
     );
   }
 
-  // Show error state if product data failed to load
+  // If we finished loading but productData is still null (non-404 error),
+  // show a simple error state and a retry button instead of rendering the page
+  // and causing a TypeError when trying to access productData fields.
   if (!productData) {
     return (
       <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
@@ -251,10 +398,18 @@ function RingsPageInner({ params }) {
           {t("back_to_collection")}
         </Link>
         <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <p className="text-[#f8f8f8] text-xl mb-2">Product not found</p>
-          <p className="text-[#bcbcbc]">
-            The product you're looking for doesn't exist.
+          <p className="text-[#f8f8f8] text-xl mb-2">
+            {t("error_loading_product", "Error loading product")}
           </p>
+          <p className="text-[#bcbcbc] mb-4">
+            {t("try_again_or_contact", "Please try again or contact support.")}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200"
+          >
+            {t("retry", "Retry")}
+          </button>
         </div>
       </main>
     );
@@ -281,6 +436,14 @@ function RingsPageInner({ params }) {
               alt={productData.name}
               className="object-cover w-full h-full"
               style={{ cursor: "zoom-in" }}
+              onLoad={() => {
+                imageLoadedRef.current = true;
+                checkHideSkeleton();
+              }}
+              onError={() => {
+                imageLoadedRef.current = true; // treat error as loaded to avoid hanging skeleton
+                checkHideSkeleton();
+              }}
             />
           </div>
         </div>
@@ -302,6 +465,14 @@ function RingsPageInner({ params }) {
                 alt={productData.name}
                 className="rounded-xl shadow-2xl object-contain max-h-[90vh] max-w-[95vw] transition-transform duration-500"
                 style={{ cursor: "zoom-out" }}
+                onLoad={() => {
+                  imageLoadedRef.current = true;
+                  checkHideSkeleton();
+                }}
+                onError={() => {
+                  imageLoadedRef.current = true;
+                  checkHideSkeleton();
+                }}
               />
             </div>
             {/* Close button outside image, fixed at overlay top right */}

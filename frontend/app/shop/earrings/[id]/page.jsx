@@ -13,14 +13,32 @@ function EarringPageInner({ params }) {
   const [enlarged, setEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [productData, setProductData] = useState(null);
+  const [notFound, setNotFound] = useState(false);
   const [backUrl, setBackUrl] = useState("/shop/earrings"); // Default fallback
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+  const requestIdRef = React.useRef(0);
+  const loadingStartRef = React.useRef(0);
+  const imageLoadedRef = React.useRef(false);
+  const SKELETON_MIN_MS = 300;
+  const SKELETON_SHOW_DELAY_MS = 80;
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const skeletonTimerRef = React.useRef(null);
   const { addToCart } = useCart();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!isLoading) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new Event("page-ready"));
+        });
+      });
+    }
+  }, [isLoading]);
 
   const handleAddToCart = async () => {
     if (!productData) return;
@@ -120,14 +138,28 @@ function EarringPageInner({ params }) {
     }
   }, []);
 
-  // Fetch product from API
+  // Fetch product from API with AbortController, request guard, and image preload
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
+      const reqId = ++requestIdRef.current;
       try {
         setIsLoading(true);
+        setShowSkeleton(false);
+        if (skeletonTimerRef.current) clearTimeout(skeletonTimerRef.current);
+        skeletonTimerRef.current = setTimeout(
+          () => setShowSkeleton(true),
+          SKELETON_SHOW_DELAY_MS
+        );
+        loadingStartRef.current = Date.now();
+        imageLoadedRef.current = false;
+        setNotFound(false);
+        setProductData(null);
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(`${apiUrl}/products/${routeParams?.id}`, {
           method: "GET",
+          signal: controller.signal,
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
             Pragma: "no-cache",
@@ -135,12 +167,21 @@ function EarringPageInner({ params }) {
           },
         });
 
+        if (reqId !== requestIdRef.current) return; // stale
+
+        if (response.status === 404) {
+          setNotFound(true);
+          setIsLoading(false);
+          return;
+        }
+
         if (!response.ok) {
-          throw new Error(`Product not found: ${response.status}`);
+          throw new Error(`Failed to fetch product: ${response.status}`);
         }
 
         const data = await response.json();
-        setProductData({
+        if (reqId !== requestIdRef.current) return;
+        const mapped = {
           id: data.id,
           name: data.name,
           price: data.price,
@@ -154,37 +195,59 @@ function EarringPageInner({ params }) {
           images: data.image_url
             ? data.image_url.map((url) => url.replace("dl=0", "raw=1"))
             : [],
-        });
-        setIsLoading(false);
+        };
+        setProductData(mapped);
+
+        // preload image
+        try {
+          const imgLoader = new Image();
+          imgLoader.onload = () => {
+            if (reqId !== requestIdRef.current) return;
+            imageLoadedRef.current = true;
+            const elapsed = Date.now() - loadingStartRef.current;
+            const remaining = Math.max(0, SKELETON_MIN_MS - elapsed);
+            if (remaining > 0) setTimeout(() => setIsLoading(false), remaining);
+            else setIsLoading(false);
+          };
+          imgLoader.onerror = () => {
+            if (reqId !== requestIdRef.current) return;
+            imageLoadedRef.current = true; // treat as loaded
+            const elapsed = Date.now() - loadingStartRef.current;
+            const remaining = Math.max(0, SKELETON_MIN_MS - elapsed);
+            if (remaining > 0) setTimeout(() => setIsLoading(false), remaining);
+            else setIsLoading(false);
+          };
+          imgLoader.src = mapped.image;
+        } catch (e) {
+          imageLoadedRef.current = true;
+          setIsLoading(false);
+        }
       } catch (error) {
+        if (error.name === "AbortError") return;
         console.error("Error fetching product:", error);
-        setIsLoading(false);
+      } finally {
+        // ensure skeleton shows minimum time
+        const elapsed = Date.now() - loadingStartRef.current;
+        const remaining = Math.max(0, SKELETON_MIN_MS - elapsed);
+        if (remaining > 0)
+          setTimeout(() => {
+            if (imageLoadedRef.current) setIsLoading(false);
+          }, remaining);
       }
     };
 
     if (routeParams?.id) {
       fetchProduct();
     }
-  }, [routeParams?.id]);
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#18181b] px-4 py-8">
-        <div className="bg-[#232326]/60 rounded-2xl shadow-2xl px-8 py-12 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 w-full max-w-md">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bcbcbc] mb-6"></div>
-            <p className="text-center text-[#f8f8f8] font-medium text-lg">
-              Loading Product...
-            </p>
-            <p className="text-center text-[#bcbcbc] text-sm mt-2">
-              Preparing your jewelry details
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    return () => {
+      controller.abort();
+      if (skeletonTimerRef.current) {
+        clearTimeout(skeletonTimerRef.current);
+        skeletonTimerRef.current = null;
+      }
+    };
+  }, [routeParams?.id]);
 
   function clamp(val, min, max) {
     return Math.max(min, Math.min(max, val));
@@ -245,6 +308,104 @@ function EarringPageInner({ params }) {
     }, 700);
     // Reset current for next hover
     current.current = { tx: 0, ty: 0, rx: 0, ry: 0 };
+  }
+  // while loading: wait briefly before showing the skeleton to avoid a flash.
+  if (isLoading) {
+    if (!showSkeleton) {
+      // invisible placeholder preserves layout so footer doesn't jump
+      return (
+        <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+          <div className="invisible w-full" style={{ minHeight: "640px" }} />
+        </main>
+      );
+    }
+
+    return (
+      <main
+        className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left"
+        aria-hidden
+      >
+        <div className="animate-pulse">
+          <div className="h-5 mx-auto mb-6 bg-gray-600 rounded w-28 md:mx-0" />
+
+          <div className="flex flex-col items-center w-full gap-8 mb-10 md:flex-row md:items-start">
+            <div className="flex items-center justify-center flex-shrink-0 w-full md:w-1/2">
+              <div className="w-full h-64 max-w-xs bg-gray-600 rounded-md" />
+            </div>
+
+            <div className="flex flex-col items-center justify-center flex-1 w-full text-center md:items-start md:text-left">
+              <div className="w-3/4 mb-3 bg-gray-600 rounded h-7" />
+              <div className="w-1/2 h-5 mb-3 bg-gray-600 rounded" />
+              <div className="w-full h-4 mb-2 bg-gray-600 rounded" />
+              <div className="w-full h-4 mb-2 bg-gray-600 rounded" />
+              <div className="w-32 h-8 mt-4 mb-3 bg-gray-600 rounded" />
+              <div className="flex items-center gap-2">
+                <div className="w-32 h-10 bg-gray-600 rounded" />
+                <div className="w-32 h-10 bg-gray-600 rounded" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <div className="w-full h-4 bg-gray-600 rounded" />
+            <div className="w-full h-4 bg-gray-600 rounded" />
+            <div className="w-2/3 h-4 bg-gray-600 rounded" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // show not-found only when we've finished loading and the API returned 404
+  if (notFound) {
+    return (
+      <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+        <Link
+          href="/products"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
+        >
+          {t("back_to_collection")}
+        </Link>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <p className="text-[#f8f8f8] text-xl mb-2">
+            {t("product_not_found", "Product not found")}
+          </p>
+          <p className="text-[#bcbcbc]">
+            {t(
+              "product_not_found_desc",
+              "The product you're looking for doesn't exist."
+            )}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!productData) {
+    return (
+      <main className="max-w-2xl min-h-screen px-4 py-10 mx-auto text-center md:text-left">
+        <Link
+          href="/products"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 inline-block"
+        >
+          {t("back_to_collection")}
+        </Link>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <p className="text-[#f8f8f8] text-xl mb-2">
+            {t("error_loading_product", "Error loading product")}
+          </p>
+          <p className="text-[#bcbcbc] mb-4">
+            {t("try_again_or_contact", "Please try again or contact support.")}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200"
+          >
+            {t("retry", "Retry")}
+          </button>
+        </div>
+      </main>
+    );
   }
 
   return (

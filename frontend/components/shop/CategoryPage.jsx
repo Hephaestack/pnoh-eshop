@@ -4,7 +4,7 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { CartProvider, useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   SlidersHorizontal,
   Grid,
@@ -12,6 +12,25 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+
+// Format theme label: prefer translation, fallback to capitalized words
+const formatThemeLabel = (t, theme) => {
+  if (!theme) return "";
+  const key = theme.replace(/-/g, "_");
+  const translated = t(key);
+  if (
+    !translated ||
+    translated === key ||
+    translated.toLowerCase() === key.toLowerCase()
+  ) {
+    return theme
+      .replace(/-/g, " ")
+      .split(" ")
+      .map((s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s))
+      .join(" ");
+  }
+  return translated;
+};
 
 // Product Card Component with image optimization
 const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
@@ -39,78 +58,139 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
       className={
         viewMode === "grid"
           ? "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group backdrop-blur-md backdrop-saturate-150 transition-transform"
-          : "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group flex flex-row gap-4 backdrop-blur-md backdrop-saturate-150 transition-transform"
+          : "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 transition-transform"
       }
       whileHover={{ y: -4, boxShadow: "0 0 20px 4px rgba(192,192,192,0.25)" }}
     >
-      <div
-        className={
-          viewMode === "grid"
-            ? "relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden"
-            : "relative w-24 h-24 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
-        }
-      >
-        {!imgLoaded && (
-          <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
-        )}
-        <img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
-            imgLoaded ? "" : "opacity-0"
-          }`}
-          onLoad={() => setImgLoaded(true)}
-        />
-      </div>
-      <div
-        className={
-          viewMode === "grid" ? "text-center px-2 pb-2" : "flex-1 px-2 py-2"
-        }
-      >
-        <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
-          {product.name}
-        </h3>
-        <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif">
-          {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
-        </p>
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-xl font-bold text-slate-300">
-            ${product.price}
-          </span>
+      {viewMode === "grid" ? (
+        <>
+          <div className="relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden">
+            {!imgLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
+            )}
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
+                imgLoaded ? "" : "opacity-0"
+              }`}
+              onLoad={() => setImgLoaded(true)}
+            />
+          </div>
+          <div className="px-2 pb-2 text-center">
+            <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
+              {product.name}
+            </h3>
+            <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif">
+              {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xl font-bold text-slate-300">
+                ${product.price}
+              </span>
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <motion.button
+                className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                  added ? "bg-green-600 text-white" : ""
+                }`}
+                whileHover={{
+                  backgroundColor: added
+                    ? "rgb(22 163 74)"
+                    : "rgb(203 213 225)",
+                  color: added ? "#fff" : "rgb(0 0 0)",
+                  transition: { duration: 0.15 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddToCart}
+                disabled={adding}
+              >
+                {added
+                  ? t("added", "Added!")
+                  : adding
+                  ? t("adding", "Adding...")
+                  : t("add_to_cart")}
+              </motion.button>
+              <motion.button
+                className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
+                whileHover={{
+                  backgroundColor: "rgb(203 213 225)",
+                  transition: { duration: 0.15 },
+                }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {t("buy_now")}
+              </motion.button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
+          <div className="w-full sm:w-28 h-48 sm:h-28 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+            {!imgLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
+            )}
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
+                imgLoaded ? "" : "opacity-0"
+              }`}
+              onLoad={() => setImgLoaded(true)}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold truncate text-slate-200">
+              {product.name}
+            </h3>
+            <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif">
+              {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
+            </p>
+            <div className="mt-2 font-bold text-slate-300">
+              ${product.price}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between w-full mt-3 sm:w-auto sm:justify-end sm:mt-0">
+            <div className="flex w-full gap-2 sm:w-auto">
+              <motion.button
+                className={`w-full sm:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                  added ? "bg-green-600 text-white" : ""
+                }`}
+                whileHover={{
+                  backgroundColor: added
+                    ? "rgb(22 163 74)"
+                    : "rgb(203 213 225)",
+                  color: added ? "#fff" : "rgb(0 0 0)",
+                  transition: { duration: 0.12 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddToCart}
+                disabled={adding}
+              >
+                {added
+                  ? t("added", "Added!")
+                  : adding
+                  ? t("adding", "Adding...")
+                  : t("add_to_cart")}
+              </motion.button>
+              <motion.button
+                className="w-full px-3 py-2 font-serif text-sm text-black border rounded-md sm:w-auto border-slate-300 bg-slate-200"
+                whileHover={{
+                  backgroundColor: "rgb(203 213 225)",
+                  transition: { duration: 0.12 },
+                }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {t("buy_now")}
+              </motion.button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center justify-center gap-2 mt-3">
-          <motion.button
-            className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-              added ? "bg-green-600 text-white" : ""
-            }`}
-            whileHover={{
-              backgroundColor: added ? "rgb(22 163 74)" : "rgb(203 213 225)",
-              color: added ? "#fff" : "rgb(0 0 0)",
-              transition: { duration: 0.15 },
-            }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAddToCart}
-            disabled={adding}
-          >
-            {added
-              ? t("added", "Added!")
-              : adding
-              ? t("adding", "Adding...")
-              : t("add_to_cart")}
-          </motion.button>
-          <motion.button
-            className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
-            whileHover={{
-              backgroundColor: "rgb(203 213 225)",
-              transition: { duration: 0.15 },
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {t("buy_now")}
-          </motion.button>
-        </div>
-      </div>
+      )}
     </motion.div>
   );
 };
@@ -125,6 +205,24 @@ function CategoryPageInner({ category }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { t } = useTranslation();
+
+  const formatThemeLabel = (theme) => {
+    if (!theme) return "";
+    const key = theme.replace(/-/g, "_");
+    const translated = t(key);
+    if (
+      !translated ||
+      translated === key ||
+      translated.toLowerCase() === key.toLowerCase()
+    ) {
+      return theme
+        .replace(/-/g, " ")
+        .split(" ")
+        .map((s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s))
+        .join(" ");
+    }
+    return translated;
+  };
 
   const productsPerPage = 12;
 
@@ -323,6 +421,21 @@ function CategoryPageInner({ category }) {
     });
   }, [selectedTheme]);
 
+  // Ensure list view is only used on large screens (>= lg)
+  useEffect(() => {
+    const enforceGridOnResize = () => {
+      if (typeof window !== "undefined") {
+        if (window.innerWidth < 1024 && viewMode === "list") {
+          setViewMode("grid");
+        }
+      }
+    };
+    // Run on mount
+    enforceGridOnResize();
+    window.addEventListener("resize", enforceGridOnResize);
+    return () => window.removeEventListener("resize", enforceGridOnResize);
+  }, [viewMode]);
+
   // Scroll to top when page changes (pagination)
   useEffect(() => {
     if (currentPage > 1) {
@@ -418,41 +531,45 @@ function CategoryPageInner({ category }) {
       </p>
 
       {/* Filters and Controls */}
-      <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
-        <div className="flex flex-wrap gap-4">
-          {/* Theme Filter */}
+      <div className="flex flex-col items-center justify-center gap-4 mb-8 md:flex-row md:items-center md:justify-between">
+        <div className="relative">
           <motion.select
             value={selectedTheme}
             onChange={(e) => handleThemeChange(e.target.value)}
-            className="bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
+            className="appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
             whileHover={{ borderColor: "rgba(188, 188, 188, 0.4)" }}
             whileFocus={{ borderColor: "rgba(188, 188, 188, 0.6)" }}
             transition={{ duration: 0.2 }}
           >
-            {subcategories.map((theme) => (
-              <option key={theme.value} value={theme.value}>
-                {theme.label}
+            {subcategories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
               </option>
             ))}
           </motion.select>
-
-          <motion.button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#232326] text-[#bcbcbc] border border-[#bcbcbc33]"
-            whileHover={{
-              backgroundColor: "rgb(24, 24, 27)",
-              color: "rgb(248, 248, 248)",
-              transition: { duration: 0.2 },
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            {t("filters", "Filters")}
-          </motion.button>
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
+            {/* Custom dropdown SVG */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M7 10l5 5 5-5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="items-center hidden gap-2 lg:flex">
           <motion.button
             onClick={() => setViewMode("grid")}
             className={`p-2 rounded-lg ${
@@ -470,7 +587,7 @@ function CategoryPageInner({ category }) {
           </motion.button>
           <motion.button
             onClick={() => setViewMode("list")}
-            className={`p-2 rounded-lg ${
+            className={`hidden lg:inline-flex p-2 rounded-lg ${
               viewMode === "list"
                 ? "bg-[#232326] text-[#f8f8f8]"
                 : "text-[#bcbcbc]"
@@ -488,7 +605,7 @@ function CategoryPageInner({ category }) {
 
       {/* Results Count */}
       <div className="mb-6">
-        <p className="text-[#bcbcbc]">
+        <p className="text-[#bcbcbc] text-center md:text-left">
           {t("showing_products", "Showing {{count}} products", {
             count: filteredProducts.length,
           })}
@@ -529,44 +646,53 @@ function CategoryPageInner({ category }) {
 
       {/* Product Grid/List */}
       <div
-        className={`relative ${
-          viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
-            : "space-y-4"
-        }`}
-        style={{ minHeight: "400px" }} // Prevent layout shift
-        key={`${selectedTheme}-${currentPage}`} // Re-trigger animations on filter change
+        style={{ minHeight: "400px" }}
+        key={`${selectedTheme}-${currentPage}`}
       >
-        {currentProducts.map((product, index) => (
+        <AnimatePresence>
           <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: index * 0.05, // 50ms delay between items
-              ease: "easeOut",
-            }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
+                : "hidden lg:space-y-4 lg:block"
+            }
+            layout
           >
-            <Link href={`/shop/${category}/${product.id}`}>
-              <ProductCard
-                product={product}
-                viewMode={viewMode}
-                categoryTitle={categoryInfo.title}
-                t={t}
-              />
-            </Link>
+            {currentProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{
+                  duration: 0.35,
+                  ease: "easeOut",
+                  delay: index * 0.03,
+                }}
+              >
+                <Link href={`/shop/${category}/${product.id}`}>
+                  <ProductCard
+                    product={product}
+                    viewMode={viewMode}
+                    categoryTitle={categoryInfo.title}
+                    t={t}
+                  />
+                </Link>
+              </motion.div>
+            ))}
           </motion.div>
-        ))}
+        </AnimatePresence>
       </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <motion.div
-          className="flex items-center justify-center gap-4 mt-12"
+          className="flex items-center justify-center gap-6 mt-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -574,7 +700,7 @@ function CategoryPageInner({ category }) {
           <motion.button
             onClick={goToPreviousPage}
             disabled={currentPage === 1}
-            className="flex items-center gap-2 px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-4 py-2 w-36 min-w-[9rem] font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={
               currentPage !== 1
                 ? {
@@ -590,37 +716,16 @@ function CategoryPageInner({ category }) {
             {t("previous_page", "Previous")}
           </motion.button>
 
-          {/* Page numbers */}
-          <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <motion.button
-                key={page}
-                onClick={() => goToPage(page)}
-                className={`px-4 py-2 rounded-md font-serif ${
-                  page === currentPage
-                    ? "bg-slate-200 text-black"
-                    : "border border-slate-300 bg-transparent text-slate-200"
-                }`}
-                whileHover={
-                  page !== currentPage
-                    ? {
-                        backgroundColor: "rgb(203 213 225)",
-                        color: "rgb(0 0 0)",
-                        transition: { duration: 0.15 },
-                      }
-                    : {}
-                }
-                whileTap={{ scale: 0.98 }}
-              >
-                {page}
-              </motion.button>
-            ))}
+          {/* Current page indicator (stacked, unified text design) */}
+          <div className="flex flex-col items-center px-4 py-2 font-serif text-center bg-transparent text-slate-200">
+            <span className="text-sm">{t("page", "Σελίδα")}</span>
+            <span className="text-xl font-semibold leading-none">{currentPage}</span>
           </div>
 
           <motion.button
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-2 px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-4 py-2 w-36 min-w-[9rem] font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={
               currentPage !== totalPages
                 ? {
