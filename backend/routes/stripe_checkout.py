@@ -36,7 +36,10 @@ def _get_cart(
     return db.query(Cart).filter(Cart.guest_session_id == guest_session_id).first()
 
 
-def _build_line_items(db: Session, cart_id: UUID) -> list[dict]:
+def _build_line_items(
+        db: Session,
+        cart_id: UUID
+) -> list[dict]:
     rows = (
         db.query(CartItem, Product)
         .join(Product, CartItem.product_id == Product.id)
@@ -74,7 +77,7 @@ def create_checkout_session(
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
 ):
-    cart = _get_cart(db, auth, guest_session_id, response)
+    cart = _get_cart(auth, guest_session_id, response, db)
     if not cart:
         raise HTTPException(status_code=400, detail="Cart not found or empty")
 
