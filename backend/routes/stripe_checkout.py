@@ -12,7 +12,7 @@ from db.models.cart import Cart
 from db.models.cart_item import CartItem
 from db.models.product import Product
 
-router = APIRouter(prefix="/post/stripe", tags=["Stripe"])
+router = APIRouter()
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
@@ -67,7 +67,7 @@ def _build_line_items(db: Session, cart_id: UUID) -> list[dict]:
     return line_items
 
 
-@router.post("/create-checkout-session")
+@router.post("/stripe/create-checkout-session", tags=["Stripe"])
 def create_checkout_session(
     response: Response,
     db: Session = Depends(get_db),
@@ -107,7 +107,7 @@ def create_checkout_session(
     return {"url": session.url}
 
 
-@router.post("/webhook")
+@router.post("/stripe/webhook", tags=["Stripe"])
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     if not WEBHOOK_SECRET:
         payload = await request.body()
