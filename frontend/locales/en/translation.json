@@ -383,7 +383,7 @@
     "trust_handmade": "Handmade high-quality jewelry",
     "qty": "Qty",
     "remove_error": "Failed to remove item from cart",
-  "deleting": "Deleting...",
+    "deleting": "Deleting...",
     "checkout_failed": "Failed to start checkout",
     "thank_you_quote": "Thank you for supporting handmade — enjoy your treasure!"
   }

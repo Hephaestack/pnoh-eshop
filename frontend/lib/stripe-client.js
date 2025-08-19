@@ -36,7 +36,7 @@ export async function startCheckout(cartItems, token) {
     };
   });
 
-  const res = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
+  const res = await fetch(`${API_BASE}/post/stripe/create-checkout-session`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
