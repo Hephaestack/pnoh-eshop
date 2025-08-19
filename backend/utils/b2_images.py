@@ -5,6 +5,7 @@ import mimetypes
 from io import BytesIO
 from typing import Tuple, Optional
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
@@ -18,11 +19,18 @@ B2_ENDPOINT = os.getenv("B2_ENDPOINT")
 if not all([B2_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME, B2_ENDPOINT]):
     raise RuntimeError("Missing B2_* environment variables")
 
+cfg = Config(
+    s3={"addressing_style": "path"},
+    retries={"max_attempts": 3, "mode": "standard"},
+    signature_version="s3v4",
+)
+
 s3 = boto3.client(
     "s3",
     endpoint_url = B2_ENDPOINT,
     aws_access_key_id = B2_KEY_ID,
     aws_secret_access_key = B2_APPLICATION_KEY,
+    config = cfg
 )
 
 def _public_url(key: str) -> str:
@@ -47,7 +55,6 @@ def upload_image_bytes(
             Key = key,
             Body = content,
             ContentType = ct,
-            ACL = "public-read",
             CacheControl = "public, max-age=31536000, immutable",
         )
     except ClientError as e:
