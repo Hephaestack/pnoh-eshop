@@ -30,7 +30,7 @@ class ProductCreate(ProductBase):
 
 class ProductImageOut(BaseModel):
     id: UUID
-    big_image_url: Optional[str]
+    big_image_url: Optional[List[str]]
 
     class Config:
         from_attributes = True
