@@ -31,7 +31,7 @@ class Product(Base):
     category = Column(Enum(Category, name="category"), nullable=True)
     sub_category = Column(Enum(SubCategory, name="Subcategory"), nullable=True)
     image_url = Column(ARRAY(String), nullable=True)
-    big_image_url = Column(String, nullable=True)
+    big_image_url = Column(ARRAY(String), nullable=True)
     created_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
     updated_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), onupdate=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
 
