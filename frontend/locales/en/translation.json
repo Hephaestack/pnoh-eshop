@@ -362,5 +362,29 @@
     "sign_out": "Sign Out",
     "edit_profile_notice": "Profile editing will be available soon",
     "change_password_notice": "Password change will be available soon"
+  },
+
+  "cart": {
+    "empty_title": "Your cart is empty",
+    "empty_desc": "It looks like you haven't added any products yet. Discover our collection and find something beautiful!",
+    "continue_shopping": "Continue shopping",
+    "header": "Shopping Cart ({{count}})",
+    "items_title": "Products in Cart",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax (24%)",
+    "total": "Total",
+    "free_shipping_message": "🎉 You got free shipping!",
+    "secure_checkout": "Secure Checkout",
+    "secure_payment_note": "Secure payment with SSL",
+    "trust_free_shipping": "Free shipping for orders over €150",
+    "trust_return_policy": "15 day money-back guarantee",
+    "trust_handmade": "Handmade high-quality jewelry",
+    "qty": "Qty",
+    "remove_error": "Failed to remove item from cart",
+  "deleting": "Deleting...",
+    "checkout_failed": "Failed to start checkout",
+    "thank_you_quote": "Thank you for supporting handmade — enjoy your treasure!"
   }
 }

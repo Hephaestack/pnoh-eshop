@@ -259,11 +259,25 @@ export function Header() {
                   className="hover:bg-[#232326] border border-white rounded-full relative"
                 >
                   <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
-                  {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold">
-                      {itemCount > 99 ? "99+" : itemCount}
-                    </span>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {itemCount > 0 && (
+                      <motion.span
+                        key={itemCount}
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.6, opacity: 0 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 600,
+                          damping: 20,
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold"
+                        aria-live="polite"
+                      >
+                        {itemCount > 99 ? "99+" : itemCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </Button>
               </Link>
               {/* Mobile Menu Button - only visible on mobile */}

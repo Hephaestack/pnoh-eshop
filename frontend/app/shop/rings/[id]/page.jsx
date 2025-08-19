@@ -7,7 +7,7 @@ import { useRef, useState, useEffect } from "react";
 const _fadeStyle = `@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }`;
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { CartProvider, useCart } from "../../../cart-context";
+import { useCart } from "../../../cart-context";
 
 function RingsPageInner({ params }) {
   const routeParams = React.use(params);
@@ -566,9 +566,5 @@ function RingsPageInner({ params }) {
 }
 
 export default function RingsPage({ params }) {
-  return (
-    <CartProvider>
-      <RingsPageInner params={params} />
-    </CartProvider>
-  );
+  return <RingsPageInner params={params} />;
 }

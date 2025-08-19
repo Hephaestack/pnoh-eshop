@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { CartProvider, useCart } from "../../cart-context";
+import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
@@ -699,9 +699,5 @@ function AllProductsPageInner() {
 
 export default function AllProductsPage() {
   // You can pass token from auth here if needed
-  return (
-    <CartProvider>
-      <AllProductsPageInner />
-    </CartProvider>
-  );
+  return <AllProductsPageInner />;
 }

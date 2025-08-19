@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { CartProvider, useCart } from "../../app/cart-context";
+import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -719,7 +719,9 @@ function CategoryPageInner({ category }) {
           {/* Current page indicator (stacked, unified text design) */}
           <div className="flex flex-col items-center px-4 py-2 font-serif text-center bg-transparent text-slate-200">
             <span className="text-sm">{t("page", "Σελίδα")}</span>
-            <span className="text-xl font-semibold leading-none">{currentPage}</span>
+            <span className="text-xl font-semibold leading-none">
+              {currentPage}
+            </span>
           </div>
 
           <motion.button
@@ -776,9 +778,5 @@ function CategoryPageInner({ category }) {
 }
 
 export default function CategoryPage({ category }) {
-  return (
-    <CartProvider>
-      <CategoryPageInner category={category} />
-    </CartProvider>
-  );
+  return <CategoryPageInner category={category} />;
 }

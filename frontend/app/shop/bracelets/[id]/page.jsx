@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { CartProvider, useCart } from "../../../cart-context";
+import { useCart } from "../../../cart-context";
 
 function BraceletPageInner({ params }) {
   const routeParams = React.use(params);
@@ -455,9 +455,5 @@ function BraceletPageInner({ params }) {
 }
 
 export default function BraceletPage({ params }) {
-  return (
-    <CartProvider>
-      <BraceletPageInner params={params} />
-    </CartProvider>
-  );
+  return <BraceletPageInner params={params} />;
 }
