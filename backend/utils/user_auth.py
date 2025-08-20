@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
+CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_VERIFY_URL = os.getenv("CLERK_VERIFY_URL")
 
 
@@ -26,13 +26,13 @@ def get_token(
     return None
 
 
-def _verify_token(session_token: str) -> Dict[str, Any]:
-    if not CLERK_API_KEY:
+def verify_token(session_token: str) -> Dict[str, Any]:
+    if not CLERK_SECRET_KEY:
         raise HTTPException(status_code=500, detail="Server misconfigured: missing CLERK_SECRET_KEY")
     try:
         res = requests.get(
             CLERK_VERIFY_URL,
-            headers={"Authorization": f"Bearer {CLERK_API_KEY}"},
+            headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
             params={"session_token": session_token},
             timeout=5,
         )
@@ -49,7 +49,7 @@ def _verify_token(session_token: str) -> Dict[str, Any]:
     return {
         "user_id": user_id,
         "session_id": data.get("id"),
-        "expires_at": data.get("expire_at"),
+        "expire_at": data.get("expire_at"),
         "email": (data.get("user") or {}).get("email_address") if isinstance(data.get("user"), dict) else None,
         "raw": data,
     }
@@ -63,7 +63,7 @@ def get_current_user(
     if not token:
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization")
     
-    return _verify_token(token)
+    return verify_token(token)
 
 
 def get_current_user_optional(
@@ -74,7 +74,7 @@ def get_current_user_optional(
     if not token:
         return None
     try:
-        return _verify_token(token)
+        return verify_token(token)
     except HTTPException:
         return None
 
