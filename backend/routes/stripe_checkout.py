@@ -73,7 +73,7 @@ def create_checkout_session(
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
 ):
-    cart = _get_cart(db, auth, guest_session_id, response)
+    cart = _get_cart(auth=auth, guest_session_id=guest_session_id, response=response, db=db)
     if not cart:
         raise HTTPException(status_code=400, detail="Cart not found or empty")
 
