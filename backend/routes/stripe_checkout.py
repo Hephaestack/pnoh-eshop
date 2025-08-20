@@ -24,8 +24,8 @@ def _get_cart(
     auth: Optional[dict],
     guest_session_id: Optional[str],
     response: Response,
-    db: Session = Depends(get_db)
-) -> Cart | None:
+    db: Session
+) -> Optional[Cart]:
     if auth:
         return db.query(Cart).filter(Cart.user_id == auth["user_id"]).first()
     
