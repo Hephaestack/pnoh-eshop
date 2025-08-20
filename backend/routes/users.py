@@ -10,7 +10,7 @@ CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_BASE_URL = os.getenv("CLERK_BASE_URL")
 
 @router.get("/auth/me")
-def get_current_user(token: Optional[str] = Depends(get_token)) -> Dict[str, Any]:
+def get_user(token: Optional[str] = Depends(get_token)) -> Dict[str, Any]:
     if not token:
         raise HTTPException(status_code=401, detail="Missing session token")
 
