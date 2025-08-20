@@ -1,8 +1,7 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 from sqlalchemy.orm import Session
-import stripe
 import os
 from utils.database import get_db
 from utils.user_auth import get_current_user_optional, get_or_create_guest_session
@@ -17,10 +16,10 @@ router = APIRouter()
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-
 CURRENCY = "eur"
 
 def _get_cart(
+    *,
     auth: Optional[dict],
     guest_session_id: Optional[str],
     response: Response,
