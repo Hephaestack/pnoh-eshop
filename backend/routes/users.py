@@ -1,61 +1,85 @@
 import os, requests
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header, Cookie
 from db.schemas.users import UpdateNamesBody
-from utils.user_auth import get_current_user, get_token
+from utils.user_auth import get_current_user, get_token, verify_token
 from typing import Optional, Dict, Any
 
 router = APIRouter()
 
-CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
+CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_BASE_URL = os.getenv("CLERK_BASE_URL")
 
 @router.get("/auth/me")
-def get_user(token: Optional[str] = Depends(get_token)) -> Dict[str, Any]:
+def auth_me(
+    authorization: Optional[str] = Header(None),
+    session_cookie: Optional[str] = Cookie(None, alias="__session"),
+) -> Dict[str, Any]:
+    """
+    Validate Clerk session token server-side and return the current user.
+    Frontend calls this instead of any Clerk server helpers.
+    """
+    token = get_token(authorization=authorization, session_cookie=session_cookie)
     if not token:
         raise HTTPException(status_code=401, detail="Missing session token")
 
     try:
-        res = requests.get(
-            f"{CLERK_BASE_URL}/sessions/{token}",
-            headers={"Authorization": f"Bearer {CLERK_API_KEY}"},
+        verified = verify_token(token)
+    except HTTPException as e:
+        raise e
+
+    user_id = verified.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Session verified but user_id missing")
+
+    if not CLERK_SECRET_KEY:
+        return {
+            "user_id": user_id,
+            "session_id": verified.get("session_id"),
+        }
+
+    try:
+        res_user = requests.get(
+            f"{CLERK_BASE_URL}/v1/users/{user_id}",
+            headers={"Authorization": f"Bearer {CLERK_SECRET_KEY}"},
             timeout=5,
         )
     except requests.RequestException:
-        raise HTTPException(status_code=503, detail="Auth service unavailable")
+        return {
+            "user_id": user_id,
+            "session_id": verified.get("session_id"),
+        }
 
-    if res.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-
-    session = res.json()
-    user_id = session.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Session valid but missing user_id")
-
-    # Now fetch user details
-    res_user = requests.get(
-        f"{CLERK_BASE_URL}/users/{user_id}",
-        headers={"Authorization": f"Bearer {CLERK_API_KEY}"},
-        timeout=5,
-    )
     if res_user.status_code != 200:
-        raise HTTPException(status_code=503, detail="Failed to fetch user details")
+        return {
+            "user_id": user_id,
+            "session_id": verified.get("session_id"),
+        }
 
     user = res_user.json()
+    primary_email = None
+    emails = user.get("email_addresses") or []
+    if emails and isinstance(emails, list):
+        primary_email = next(
+            (e.get("email_address") for e in emails if e.get("id") == user.get("primary_email_address_id")),
+            emails[0].get("email_address"),
+        )
+
     return {
-        "id": user.get("id"),
-        "email": user.get("email_addresses", [{}])[0].get("email_address"),
+        "user_id": user.get("id"),
+        "session_id": verified.get("session_id"),
         "first_name": user.get("first_name"),
         "last_name": user.get("last_name"),
-        "phone": user.get("phone_numbers", [{}])[0].get("phone_number"),
-        "session_id": session.get("id"),
+        "email": primary_email,
+        "image_url": user.get("image_url"),
     }
+
 
 @router.post("/users/update-names")
 def update_names(
     body: UpdateNamesBody,
     auth: Dict[str, Any] = Depends(get_current_user),
 ):
-    if not CLERK_API_KEY:
+    if not CLERK_SECRET_KEY:
         raise HTTPException(500, "Server misconfigured: missing CLERK_SECRET_KEY")
 
     user_id = auth["user_id"]
@@ -68,7 +92,7 @@ def update_names(
         res = requests.patch(
             f"{CLERK_BASE_URL}/v1/users/{user_id}",
             headers={
-                "Authorization": f"Bearer {CLERK_API_KEY}",
+                "Authorization": f"Bearer {CLERK_SECRET_KEY}",
                 "Content-Type": "application/json",
             },
             json=payload,
