@@ -1,13 +1,28 @@
-# utils/user_auth.py
-import os, uuid, requests
+import os
+import uuid
+import requests
 from typing import Optional, Dict, Any
-from fastapi import HTTPException, Header, Response
+from fastapi import Cookie, HTTPException, Header, Response
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
 CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_VERIFY_URL = os.getenv("CLERK_VERIFY_URL")
+
+
+def _extract_bearer(authorization: Optional[str]) -> Optional[str]:
+    if not authorization:
+        return None
+    
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+    
+    token = parts[1].strip()
+    
+    return token if token and token.lower() != "null" else None
+
 
 def _verify_token(session_token: str) -> Dict[str, Any]:
     try:
@@ -30,35 +45,44 @@ def _verify_token(session_token: str) -> Dict[str, Any]:
     
     return {"user_id": user_id, "session_id": data.get("id"), "raw": data}
 
-def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-    
-    token = authorization.split(" ", 1)[1].strip()
+
+def get_current_user(
+        authorization: Optional[str] = Header(None),
+        session_cookie: Optional[str] = Cookie(None, alias="__session")
+) -> Dict[str, Any]:
+    token = _extract_bearer(authorization) or session_cookie
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization")
     
     return _verify_token(token)
 
-def get_current_user_optional(authorization: Optional[str] = Header(None)) -> Optional[Dict[str, Any]]:
-    if not authorization or not authorization.startswith("Bearer "):
+
+def get_current_user_optional(
+        authorization: Optional[str] = Header(None),
+        session_cookie: Optional[str] = Cookie(None, alias="__session")
+) -> Optional[Dict[str, Any]]:
+    token = _extract_bearer(authorization) or session_cookie
+    if not token:
         return None
-    
-    token = authorization.split(" ", 1)[1].strip()
-    
     try:
         return _verify_token(token)
     except HTTPException:
         return None
 
+
 def get_or_create_guest_session(guest_session_id: Optional[str], response: Response) -> str:
     if guest_session_id:
         return guest_session_id
+    
     new_session = str(uuid.uuid4())
+    
     response.set_cookie(
         key="guest_session_id",
         value=new_session,
         httponly=True,
         samesite="lax",
         max_age=60*60*24*7,
-        secure=True, 
+        secure=False, 
     )
+    
     return new_session
