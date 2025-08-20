@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useSignUp, useUser } from '@clerk/nextjs'
+import { useSignUp, useUser, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
@@ -13,6 +13,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const { t } = useTranslation()
   const { isLoaded, signUp, setActive } = useSignUp()
   const { user } = useUser()
+  const { getToken } = useAuth()
   const router = useRouter()
   
   const [email, setEmail] = useState('')
@@ -141,6 +142,38 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
+        // If user provided names locally, attempt to update Clerk via backend to preserve them
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+          if (firstName || lastName) {
+            // fire-and-forget; prefer sending a session token in Authorization to avoid CORS/cookie issues
+            (async () => {
+              try {
+                const token = getToken ? await getToken() : null
+                const headers = { 'Content-Type': 'application/json' }
+                if (token) headers['Authorization'] = `Bearer ${token}`
+
+                fetch(`${apiUrl}/users/update-names`, {
+                  method: 'POST',
+                  headers,
+                  // include credentials as fallback for cookie-based sessions
+                  credentials: token ? 'omit' : 'include',
+                  body: JSON.stringify({ first_name: firstName, last_name: lastName }),
+                }).then(async (res) => {
+                  if (!res.ok) {
+                    console.warn('Name update failed:', await res.text())
+                  }
+                }).catch((err) => console.warn('Name update request error:', err))
+              } catch (err) {
+                console.warn('Failed to get Clerk token for name update:', err)
+              }
+            })()
+          }
+
+        } catch (e) {
+          console.warn('Failed to call backend to update names:', e)
+        }
+
         router.push(redirectUrl)
       } else {
         console.log('Verification incomplete:', result)
