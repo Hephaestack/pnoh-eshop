@@ -83,7 +83,13 @@ def create_checkout_session(
 
     success_url = f"{FRONTEND_URL}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{FRONTEND_URL}/checkout/cancel"
+    
+    print(f"Success URL: {success_url}")
+    print(f"Cancel URL: {cancel_url}")
+    print(f"Frontend URL: {FRONTEND_URL}")
 
+    if not FRONTEND_URL.startswith(("http://", "https://")):
+        raise HTTPException(status_code=500, detail="Invalid FRONTEND_URL configuration")
     # idempotency_key = f"checkout_{cart.id}"
 
     session = stripe.checkout.Session.create(

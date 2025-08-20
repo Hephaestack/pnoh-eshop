@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-// Lightweight passthrough middleware. Clerk server helpers were removed from frontend.
+
 export default function middleware(request) {
   return NextResponse.next()
 }
