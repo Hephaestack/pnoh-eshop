@@ -4,19 +4,28 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { getStripe, startCheckout } from "../../lib/stripe-client";
 import { useCart } from "../cart-context";
+import { useRequireAuth } from "../../lib/useRequireAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CheckoutClient() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { getToken } = useAuth();
   const { cart, loading } = useCart();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  // Require authentication - redirect to login if not authenticated
+  const { isAuthenticating } = useRequireAuth('/checkout');
+
+  // Show loading while authentication is being checked
+  if (isAuthenticating) return <div className="p-8 text-white">Checking authentication...</div>;
+
+  if (loading) return <div className="p-8 text-white">Loading cart...</div>;
   if (!cart || !cart.items || cart.items.length === 0)
     return (
       <div className="p-8 text-center">
@@ -33,7 +42,8 @@ export default function CheckoutClient() {
     setProcessing(true);
     setError(null);
     try {
-      await startCheckout(cart.items);
+      const token = await getToken();
+      await startCheckout(cart.items, token);
       router.push("/checkout/success");
     } catch (err) {
       console.error(err);

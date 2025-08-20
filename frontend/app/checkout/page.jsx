@@ -15,7 +15,10 @@ async function fetchCurrentUser() {
 export default async function CheckoutPage() {
   const user = await fetchCurrentUser()
 
-  if (!user || !user.user_id) {
+  // Backend currently returns `id` instead of `user_id`.
+  // Accept either until backend is fixed.
+  const uid = user?.user_id ?? user?.id
+  if (!user || !uid) {
     // Redirect unauthenticated users to sign-in (server-side)
     redirect('/auth/sign-in?redirect_url=/checkout')
   }

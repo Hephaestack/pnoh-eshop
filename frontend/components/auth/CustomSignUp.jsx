@@ -146,28 +146,45 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
           if (firstName || lastName) {
-            // fire-and-forget; prefer sending a session token in Authorization to avoid CORS/cookie issues
-            (async () => {
+            // fire-and-forget; add delay to ensure session is properly established
+            setTimeout(async () => {
               try {
-                const token = getToken ? await getToken() : null
+                // Try multiple times to get token as it might take a moment after setActive
+                let token = null
+                for (let i = 0; i < 3; i++) {
+                  try {
+                    token = getToken ? await getToken() : null
+                    if (token) break
+                    // Wait a bit before retrying
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                  } catch (err) {
+                    console.warn(`Token retrieval attempt ${i + 1} failed:`, err)
+                  }
+                }
+
                 const headers = { 'Content-Type': 'application/json' }
-                if (token) headers['Authorization'] = `Bearer ${token}`
+                if (token) {
+                  headers['Authorization'] = `Bearer ${token}`
+                }
 
                 fetch(`${apiUrl}/users/update-names`, {
                   method: 'POST',
                   headers,
-                  // include credentials as fallback for cookie-based sessions
-                  credentials: token ? 'omit' : 'include',
+                  // Always include credentials to support both token and cookie auth
+                  credentials: 'include',
                   body: JSON.stringify({ first_name: firstName, last_name: lastName }),
                 }).then(async (res) => {
                   if (!res.ok) {
-                    console.warn('Name update failed:', await res.text())
+                    const errorText = await res.text()
+                    console.warn(`Name update failed (${res.status}):`, errorText)
+                  } else {
+                    console.log('Names updated successfully')
                   }
                 }).catch((err) => console.warn('Name update request error:', err))
               } catch (err) {
                 console.warn('Failed to get Clerk token for name update:', err)
               }
-            })()
+            }, 1000) // Wait 1 second to ensure session is established
           }
 
         } catch (e) {
