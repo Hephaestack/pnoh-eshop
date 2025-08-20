@@ -53,15 +53,15 @@ def get_user(token: Optional[str] = Depends(get_token)) -> Dict[str, Any]:
 @router.post("/users/update-names")
 def update_names(
     body: UpdateNamesBody,
-    auth = Depends(get_current_user),
+    auth: Dict[str, Any] = Depends(get_current_user),
 ):
     if not CLERK_API_KEY:
         raise HTTPException(500, "Server misconfigured: missing CLERK_SECRET_KEY")
 
     user_id = auth["user_id"]
     payload = {
-        "first_name": body.first_name.strip(),
-        "last_name": body.last_name.strip(),
+        "first_name": (body.first_name or "").strip(),
+        "last_name": (body.last_name or "").strip(),
     }
 
     try:
@@ -78,7 +78,11 @@ def update_names(
         raise HTTPException(503, "Clerk service unavailable")
 
     if res.status_code >= 400:
-        detail = res.json().get("message") if res.headers.get("content-type","").startswith("application/json") else res.text
+        detail = (
+            res.json().get("message")
+            if res.headers.get("content-type", "").startswith("application/json")
+            else res.text
+        )
         raise HTTPException(res.status_code, f"Clerk update failed: {detail}")
 
     data = res.json()

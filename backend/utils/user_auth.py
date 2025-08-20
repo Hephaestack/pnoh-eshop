@@ -13,32 +13,22 @@ CLERK_VERIFY_URL = os.getenv("CLERK_VERIFY_URL")
 
 def get_token(
     authorization: Optional[str] = Header(None),
-    session_cookie: Optional[str] = Cookie(None, alias="__session")
+    session_cookie: Optional[str] = Cookie(None, alias="__session"),
 ) -> Optional[str]:
-    """
-    Extract Bearer token from header or Clerk session cookie (__session).
-    """
-    if authorization and authorization.lower().startswith("bearer "):
-        return authorization.split(" ", 1)[1].strip()
+    if authorization:
+        parts = authorization.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1].strip()
+            if token and token.lower() != "null":
+                return token
     if session_cookie:
         return session_cookie
     return None
 
 
-def _extract_bearer(authorization: Optional[str]) -> Optional[str]:
-    if not authorization:
-        return None
-    
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        return None
-    
-    token = parts[1].strip()
-    
-    return token if token and token.lower() != "null" else None
-
-
 def _verify_token(session_token: str) -> Dict[str, Any]:
+    if not CLERK_API_KEY:
+        raise HTTPException(status_code=500, detail="Server misconfigured: missing CLERK_SECRET_KEY")
     try:
         res = requests.get(
             CLERK_VERIFY_URL,
@@ -48,23 +38,28 @@ def _verify_token(session_token: str) -> Dict[str, Any]:
         )
     except requests.RequestException:
         raise HTTPException(status_code=503, detail="Auth service unavailable")
-
     if res.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
 
     data = res.json()
     user_id = data.get("user_id") or data.get("sub")
     if not user_id:
-        raise HTTPException(status_code=401, detail="Token verified but user_id missing")
-    
-    return {"user_id": user_id, "session_id": data.get("id"), "raw": data}
+        raise HTTPException(status_code=401, detail="Session verified but user_id missing")
+
+    return {
+        "user_id": user_id,
+        "session_id": data.get("id"),
+        "expires_at": data.get("expire_at"),
+        "email": (data.get("user") or {}).get("email_address") if isinstance(data.get("user"), dict) else None,
+        "raw": data,
+    }
 
 
 def get_current_user(
-        authorization: Optional[str] = Header(None),
-        session_cookie: Optional[str] = Cookie(None, alias="__session")
+    authorization: Optional[str] = Header(None),
+    session_cookie: Optional[str] = Cookie(None, alias="__session"),
 ) -> Dict[str, Any]:
-    token = _extract_bearer(authorization) or session_cookie
+    token = get_token(authorization=authorization, session_cookie=session_cookie)
     if not token:
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization")
     
@@ -72,10 +67,10 @@ def get_current_user(
 
 
 def get_current_user_optional(
-        authorization: Optional[str] = Header(None),
-        session_cookie: Optional[str] = Cookie(None, alias="__session")
+    authorization: Optional[str] = Header(None),
+    session_cookie: Optional[str] = Cookie(None, alias="__session"),
 ) -> Optional[Dict[str, Any]]:
-    token = _extract_bearer(authorization) or session_cookie
+    token = get_token(authorization=authorization, session_cookie=session_cookie)
     if not token:
         return None
     try:
@@ -95,8 +90,7 @@ def get_or_create_guest_session(guest_session_id: Optional[str], response: Respo
         value=new_session,
         httponly=True,
         samesite="lax",
-        max_age=60*60*24*7,
-        secure=False, 
+        max_age=60 * 60 * 24 * 7,
+        secure=False,
     )
-    
     return new_session
