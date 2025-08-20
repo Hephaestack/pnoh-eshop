@@ -11,6 +11,20 @@ CLERK_API_KEY = os.getenv("CLERK_SECRET_KEY")
 CLERK_VERIFY_URL = os.getenv("CLERK_VERIFY_URL")
 
 
+def get_token(
+    authorization: Optional[str] = Header(None),
+    session_cookie: Optional[str] = Cookie(None, alias="__session")
+) -> Optional[str]:
+    """
+    Extract Bearer token from header or Clerk session cookie (__session).
+    """
+    if authorization and authorization.lower().startswith("bearer "):
+        return authorization.split(" ", 1)[1].strip()
+    if session_cookie:
+        return session_cookie
+    return None
+
+
 def _extract_bearer(authorization: Optional[str]) -> Optional[str]:
     if not authorization:
         return None
