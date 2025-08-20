@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { useCart } from "../cart-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-function CheckoutInner() {
+export default function CheckoutClient() {
   const { t } = useTranslation();
   const router = useRouter();
   const { cart, loading } = useCart();
@@ -33,9 +33,7 @@ function CheckoutInner() {
     setProcessing(true);
     setError(null);
     try {
-      // Use the cart items directly; backend will validate prices server-side
       await startCheckout(cart.items);
-      // redirect will normally happen; if it returns, navigate to success as fallback
       router.push("/checkout/success");
     } catch (err) {
       console.error(err);
@@ -51,9 +49,7 @@ function CheckoutInner() {
           <div className="lg:col-span-2">
             <Card className="bg-[#232326] border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white">
-                  Στοιχεία Παραγγελίας
-                </CardTitle>
+                <CardTitle className="text-white">Στοιχεία Παραγγελίας</CardTitle>
               </CardHeader>
               <CardContent>
                 {cart.items.map((it, idx) => (
@@ -62,14 +58,10 @@ function CheckoutInner() {
                     className="flex items-center justify-between p-4"
                   >
                     <div>
-                      <div className="text-white">
-                        {it.product?.name || "Product"}
-                      </div>
+                      <div className="text-white">{it.product?.name || "Product"}</div>
                       <div className="text-gray-400">Qty: 1</div>
                     </div>
-                    <div className="text-white">
-                      €{(it.product?.price || 0) * 1}
-                    </div>
+                    <div className="text-white">€{(it.product?.price || 0) * 1}</div>
                   </div>
                 ))}
               </CardContent>
@@ -109,8 +101,4 @@ function CheckoutInner() {
       </div>
     </div>
   );
-}
-
-export default function CheckoutPage() {
-  return <CheckoutInner />;
 }

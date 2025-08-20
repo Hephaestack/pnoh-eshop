@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSignIn, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -21,11 +21,14 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
-  // If user is already signed in, redirect
-  if (user) {
-    router.push(redirectUrl)
-    return null
-  }
+  // If user is already signed in, redirect after render to avoid setState-in-render
+  useEffect(() => {
+    if (user) {
+      router.push(redirectUrl)
+    }
+  }, [user, router, redirectUrl])
+
+  if (user) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()

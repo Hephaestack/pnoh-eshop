@@ -35,23 +35,41 @@ const formatThemeLabel = (t, theme) => {
 // Product Card Component with image optimization
 const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+
+  const hideTimerRef = React.useRef(null);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     setAdding(true);
+
+    // Immediately show confirmation to match optimistic cart update
+    setAdded(true);
+
     try {
       await addToCart(product.id, 1);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1200);
+      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
     } catch (err) {
-      // Optionally show error
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      setAdded(false);
+      console.error("Error adding to cart:", err);
     } finally {
       setAdding(false);
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
+  // No longer using pendingAdd: show confirmation immediately and rollback on error.
 
   return (
     <motion.div

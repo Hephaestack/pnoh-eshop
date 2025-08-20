@@ -40,19 +40,34 @@ function EarringPageInner({ params }) {
     }
   }, [isLoading]);
 
+  const hideTimerRef = React.useRef(null);
+
   const handleAddToCart = async () => {
     if (!productData) return;
     setAdding(true);
+
+    setAdded(true);
+
     try {
       await addToCart(productData.id, 1);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1200);
+      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
     } catch (err) {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      setAdded(false);
       console.error("Error adding to cart:", err);
     } finally {
       setAdding(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
   // Animation state (must be refs to persist across renders)
   const animationFrame = useRef(null);
   const target = useRef({ tx: 0, ty: 0, rx: 0, ry: 0 });

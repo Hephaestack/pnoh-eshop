@@ -33,19 +33,41 @@ const EnhancedProductCard = ({ product, viewMode }) => {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
+  const hideTimerRef = React.useRef(null);
+
   const handleAddToCart = async (e) => {
     e.preventDefault();
     setAdding(true);
+
+    // Immediately show confirmation to match optimistic cart update
+    setAdded(true);
+
     try {
       await addToCart(product.id, 1);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 1200);
+      // leave the added state visible for a short moment after success
+      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
     } catch (err) {
-      // Optionally show error
+      // rollback UI confirmation on error
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      setAdded(false);
+      console.error("Error adding to cart:", err);
     } finally {
       setAdding(false);
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
+
+  // When cart updates and we had a pending add for this product, show the added confirmation
+  // No longer using pendingAdd: we show confirmation immediately and rollback on error.
 
   return (
     <motion.div

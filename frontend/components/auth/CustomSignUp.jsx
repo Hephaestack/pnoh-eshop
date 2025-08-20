@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSignUp, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -25,35 +25,64 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const [pendingVerification, setPendingVerification] = useState(false)
   const [code, setCode] = useState('')
 
-  // If user is already signed in, redirect
-  if (user) {
-    router.push(redirectUrl)
-    return null
-  }
+  // If user is already signed in, redirect after render to avoid setState-in-render
+  useEffect(() => {
+    if (user) {
+      // use a router push inside an effect to avoid updating Router during render
+      router.push(redirectUrl)
+    }
+  }, [user, router, redirectUrl])
+  if (user) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!isLoaded) return
 
+    // Basic client-side validation to reduce server rejections
+    const trimmedFirst = firstName.trim()
+    const trimmedLast = lastName.trim()
+    const nameRegex = /^[\p{L}.'\-\s]{1,40}$/u
+    const clientErrors = {}
+    if (!trimmedFirst || !nameRegex.test(trimmedFirst)) clientErrors.firstName = t('auth.error.first_name_invalid') || 'Please enter a valid first name'
+    if (!trimmedLast || !nameRegex.test(trimmedLast)) clientErrors.lastName = t('auth.error.last_name_invalid') || 'Please enter a valid last name'
+    if (Object.keys(clientErrors).length > 0) {
+      setErrors(clientErrors)
+      return
+    }
+
     setIsLoading(true)
     setErrors({})
 
     try {
-      await signUp.create({
-        emailAddress: email,
-        password,
-        firstName,
-        lastName,
-      })
+      // Build payload and attempt sign up. Some Clerk projects may reject name params
+      // (returned as `first_name`/`last_name`), so retry without them if needed.
+      const payload = { emailAddress: email, password }
+      if (firstName) payload.firstName = firstName
+      if (lastName) payload.lastName = lastName
+
+      try {
+        await signUp.create(payload)
+      } catch (createErr) {
+        // If Clerk responds that first_name/last_name are unknown params, retry without names
+        const unknownNameParam = createErr?.errors?.some((e) => e.code === 'form_param_unknown' && (e.meta?.paramName === 'first_name' || e.meta?.paramName === 'last_name'))
+        if (unknownNameParam) {
+          console.warn('Clerk rejected name params; retrying sign up without first/last name')
+          await signUp.create({ emailAddress: email, password })
+        } else {
+          throw createErr
+        }
+      }
 
       // Send email verification
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setPendingVerification(true)
     } catch (err) {
+      // Log full error for easier debugging
       console.error('Sign up error:', err)
+      try { console.error('Sign up error (stringified):', JSON.stringify(err, null, 2)) } catch (e) {}
+
       const errorMessages = {}
-      
-      if (err.errors) {
+      if (err?.errors) {
         err.errors.forEach((error) => {
           switch (error.code) {
             case 'form_identifier_exists':
@@ -66,9 +95,23 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
               errorMessages.password = t('auth.error.password_too_short') || 'Password must be at least 8 characters'
               break
             case 'form_param_format_invalid':
-              if (error.meta?.paramName === 'email_address') {
+              // Map server-side format errors to specific fields
+              const param = error.meta?.paramName || ''
+              if (param.includes('email') || param.includes('email_address')) {
                 errorMessages.email = t('auth.error.email_invalid') || 'Please enter a valid email address'
+              } else if (param.includes('first') || param.includes('first_name')) {
+                errorMessages.firstName = t('auth.error.first_name_invalid') || 'Please enter a valid first name'
+              } else if (param.includes('last') || param.includes('last_name')) {
+                errorMessages.lastName = t('auth.error.last_name_invalid') || 'Please enter a valid last name'
+              } else {
+                errorMessages.general = error.longMessage || error.message || t('auth.error.general') || 'An error occurred'
               }
+              break
+            // Captcha related errors from Clerk
+            case 'captcha_invalid':
+            case 'captcha_missing_token':
+            case 'captcha_not_enabled':
+              errorMessages.general = t('auth.error.captcha') || 'Captcha validation failed — try refreshing the page'
               break
             default:
               errorMessages.general = error.longMessage || error.message || t('auth.error.general') || 'An error occurred'
@@ -77,7 +120,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       } else {
         errorMessages.general = t('auth.error.general') || 'An error occurred during sign up'
       }
-      
+
       setErrors(errorMessages)
     } finally {
       setIsLoading(false)
@@ -339,6 +382,9 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             t('auth.sign_up.button') || 'Create Account'
           )}
         </Button>
+        
+  {/* Clerk Smart CAPTCHA container (required for Smart CAPTCHA init) */}
+  <div id="clerk-captcha" className="mt-2" />
       </form>
 
       <div className="relative">
