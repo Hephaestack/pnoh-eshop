@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,13 @@ export default function CheckoutClient() {
   const { cart, loading } = useCart();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+
+  // Signal page ready for checkout page
+  useEffect(() => {
+    if (!loading) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [loading]);
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!cart || !cart.items || cart.items.length === 0)

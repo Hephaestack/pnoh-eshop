@@ -1,5 +1,7 @@
 
 "use client";
+import { useEffect } from "react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Award, Users, Heart, Gem } from "lucide-react"
@@ -11,24 +13,61 @@ export default function AboutPage() {
   const { t } = useTranslation();
   const router = useRouter();
 
+  // Signal page ready immediately for about page
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
+
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
+      <motion.section 
+        className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('about_title')}</h1>
-          <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
-          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
+          <motion.h1 
+            className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+          >
+            {t('about_title')}
+          </motion.h1>
+          <motion.div 
+            className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"
+            initial={{ width: 0 }}
+            animate={{ width: 64 }}
+            transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+          ></motion.div>
+          <motion.p 
+            className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
+          >
             {t('about_intro')}
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Our Story */}
-      <section className="py-20 bg-[#18181b]">
+      <motion.section 
+        className="py-20 bg-[#18181b]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto">
           <div className="grid items-center justify-center grid-cols-1 gap-16 text-center lg:grid-cols-2 lg:text-left">
-            <div className="flex flex-col items-center space-y-6 lg:items-start">
+            <motion.div 
+              className="flex flex-col items-center space-y-6 lg:items-start"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.0, duration: 0.8, ease: "easeOut" }}
+            >
               <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb]">{t('our_story_title')}</h2>
               <div className="w-16 h-px bg-[#bfc1c6]"></div>
               <p className="text-[#bfc1c6] leading-relaxed font-light">
@@ -40,8 +79,13 @@ export default function AboutPage() {
               >
                 {t('learn_more')}
               </Button>
-            </div>
-            <div className="relative flex justify-center lg:justify-end">
+            </motion.div>
+            <motion.div 
+              className="relative flex justify-center lg:justify-end"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
+            >
               <Image
                 src="/placeholder.svg?height=500&width=400"
                 alt="Jewelry workshop"
@@ -49,14 +93,18 @@ export default function AboutPage() {
                 height={500}
                 className="w-full h-96 object-cover grayscale-[30%]"
               />
-              <div className="absolute -bottom-4 -right-4 w-full h-full border border-[#bfc1c6] -z-10"></div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Our Values */}
-      <section className="py-20 bg-[#23232a]">
+      <motion.section 
+        className="py-20 bg-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.4, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto">
           <div className="mb-16 text-center">
             <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('about_values_title')}</h2>
@@ -103,10 +151,15 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Our Process */}
-      <section className="py-20 bg-[#23232a]">
+      <motion.section 
+        className="py-20 bg-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.6, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto">
           <div className="mb-16 text-center">
             <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('about_process_title')}</h2>
@@ -140,10 +193,15 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-[#18181b]">
+      <motion.section 
+        className="py-16 bg-[#18181b]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.8, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">
             {t('about_cta_title')}
@@ -169,7 +227,7 @@ export default function AboutPage() {
             </Button>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

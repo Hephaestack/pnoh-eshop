@@ -9,18 +9,37 @@ import { Footer } from "@/components/Footer";
 import TopHeader from "@/components/top-header";
 
 export default function ClientLayout({ children }) {
-  const [loading, setLoading] = useState(true); // controls overlay visibility
-  const [showContent, setShowContent] = useState(false); // controls main opacity
-  const transitionMs = 300; // must match the CSS transition duration
+  const [loading, setLoading] = useState(true); // Start with loading overlay
+  const [showContent, setShowContent] = useState(false); // Start with content hidden
+  const transitionMs = 600; // Longer transition for more visible effect
   const fallbackRef = useRef(null);
+  const loadingDelayRef = useRef(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    // start hidden
-    setLoading(true);
-    setShowContent(false);
+    // Only show loading for routes that actually need it (dynamic product pages)
+    const isDynamicRoute = pathname.includes('[') || pathname.includes('/shop/') && pathname.split('/').length > 3;
+    
+    if (isDynamicRoute) {
+      // Delay showing loading overlay to avoid flash for fast operations
+      loadingDelayRef.current = setTimeout(() => {
+        setLoading(true);
+        setShowContent(false);
+      }, 150); // Only show loading if operation takes longer than 150ms
+    } else {
+      // For static routes, show content immediately
+      setLoading(false);
+      setShowContent(true);
+      return;
+    }
 
     const onPageReady = () => {
+      // Clear the loading delay if page becomes ready quickly
+      if (loadingDelayRef.current) {
+        clearTimeout(loadingDelayRef.current);
+        loadingDelayRef.current = null;
+      }
+      
       // reveal content (start fade-in)
       setShowContent(true);
       // after transition completes, remove overlay
@@ -32,19 +51,24 @@ export default function ClientLayout({ children }) {
       window.removeEventListener("page-ready", onPageReady);
     };
 
-    // Fallback in case page never signals readiness: reveal content then remove overlay
+    // Reduced fallback timeout for faster loading
     fallbackRef.current = setTimeout(() => {
+      if (loadingDelayRef.current) {
+        clearTimeout(loadingDelayRef.current);
+        loadingDelayRef.current = null;
+      }
       setShowContent(true);
       fallbackRef.current = setTimeout(() => {
         setLoading(false);
         fallbackRef.current = null;
       }, transitionMs + 30);
-    }, 1200);
+    }, 800); // Reduced from 1200ms to 800ms
 
     window.addEventListener("page-ready", onPageReady);
 
     return () => {
       if (fallbackRef.current) clearTimeout(fallbackRef.current);
+      if (loadingDelayRef.current) clearTimeout(loadingDelayRef.current);
       window.removeEventListener("page-ready", onPageReady);
     };
   }, [pathname]);
@@ -55,7 +79,7 @@ export default function ClientLayout({ children }) {
       <TopHeader />
       <Header />
       <main
-        className={`transition-opacity duration-300`}
+        className={`transition-opacity duration-200`}
         style={{
           opacity: showContent ? 1 : 0,
           visibility: showContent ? "visible" : "hidden",

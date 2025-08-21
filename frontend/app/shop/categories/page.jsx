@@ -1,11 +1,17 @@
 "use client"
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 export default function CategoriesPage() {
   const { t } = useTranslation();
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
   
   const categories = [
     {
@@ -35,15 +41,30 @@ export default function CategoriesPage() {
   ];
 
   return (
-    <main className="relative min-h-screen px-4 py-10 mx-auto max-w-7xl">
+    <motion.main 
+      className="relative min-h-screen px-4 py-10 mx-auto max-w-7xl"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    >
       <div className="flex items-center justify-center mb-8">
-        <h1 className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full">
+        <motion.h1 
+          className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+        >
           {t('jewelry_categories', 'Jewelry Categories')}
-        </h1>
+        </motion.h1>
       </div>
-      <p className="text-lg text-[#bcbcbc] mb-12 text-center max-w-2xl mx-auto">
+      <motion.p 
+        className="text-lg text-[#bcbcbc] mb-12 text-center max-w-2xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+      >
         {t('categories_intro', 'Explore our different jewelry categories and discover the perfect piece for you')}
-      </p>
+      </motion.p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         {categories.map((category) => (
@@ -96,6 +117,6 @@ export default function CategoriesPage() {
           {t('view_all_products', 'View All Products')}
         </Link>
       </div>
-    </main>
+    </motion.main>
   );
 }

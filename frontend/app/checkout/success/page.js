@@ -59,6 +59,13 @@ export default function SuccessPage() {
     confirm();
   }, [sessionId, clearCart]);
 
+  // Signal page ready for smooth loading animation after status is determined
+  useEffect(() => {
+    if (status !== "loading") {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [status]);
+
   return (
     <div className="min-h-screen bg-[#18181b] pt-16">
       <div className="container px-4 mx-auto text-center">

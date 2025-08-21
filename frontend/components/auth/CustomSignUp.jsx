@@ -32,6 +32,14 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       router.push(redirectUrl)
     }
   }, [user, router, redirectUrl])
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    if (isLoaded) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [isLoaded]);
+
   if (user) return null
 
   const handleSubmit = async (e) => {

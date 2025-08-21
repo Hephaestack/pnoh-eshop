@@ -1,6 +1,8 @@
 
 "use client";
 
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,25 +12,62 @@ import { useTranslation } from "react-i18next";
 
 export default function ContactPage() {
   const { t } = useTranslation();
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
+      <motion.section 
+        className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('contact_title')}</h1>
-          <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
-          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
+          <motion.h1 
+            className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+          >
+            {t('contact_title')}
+          </motion.h1>
+          <motion.div 
+            className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"
+            initial={{ width: 0 }}
+            animate={{ width: 64 }}
+            transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+          ></motion.div>
+          <motion.p 
+            className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
+          >
             {t('contact_intro')}
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Contact Form & Info */}
-      <section className="py-20 bg-[#18181b]">
+      <motion.section 
+        className="py-20 bg-[#18181b]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto">
           <div className="grid justify-center grid-cols-1 gap-16 text-center lg:grid-cols-2 lg:text-left">
             {/* Contact Form */}
-            <div className="space-y-8 flex flex-col items-center lg:items-start w-full lg:w-[520px] xl:w-[600px] mx-auto">
+            <motion.div 
+              className="space-y-8 flex flex-col items-center lg:items-start w-full lg:w-[520px] xl:w-[600px] mx-auto"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.0, duration: 0.8, ease: "easeOut" }}
+            >
               <div>
                 <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('contact_form_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6"></div>
@@ -124,10 +163,15 @@ export default function ContactPage() {
                   {t('send_message')}
                 </Button>
               </form>
-            </div>
+            </motion.div>
 
             {/* Contact Information */}
-            <div className="flex flex-col items-center w-full lg:items-start">
+            <motion.div 
+              className="flex flex-col items-center w-full lg:items-start"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
+            >
               <div className="w-full">
                 <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('contact_info_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6"></div>
@@ -211,13 +255,18 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Map Section */}
-      <section className="py-16 bg-[#23232a]">
+      <motion.section 
+        className="py-16 bg-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.4, duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto">
           <div className="mb-12 text-center">
             <h2 className="text-2xl md:text-3xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('find_us')}</h2>
@@ -238,7 +287,7 @@ export default function ContactPage() {
             ></iframe>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

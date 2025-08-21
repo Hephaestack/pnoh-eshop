@@ -1,20 +1,49 @@
 'use client';
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
 export default function ReturnsPage() {
   const { t } = useTranslation();
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]">
+      <motion.section 
+        className="py-20 bg-gradient-to-b from-[#18181b] to-[#23232a] border-b border-[#23232a]"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <div className="container px-4 mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('returns_policy')}</h1>
-          <div className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"></div>
-          <p className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed">
+          <motion.h1 
+            className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+          >
+            {t('returns_policy')}
+          </motion.h1>
+          <motion.div 
+            className="w-16 h-px bg-[#bfc1c6] mx-auto mb-6"
+            initial={{ width: 0 }}
+            animate={{ width: 64 }}
+            transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+          ></motion.div>
+          <motion.p 
+            className="text-lg text-[#bfc1c6] font-light max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
+          >
             {t('returns_intro')}
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Content Section */}
       <section className="py-16 bg-[#18181b]">

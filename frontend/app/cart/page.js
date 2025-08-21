@@ -29,6 +29,13 @@ function CartPageInner() {
   const { cart, removeFromCart, updateCartItem, loading } = useCart();
   const [removing, setRemoving] = useState(null);
 
+  // Signal page ready for cart page
+  useEffect(() => {
+    if (mounted && !loading) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [mounted, loading]);
+
   // Calculate totals from cart data
   const getTotals = () => {
     if (!cart?.items)
