@@ -134,7 +134,7 @@ def get_cart(
     return CartSummary(items=items, total_items=total_items, subtotal=subtotal)
 
 
-@router.post("/cart/merge", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/merge/cart", status_code=status.HTTP_204_NO_CONTENT)
 def merge_guest_cart_into_user(
     response: Response,
     db: Session = Depends(get_db),
