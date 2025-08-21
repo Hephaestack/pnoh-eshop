@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 
 export default function CancelPage() {
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
   return (
     <div className="min-h-screen bg-[#18181b] pt-16">
       <div className="container px-4 mx-auto text-center">

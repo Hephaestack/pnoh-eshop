@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
+import LoadingIndicator from "@/components/LoadingIndicator";
 
 const EnhancedProductCard = ({ product, viewMode }) => {
   const { t } = useTranslation();
@@ -208,10 +209,13 @@ function AllProductsPageInner() {
   const [allProducts, setAllProducts] = useState([]); // Cache all products
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start without loading - will be set conditionally
+  const [showSkeleton, setShowSkeleton] = useState(false); // Separate skeleton state
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
+  const [contentReady, setContentReady] = useState(false); // Track when content is ready to show
   const { t } = useTranslation();
+  const loadingDelayRef = useRef(null);
 
   // Pagination settings - 4 rows with 3 columns = 12 products per page
   const productsPerPage = 12;
@@ -321,7 +325,35 @@ function AllProductsPageInner() {
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
+        // Check if we have cached data from sessionStorage
+        const cachedProducts = sessionStorage.getItem('allProductsCache');
+        const cacheTimestamp = sessionStorage.getItem('allProductsCacheTime');
+        const cacheExpiry = 5 * 60 * 1000; // 5 minutes cache
+        
+        if (cachedProducts && cacheTimestamp && 
+            (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
+          // Use cached data - no loading needed
+          console.log('Using cached products data');
+          const mappedProducts = JSON.parse(cachedProducts);
+          setAllProducts(mappedProducts);
+          setContentReady(true);
+          setIsInitialLoad(false);
+          
+          // Signal page ready immediately for cached data
+          setTimeout(() => {
+            window.dispatchEvent(new Event("page-ready"));
+          }, 10);
+          return;
+        }
+        
+        // Need to fetch fresh data - show loading
         setLoading(true);
+        
+        // Show skeleton after a short delay to avoid flash for very fast requests
+        const skeletonTimer = setTimeout(() => {
+          setShowSkeleton(true);
+        }, 150); // Increased delay to 150ms
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         const response = await fetch(`${apiUrl}/products/all`, {
@@ -349,12 +381,27 @@ function AllProductsPageInner() {
               ? product.image_url[0].replace("dl=0", "raw=1")
               : "/placeholder-product.jpg",
         }));
+        
+        // Clear skeleton timer if request completed quickly
+        clearTimeout(skeletonTimer);
+        
+        // Cache the fresh data
+        sessionStorage.setItem('allProductsCache', JSON.stringify(mappedProducts));
+        sessionStorage.setItem('allProductsCacheTime', Date.now().toString());
+        
         setAllProducts(mappedProducts);
+        setContentReady(true);
+        
+        // Signal to the root layout that this page is ready
+        setTimeout(() => {
+          window.dispatchEvent(new Event("page-ready"));
+        }, 50);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
       } finally {
         setLoading(false);
+        setShowSkeleton(false);
         setIsInitialLoad(false);
       }
     };
@@ -438,11 +485,15 @@ function AllProductsPageInner() {
   };
 
   // Add loading and error states
-  if (loading) {
+  if (loading || showSkeleton) {
     return (
       <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-[#bcbcbc]">
+          <div className="text-lg text-[#bcbcbc] flex items-center gap-3">
+            <svg className="animate-spin h-6 w-6 text-[#bcbcbc]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
             {t("loading_products", "Loading products...")}
           </div>
         </div>
@@ -476,7 +527,10 @@ function AllProductsPageInner() {
   }
 
   return (
-    <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
+    <main 
+      className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden transition-opacity duration-300 max-w-7xl"
+      style={{ opacity: contentReady ? 1 : 0 }}
+    >
       {/* Header */}
       <div className="flex items-center justify-center mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full">
@@ -677,7 +731,7 @@ function AllProductsPageInner() {
           </motion.button>
 
           {/* Current page indicator (stacked, unified text design) */}
-          <div className="px-4 py-2 bg-transparent text-slate-200 text-center flex flex-col items-center font-serif">
+          <div className="flex flex-col items-center px-4 py-2 font-serif text-center bg-transparent text-slate-200">
             <span className="text-sm">{t("page", "Σελίδα")}</span>
             <span className="text-xl font-semibold leading-none">
               {currentPage}

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from 'react'
 import { useUser, useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +12,13 @@ export default function AccountPage() {
   const { isLoaded, isSignedIn, user } = useUser()
   const { signOut } = useClerk()
   const router = useRouter()
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    if (isLoaded) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [isLoaded]);
 
   if (!isLoaded) {
     return (

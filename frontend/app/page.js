@@ -1,5 +1,6 @@
 "use client"
-  
+
+import { useEffect } from "react"
 import Hero from "@/components/Hero"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,6 +10,12 @@ import { useTranslation } from "react-i18next"
 
 export default function HomePage() {
   const { t } = useTranslation();
+  
+  // Signal page ready immediately for home page
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
+  
   return (
     <div className="bg-[#18181b] min-h-screen">
       {/* Hero Section */}

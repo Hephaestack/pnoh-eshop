@@ -40,6 +40,11 @@ export default function SSOCallbackPage() {
     handleCallback()
   }, [handleRedirectCallback, mergeCart, router])
 
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#18181b] flex items-center justify-center">
       <div className="text-center space-y-4">

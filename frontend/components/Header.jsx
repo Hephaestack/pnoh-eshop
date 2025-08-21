@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 function MegaMenuItem({ href, img, label, onClick }) {
   return (
@@ -29,7 +29,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X, Settings, LogOut } from "lucide-react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSwitcher from "./language-switcher";
@@ -38,12 +38,15 @@ import { useCart } from "@/app/cart-context";
 export function Header() {
   const { t } = useTranslation();
   const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [jewelryOpen, setJewelryOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const jewelryRef = useRef(null);
   const headerRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   // Get cart state
   const { cart } = useCart();
@@ -65,6 +68,18 @@ export function Header() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [jewelryOpen]);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    function handleClick(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [userMenuOpen]);
 
   // Hide mobile menu if resizing to desktop
   useEffect(() => {
@@ -212,76 +227,149 @@ export function Header() {
             {/* Placeholder for center column on mobile */}
             <div className="block md:hidden" />
             {/* Icons Right */}
-            <div className="flex items-center justify-end min-w-0 space-x-4 shrink-0">
-              <LanguageSwitcher />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="hover:bg-[#232326] border border-white rounded-full"
-              >
-                <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
-              </Button>
-              {isSignedIn ? (
-                <div className="flex items-center">
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox:
-                          "w-10 h-10 border-2 border-white rounded-full hover:border-[#f8f8f8] transition-colors",
-                        userButtonPopoverCard:
-                          "bg-[#18181b] border border-[#232326]",
-                        userButtonPopoverActionButton:
-                          "text-white hover:bg-[#232326]",
-                        userButtonPopoverActionButtonText: "text-white",
-                        userButtonPopoverFooter: "hidden",
-                      },
-                    }}
-                    userProfileMode="navigation"
-                    userProfileUrl="/account"
-                  />
-                </div>
-              ) : (
-                <Link href="/auth/sign-in">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-[#232326] border border-white rounded-full"
-                  >
-                    <User className="w-5 h-5 text-white transition-colors hover:text-white" />
-                  </Button>
-                </Link>
-              )}
-              <Link href="/cart">
+            <div className="flex items-center justify-end min-w-0 shrink-0">
+              <div className="flex items-center space-x-4">
+                <LanguageSwitcher />
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-[#232326] border border-white rounded-full relative"
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="hover:bg-[#232326] border border-white rounded-full"
                 >
-                  <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
-                  <AnimatePresence mode="wait">
-                    {itemCount > 0 && (
-                      <motion.span
-                        key={itemCount}
-                        initial={{ scale: 0.6, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.6, opacity: 0 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 600,
-                          damping: 20,
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold"
-                        aria-live="polite"
-                      >
-                        {itemCount > 99 ? "99+" : itemCount}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
                 </Button>
-              </Link>
+                <Link href="/cart">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-[#232326] border border-white rounded-full relative"
+                  >
+                    <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
+                    <AnimatePresence mode="wait">
+                      {itemCount > 0 && (
+                        <motion.span
+                          key={itemCount}
+                          initial={{ scale: 0.6, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.6, opacity: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 600,
+                            damping: 20,
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold"
+                          aria-live="polite"
+                        >
+                          {itemCount > 99 ? "99+" : itemCount}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Account Icon - separated with gap */}
+              <div className="relative ml-8" ref={userMenuRef}>
+                {isSignedIn ? (
+                  <div>
+                    {/* User Avatar Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className="size-9 border-2 border-white rounded-full hover:border-[#f8f8f8] transition-colors flex items-center justify-center p-0 overflow-hidden"
+                    >
+                      {user?.imageUrl ? (
+                        <img
+                          src={user.imageUrl}
+                          alt={user.firstName || 'User'}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600">
+                          {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                    </Button>
+
+                    {/* Custom Dropdown Menu */}
+                    <AnimatePresence>
+                      {userMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 top-12 w-64 bg-[#18181b] border border-[#232326] rounded-lg shadow-xl z-50"
+                        >
+                          {/* User Info Header */}
+                          <div className="p-4 border-b border-[#232326]">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#232326]">
+                                {user?.imageUrl ? (
+                                  <img
+                                    src={user.imageUrl}
+                                    alt={user.firstName || 'User'}
+                                    className="object-cover w-full h-full"
+                                  />
+                                ) : (
+                                  <div className="flex items-center justify-center w-full h-full font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600">
+                                    {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-white truncate">
+                                  {user?.firstName && user?.lastName 
+                                    ? `${user.firstName} ${user.lastName}`
+                                    : user?.firstName || 'User'
+                                  }
+                                </p>
+                                <p className="text-sm text-gray-400 truncate">
+                                  {user?.emailAddresses?.[0]?.emailAddress || ''}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Menu Items */}
+                          <div className="py-2">
+                            <Link href="/account" onClick={() => setUserMenuOpen(false)}>
+                              <div className="flex items-center px-4 py-3 text-white hover:bg-[#232326] transition-colors cursor-pointer">
+                                <Settings className="w-5 h-5 mr-3" />
+                                <span className="font-medium">Manage account</span>
+                              </div>
+                            </Link>
+                            <button
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                signOut();
+                              }}
+                              className="w-full flex items-center px-4 py-3 text-white hover:bg-[#232326] transition-colors"
+                            >
+                              <LogOut className="w-5 h-5 mr-3" />
+                              <span className="font-medium">Sign out</span>
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <Link href="/auth/sign-in">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-[#232326] border border-white rounded-full"
+                    >
+                      <User className="w-5 h-5 text-white transition-colors hover:text-white" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+              
               {/* Mobile Menu Button - only visible on mobile */}
-              <div className="md:hidden">
+              <div className="ml-4 md:hidden">
                 <Button
                   variant="ghost"
                   size="icon"

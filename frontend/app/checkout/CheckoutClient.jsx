@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,14 @@ export default function CheckoutClient() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
 
+  // Signal page ready for checkout page
+  useEffect(() => {
+    if (!loading) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [loading]);
+
+  if (loading) return <div className="p-8">Loading...</div>;
   // Require authentication - redirect to login if not authenticated
   const { isAuthenticating } = useRequireAuth('/checkout');
 
@@ -100,7 +108,7 @@ export default function CheckoutClient() {
                     Πληρωμή με κάρτα
                   </Button>
 
-                  <div className="text-xs text-gray-400 mt-4">
+                  <div className="mt-4 text-xs text-gray-400">
                     Θα μεταφερθείτε στο Stripe για να ολοκληρώσετε την πληρωμή.
                   </div>
                 </div>

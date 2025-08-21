@@ -15,8 +15,8 @@ function RingsPageInner({ params }) {
   const requestIdRef = React.useRef(0);
   const loadingStartRef = React.useRef(0);
   const imageLoadedRef = React.useRef(false);
-  const SKELETON_MIN_MS = 300;
-  const SKELETON_SHOW_DELAY_MS = 80;
+  const SKELETON_MIN_MS = 150; // Reduced from 300ms to 150ms
+  const SKELETON_SHOW_DELAY_MS = 100; // Increased delay before showing skeleton
   const [showSkeleton, setShowSkeleton] = useState(false);
   const skeletonTimerRef = React.useRef(null);
 

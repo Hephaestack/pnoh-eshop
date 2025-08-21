@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSignIn } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -18,6 +18,13 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [errors, setErrors] = useState({})
+
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    if (isLoaded) {
+      window.dispatchEvent(new Event("page-ready"));
+    }
+  }, [isLoaded]);
 
   const handleSubmit = async (e) => {
     e.preventDefault()

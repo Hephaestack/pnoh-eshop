@@ -23,6 +23,11 @@ export default function CategoryPage({ category, products }) {
     }
   }, []);
 
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
+
   // Update URL when theme changes
   const handleThemeChange = (theme) => {
     setSelectedTheme(theme);

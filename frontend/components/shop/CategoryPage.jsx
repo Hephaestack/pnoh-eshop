@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import LoadingIndicator from "@/components/LoadingIndicator";
 import {
   SlidersHorizontal,
   Grid,
@@ -220,9 +221,12 @@ function CategoryPageInner({ category }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [allProducts, setAllProducts] = useState([]); // Cache all products for this category
   const [subcategories, setSubcategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start without loading - will be set conditionally
+  const [showSkeleton, setShowSkeleton] = useState(false); // Separate skeleton state
   const [error, setError] = useState(null);
+  const [contentReady, setContentReady] = useState(false); // Track when content is ready to show
   const { t } = useTranslation();
+  const loadingDelayRef = useRef(null);
 
   const formatThemeLabel = (theme) => {
     if (!theme) return "";
@@ -303,8 +307,37 @@ function CategoryPageInner({ category }) {
   // Fetch all products for this category once on component mount
   useEffect(() => {
     const fetchAllCategoryProducts = async () => {
+      const cacheKey = `categoryProducts_${category}`;
+      
       try {
+        // Check if we have cached data for this category
+        const cachedProducts = sessionStorage.getItem(cacheKey);
+        const cacheTimestamp = sessionStorage.getItem(`${cacheKey}_time`);
+        const cacheExpiry = 3 * 60 * 1000; // 3 minutes cache for category pages
+        
+        if (cachedProducts && cacheTimestamp && 
+            (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
+          // Use cached data - no loading needed
+          console.log(`Using cached data for category: ${category}`);
+          const mappedProducts = JSON.parse(cachedProducts);
+          setAllProducts(mappedProducts);
+          setContentReady(true);
+          
+          // Signal page ready immediately for cached data
+          setTimeout(() => {
+            window.dispatchEvent(new Event("page-ready"));
+          }, 10);
+          return;
+        }
+        
+        // Need to fetch fresh data - show loading
         setLoading(true);
+        
+        // Show skeleton after a short delay to avoid flash for very fast requests
+        const skeletonTimer = setTimeout(() => {
+          setShowSkeleton(true);
+        }, 150);
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         // Fetch ALL products for this category once
@@ -337,16 +370,37 @@ function CategoryPageInner({ category }) {
               ? product.image_url[0].replace("dl=0", "raw=1")
               : "/placeholder-product.jpg",
         }));
+        
+        // Clear skeleton timer if request completed quickly
+        clearTimeout(skeletonTimer);
+        
+        // Cache the fresh data
+        sessionStorage.setItem(cacheKey, JSON.stringify(mappedProducts));
+        sessionStorage.setItem(`${cacheKey}_time`, Date.now().toString());
+        
         setAllProducts(mappedProducts);
+        setContentReady(true);
+        
+        // Signal to the root layout that this page is ready
+        setTimeout(() => {
+          window.dispatchEvent(new Event("page-ready"));
+        }, 50);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
       } finally {
         setLoading(false);
+        setShowSkeleton(false);
       }
     };
 
     fetchAllCategoryProducts();
+    
+    return () => {
+      if (loadingDelayRef.current) {
+        clearTimeout(loadingDelayRef.current);
+      }
+    };
   }, [category]); // Only refetch when category changes
 
   // Client-side filtering of cached products
@@ -499,11 +553,15 @@ function CategoryPageInner({ category }) {
   ];
 
   // Add loading and error states
-  if (loading) {
+  if (loading || showSkeleton) {
     return (
       <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-[#bcbcbc]">
+          <div className="text-lg text-[#bcbcbc] flex items-center gap-3">
+            <svg className="animate-spin h-6 w-6 text-[#bcbcbc]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
             {t("loading_products", "Loading products...")}
           </div>
         </div>
@@ -537,7 +595,10 @@ function CategoryPageInner({ category }) {
   }
 
   return (
-    <main className="relative min-h-screen px-4 py-10 mx-auto max-w-7xl">
+    <main 
+      className="relative min-h-screen px-4 py-10 mx-auto max-w-7xl transition-opacity duration-300"
+      style={{ opacity: contentReady ? 1 : 0 }}
+    >
       {/* Header */}
       <div className="flex items-center justify-center mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full">
