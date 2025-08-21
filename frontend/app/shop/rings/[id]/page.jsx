@@ -1,13 +1,8 @@
-"use client";
+import IndividualProductPage from "../../../../components/shop/IndividualProductPage";
 
-import React from "react";
-import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
-// Page transition fade-in used when content mounts
-const _fadeStyle = `@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }`;
-import { useTranslation } from "react-i18next";
-import { useRouter } from "next/navigation";
-import { useCart } from "../../../cart-context";
+export default function RingPage({ params }) {
+  return <IndividualProductPage params={params} category="rings" />;
+}
 
 function RingsPageInner({ params }) {
   const routeParams = React.use(params);
