@@ -72,7 +72,7 @@ export async function updateCartItem(itemId, quantity, token) {
 }
 
 export async function mergeCart(token) {
-  const res = await fetch(`${API_BASE}/cart/merge`, {
+  const res = await fetch(`${API_BASE}/merge/cart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -84,5 +84,7 @@ export async function mergeCart(token) {
     const errorText = await res.text();
     throw new Error(errorText);
   }
+  // If 204 No Content, just return null
+  if (res.status === 204) return null;
   return res.json();
 }
