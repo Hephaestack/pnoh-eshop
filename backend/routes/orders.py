@@ -122,7 +122,7 @@ def admin_list_orders(
     }
 
 
-@router.get("/orders/confrim", tags=["orders"])
+@router.get("/orders/confirm", tags=["orders"])
 def confirm_order(
     session_id: str = Query(...),
     db: Session = Depends(get_db),
