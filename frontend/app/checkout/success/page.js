@@ -36,7 +36,7 @@ export default function SuccessPage() {
           throw new Error(txt || "Failed to confirm order");
         }
         const data = await res.json();
-        if (data?.status === "paid" || data?.paid) {
+        if (data?.payment_status === "paid" || data?.payment_intent_status === "succeeded") {
           setStatus("paid");
           setMessage(
             "Η πληρωμή επιβεβαιώθηκε — ευχαριστούμε για την παραγγελία!"
