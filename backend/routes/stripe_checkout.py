@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 from sqlalchemy.orm import Session
@@ -6,6 +6,7 @@ import os
 from utils.database import get_db
 from utils.user_auth import get_current_user_optional, get_or_create_guest_session
 from utils.stripe_client import stripe
+from utils.dropbox_image import normalize_dropbox
 
 from db.models.cart import Cart
 from db.models.cart_item import CartItem
@@ -35,7 +36,7 @@ def _get_cart(
     return db.query(Cart).filter(Cart.guest_session_id == guest_session_id).first()
 
 
-def _build_line_items(db: Session, cart_id: UUID) -> list[dict]:
+def _build_line_items(db: Session, cart_id: UUID) -> List[Dict]:
     rows = (
         db.query(CartItem, Product)
         .join(Product, CartItem.product_id == Product.id)
@@ -45,24 +46,38 @@ def _build_line_items(db: Session, cart_id: UUID) -> list[dict]:
     if not rows:
         return []
 
-    line_items: list[dict] = []
+    line_items: List[Dict] = []
     for ci, p in rows:
-        if p.price is None or p.price < 0:
+        if p.price is None or float(p.price) < 0:
             raise HTTPException(status_code=400, detail=f"Invalid price for product {p.id}")
         unit_amount = int(round(float(p.price) * 100))
-        name = p.name[:127] if p.name else f"Product {p.id}"
+        if unit_amount < 1:
+            raise HTTPException(status_code=400, detail=f"Price too low for product {p.id}")
+
+        name = (p.name or f"Product {p.id}")[:127]
+
+        img_url = None
+        if isinstance(p.big_image_url, list) and p.big_image_url:
+            img_url = normalize_dropbox(p.big_image_url[0])
+        if not img_url and isinstance(p.image_url, list) and p.image_url:
+            img_url = normalize_dropbox(p.image_url[0])
+
+        product_data: Dict = {
+            "name": name,
+            "metadata": {"product_id": str(p.id)},
+        }
+        if img_url:
+            product_data["images"] = [img_url]
+
         line_items.append({
             "price_data": {
                 "currency": CURRENCY,
-                "product_data": {
-                    "name": name,
-                    "images": (p.big_image_url or p.image_url or [])[:1],
-                    "metadata": {"product_id": str(p.id)},
-                },
+                "product_data": product_data,
                 "unit_amount": unit_amount,
             },
-            "quantity": 1,  # your cart has no quantity; if later add qty, set ci.quantity
+            "quantity": 1,
         })
+
     return line_items
 
 

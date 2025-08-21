@@ -7,7 +7,7 @@ from sqlalchemy import or_, and_
 from zoneinfo import ZoneInfo
 
 from utils.database import get_db
-from utils.admin_auth import get_current_admin, Admin  # προσαρμόσ’ το στο project σου
+from utils.admin_auth import get_current_admin, Admin
 from db.models.order import Order, OrderStatus, PaymentStatus
 from db.schemas.order import OrderOut
 
