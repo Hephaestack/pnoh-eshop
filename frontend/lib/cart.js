@@ -70,3 +70,19 @@ export async function updateCartItem(itemId, quantity, token) {
   }
   return res.json();
 }
+
+export async function mergeCart(token) {
+  const res = await fetch(`${API_BASE}/cart/merge`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText);
+  }
+  return res.json();
+}

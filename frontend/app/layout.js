@@ -1,7 +1,7 @@
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 import { ClerkProvider } from "@clerk/nextjs";
-import { CartProvider } from "./cart-context";
+import CartProviderWrapper from "@/components/CartProviderWrapper";
 
 export const metadata = {
   title: "Πνοή - Jewelry E-Shop",
@@ -13,9 +13,9 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="el">
         <body className="min-h-screen bg-[#18181b]">
-          <CartProvider>
+          <CartProviderWrapper>
             <ClientLayout>{children}</ClientLayout>
-          </CartProvider>
+          </CartProviderWrapper>
         </body>
       </html>
     </ClerkProvider>

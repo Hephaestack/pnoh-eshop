@@ -5,6 +5,7 @@ import { useSignUp, useUser, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { useCart } from '@/app/cart-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react'
@@ -14,6 +15,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const { isLoaded, signUp, setActive } = useSignUp()
   const { user } = useUser()
   const { getToken } = useAuth()
+  const { mergeCart } = useCart()
   const router = useRouter()
   
   const [email, setEmail] = useState('')
@@ -142,6 +144,11 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
+        
+        // Check if user has items in guest cart before merging
+        const localCart = localStorage.getItem("cart");
+        const hasGuestItems = localCart && JSON.parse(localCart)?.items?.length > 0;
+        
         // If user provided names locally, attempt to update Clerk via backend to preserve them
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -189,6 +196,16 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
         } catch (e) {
           console.warn('Failed to call backend to update names:', e)
+        }
+
+        // Merge cart if user had guest items
+        if (hasGuestItems && mergeCart) {
+          try {
+            await mergeCart();
+          } catch (mergeError) {
+            console.error('Failed to merge cart after sign up:', mergeError);
+            // Continue with redirect even if cart merge fails
+          }
         }
 
         router.push(redirectUrl)

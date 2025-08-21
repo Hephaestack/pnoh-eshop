@@ -12,6 +12,7 @@ import {
   getCart,
   removeFromCart,
   updateCartItem,
+  mergeCart,
 } from "../lib/cart";
 
 const CartContext = createContext();
@@ -23,30 +24,61 @@ export function useCart() {
 export function CartProvider({ children, token }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [previousToken, setPreviousToken] = useState(token);
 
   // Load cart from localStorage and then from API
   useEffect(() => {
-    const local = localStorage.getItem("cart");
-    if (local) {
-      try {
-        setCart(JSON.parse(local));
-      } catch (e) {
-        console.error("Error parsing cart from localStorage:", e);
+    const loadCart = async () => {
+      // Load local cart first for immediate UI
+      const local = localStorage.getItem("cart");
+      if (local) {
+        try {
+          setCart(JSON.parse(local));
+        } catch (e) {
+          console.error("Error parsing cart from localStorage:", e);
+        }
       }
-    }
 
-    getCart(token)
-      .then((data) => {
+      try {
+        // Check if we need to merge carts (user just logged in)
+        const hadGuestCart = local && JSON.parse(local)?.items?.length > 0;
+        const isNewLogin = !previousToken && token;
+        
+        console.log('Cart context loading:', { hadGuestCart, isNewLogin, previousToken, token });
+        
+        if (isNewLogin && hadGuestCart) {
+          // User just logged in and has guest cart items - merge them
+          console.log('Attempting to merge guest cart with user cart...');
+          try {
+            const mergedCart = await mergeCart(token);
+            console.log('Cart merge successful:', mergedCart);
+            setCart(mergedCart);
+            localStorage.setItem("cart", JSON.stringify(mergedCart));
+            setPreviousToken(token);
+            setLoading(false);
+            return;
+          } catch (mergeError) {
+            console.error("Error merging cart:", mergeError);
+            // Fall back to regular cart fetch if merge fails
+          }
+        }
+
+        // Regular cart fetch
+        const data = await getCart(token);
         setCart(data);
         localStorage.setItem("cart", JSON.stringify(data));
-      })
-      .catch((error) => {
+        setPreviousToken(token);
+      } catch (error) {
         console.error("Error fetching cart:", error);
         // Set empty cart if API fails
         setCart({ items: [] });
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [token, previousToken]);
 
   // Add to cart and update local state
   const handleAddToCart = useCallback(
@@ -180,6 +212,23 @@ export function CartProvider({ children, token }) {
     }
   }, []);
 
+  // Merge guest cart with user cart after login
+  const handleMergeCart = useCallback(async () => {
+    if (!token) return;
+    
+    console.log('Manual cart merge called with token:', token);
+    try {
+      const mergedCart = await mergeCart(token);
+      console.log('Manual merge successful:', mergedCart);
+      setCart(mergedCart);
+      localStorage.setItem("cart", JSON.stringify(mergedCart));
+      return mergedCart;
+    } catch (error) {
+      console.error("Error merging cart:", error);
+      throw error;
+    }
+  }, [token]);
+
   return (
     <CartContext.Provider
       value={{
@@ -189,6 +238,7 @@ export function CartProvider({ children, token }) {
         removeFromCart: handleRemoveFromCart,
         updateCartItem: handleUpdateCartItem,
         clearCart,
+        mergeCart: handleMergeCart,
       }}
     >
       {children}
