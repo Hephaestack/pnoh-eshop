@@ -15,27 +15,23 @@ B2_KEY_ID = os.getenv("B2_KEY_ID")
 B2_APPLICATION_KEY = os.getenv("B2_APPLICATION_KEY")
 B2_BUCKET_NAME = os.getenv("B2_BUCKET_NAME")
 B2_ENDPOINT = os.getenv("B2_ENDPOINT")
+B2_DOWNLOAD_URL = os.getenv("B2_DOWNLOAD_URL")
 
 if not all([B2_KEY_ID, B2_APPLICATION_KEY, B2_BUCKET_NAME, B2_ENDPOINT]):
     raise RuntimeError("Missing B2_* environment variables")
-
-cfg = Config(
-    s3={"addressing_style": "path"},
-    retries={"max_attempts": 3, "mode": "standard"},
-    signature_version="s3v4",
-)
 
 s3 = boto3.client(
     "s3",
     endpoint_url = B2_ENDPOINT,
     aws_access_key_id = B2_KEY_ID,
     aws_secret_access_key = B2_APPLICATION_KEY,
-    config = cfg
+    region_name = "eu-central-003",
+    config = Config(signature_version="s3v4", s3={"addressing_style": "path"}),
 )
 
 def _public_url(key: str) -> str:
     # S3-style public URL for B2 S3-compatible endpoint
-    return f"{B2_ENDPOINT}/{B2_BUCKET_NAME}/{key}"
+    return f"{os.getenv('B2_DOWNLOAD_URL')}/file/{os.getenv('B2_BUCKET_NAME')}/{key}"
 
 def upload_image_bytes(
     content: bytes,

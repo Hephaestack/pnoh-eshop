@@ -24,6 +24,7 @@ class ProductBase(BaseModel):
     category: Optional[Category] = None
     sub_category: Optional[SubCategory] = None
     image_url: Optional[List[str]] = None
+    big_image_url: Optional[List[str]] = None
 
 class ProductCreate(ProductBase):
     pass
