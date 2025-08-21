@@ -132,3 +132,51 @@ def get_cart(
         subtotal += line_total
 
     return CartSummary(items=items, total_items=total_items, subtotal=subtotal)
+
+
+@router.post("/merge/cart", status_code=status.HTTP_204_NO_CONTENT)
+def merge_guest_cart_into_user(
+    response: Response,
+    db: Session = Depends(get_db),
+    auth: Optional[dict] = Depends(get_current_user_optional),
+    guest_session_id: Optional[str] = Cookie(None),
+):
+    if not auth or "user_id" not in auth:
+        raise HTTPException(status_code=401, detail="Login required to merge cart")
+
+    user_id = auth["user_id"]
+
+    if not guest_session_id:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    guest_cart = db.query(Cart).filter(Cart.guest_session_id == guest_session_id).first()
+    if not guest_cart:
+        response.delete_cookie("guest_session_id")
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    user_cart = db.query(Cart).filter(Cart.user_id == user_id).first()
+    if not user_cart:
+        user_cart = Cart(user_id=user_id)
+        db.add(user_cart)
+        db.flush()
+
+    existing_pids = {
+        ci.product_id for ci in db.query(CartItem).filter(CartItem.cart_id == user_cart.id).all()
+    }
+    guest_items = db.query(CartItem).filter(CartItem.cart_id == guest_cart.id).all()
+
+    added = 0
+    for gi in guest_items:
+        if gi.product_id in existing_pids:
+            continue
+        db.add(CartItem(cart_id=user_cart.id, product_id=gi.product_id))
+        existing_pids.add(gi.product_id)
+        added += 1
+
+    db.query(CartItem).filter(CartItem.cart_id == guest_cart.id).delete()
+    db.delete(guest_cart)
+    db.commit()
+
+    response.delete_cookie("guest_session_id")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

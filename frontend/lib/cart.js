@@ -1,4 +1,4 @@
-// cart.js - Utility for cart API operations
+
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -68,5 +68,23 @@ export async function updateCartItem(itemId, quantity, token) {
     const errorText = await res.text();
     throw new Error(errorText);
   }
+  return res.json();
+}
+
+export async function mergeCart(token) {
+  const res = await fetch(`${API_BASE}/merge/cart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText);
+  }
+  // If 204 No Content, just return null
+  if (res.status === 204) return null;
   return res.json();
 }

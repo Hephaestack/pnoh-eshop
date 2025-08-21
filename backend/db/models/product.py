@@ -36,7 +36,7 @@ class Product(Base):
     updated_at = Column(DateTime, default=datetime.now(ZoneInfo("Europe/Athens")), onupdate=datetime.now(ZoneInfo("Europe/Athens")), nullable=False)
 
     cart_items = relationship("CartItem", back_populates="product")
-    # order_items = relationship("OrderItem", back_populates="product")
+    order_items = relationship("OrderItem", back_populates="product")
 
     class Config:
         from_attributes = True

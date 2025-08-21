@@ -5,6 +5,7 @@ import { useSignIn, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { useCart } from '@/app/cart-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
@@ -13,6 +14,7 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
   const { t } = useTranslation()
   const { isLoaded, signIn, setActive } = useSignIn()
   const { user } = useUser()
+  const { mergeCart } = useCart()
   const router = useRouter()
   
   const [email, setEmail] = useState('')
@@ -52,6 +54,24 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
+        
+        // Check if user has items in guest cart before merging
+        const localCart = localStorage.getItem("cart");
+        const hasGuestItems = localCart && JSON.parse(localCart)?.items?.length > 0;
+        
+        console.log('Login successful, checking cart merge:', { hasGuestItems, localCart, mergeCart });
+        
+        if (hasGuestItems && mergeCart) {
+          console.log('Attempting cart merge after login...');
+          try {
+            await mergeCart();
+            console.log('Cart merge after login successful');
+          } catch (mergeError) {
+            console.error('Failed to merge cart:', mergeError);
+            // Continue with redirect even if cart merge fails
+          }
+        }
+        
         router.push(redirectUrl)
       } else {
         // Handle other statuses like needs verification

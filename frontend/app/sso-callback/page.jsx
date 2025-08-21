@@ -3,16 +3,32 @@
 import { useEffect } from 'react'
 import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
+import { useCart } from '@/app/cart-context'
 import { Loader2 } from 'lucide-react'
 
 export default function SSOCallbackPage() {
   const { handleRedirectCallback } = useClerk()
+  const { mergeCart } = useCart()
   const router = useRouter()
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
         await handleRedirectCallback()
+        
+        // Check if user has items in guest cart before merging
+        const localCart = localStorage.getItem("cart");
+        const hasGuestItems = localCart && JSON.parse(localCart)?.items?.length > 0;
+        
+        if (hasGuestItems && mergeCart) {
+          try {
+            await mergeCart();
+          } catch (mergeError) {
+            console.error('Failed to merge cart after SSO:', mergeError);
+            // Continue with redirect even if cart merge fails
+          }
+        }
+        
         // Redirect will be handled by Clerk based on redirectUrlComplete
       } catch (error) {
         console.error('SSO callback error:', error)
@@ -22,7 +38,7 @@ export default function SSOCallbackPage() {
     }
 
     handleCallback()
-  }, [handleRedirectCallback, router])
+  }, [handleRedirectCallback, mergeCart, router])
 
   // Signal page ready for smooth loading animation
   useEffect(() => {

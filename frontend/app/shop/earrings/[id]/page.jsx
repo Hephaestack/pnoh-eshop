@@ -1,11 +1,8 @@
-"use client";
+import IndividualProductPage from "../../../../components/shop/IndividualProductPage";
 
-import React from "react";
-import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useRouter } from "next/navigation";
-import { useCart } from "../../../cart-context";
+export default function EarringPage({ params }) {
+  return <IndividualProductPage params={params} category="earrings" />;
+}
 
 function EarringPageInner({ params }) {
   const routeParams = React.use(params);

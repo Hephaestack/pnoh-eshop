@@ -19,11 +19,14 @@ import { startCheckout } from "../../lib/stripe-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 function CartPageInner() {
   const { t } = useTranslation();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   const { cart, removeFromCart, updateCartItem, loading } = useCart();
@@ -326,8 +329,17 @@ function CartPageInner() {
                       className="w-full font-semibold text-black bg-white hover:bg-gray-100"
                       disabled={loading}
                       onClick={async () => {
+                        // Check if user is authenticated before proceeding to checkout
+                        if (!isSignedIn || !user) {
+                          // Redirect to login with return URL to checkout
+                          router.push('/auth/sign-in?redirect_url=/checkout');
+                          return;
+                        }
+
                         try {
-                          await startCheckout(cart.items);
+                          // Get token for authenticated request
+                          const token = await getToken();
+                          await startCheckout(cart.items, token);
                         } catch (err) {
                           console.error("Checkout failed", err);
                           alert(err?.message || t("cart.checkout_failed"));
