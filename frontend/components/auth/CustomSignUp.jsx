@@ -206,25 +206,45 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
           console.warn('Failed to call backend to update names:', e)
         }
 
-        // Merge cart if user had guest items
-        if (hasGuestItems && mergeCart) {
-          console.log('Attempting cart merge after sign up...');
-          // Add a small delay to ensure auth state and token are propagated
-          setTimeout(async () => {
-            try {
-              const result = await mergeCart();
-              if (result) {
+  // Merge cart if user has guest items in localStorage now
+  let finalRedirect = redirectUrl || '/';
+  const localCartNow = localStorage.getItem("cart");
+  const hasGuestItemsNow = localCartNow && JSON.parse(localCartNow)?.items?.length > 0;
+  if (hasGuestItemsNow && mergeCart && getToken) {
+          console.log('Attempting cart merge after sign up (synchronous)...');
+          try {
+            console.debug('[SignUp] requesting token for merge');
+            const token = await getToken();
+            console.debug('[SignUp] token fetched', !!token, token ? `len=${token.length}` : '');
+            if (!token) {
+              console.warn('[SignUp] No token available for cart merge after sign up');
+            } else {
+              console.debug('[SignUp] calling mergeCart with token');
+              const merged = await mergeCart(token);
+              console.debug('[SignUp] mergeCart result', merged);
+              if (merged) {
                 console.log('Cart merge after sign up successful');
-              } else {
-                console.log('Cart merge returned null - may have failed due to timing');
               }
-            } catch (mergeError) {
-              console.error('Failed to merge cart after sign up:', mergeError);
+              try {
+                const { getCart } = await import('@/lib/cart');
+                const latestCart = await getCart(token);
+                if (latestCart) {
+                  localStorage.setItem('cart', JSON.stringify(latestCart));
+                  if (typeof window !== 'undefined' && window.__setCart) {
+                    window.__setCart(latestCart);
+                  }
+                  finalRedirect = '/cart';
+                }
+              } catch (fetchErr) {
+                console.error('Failed to fetch latest cart after merge:', fetchErr);
+              }
             }
-          }, 1500); // Give more time for auth to fully propagate
+          } catch (mergeError) {
+            console.error('Failed to merge cart after sign up:', mergeError);
+          }
         }
-
-        router.push(redirectUrl)
++
+        router.push(finalRedirect)
       } else {
         console.log('Verification incomplete:', result)
         setErrors({ code: t('auth.error.verification_failed') || 'Verification failed' })
@@ -296,7 +316,8 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
           </div>
         )}
 
-        <form onSubmit={handleVerification} className="space-y-4">
+  {/* Only render verification form, no CAPTCHA here */}
+  <form onSubmit={handleVerification} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="code" className="text-sm font-medium text-white">
               {t('auth.verification_code') || 'Verification Code'}
@@ -467,7 +488,11 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         </Button>
         
   {/* Clerk Smart CAPTCHA container (required for Smart CAPTCHA init) */}
-  <div id="clerk-captcha" className="mt-2" />
+  <div id="clerk-captcha" style={{ minHeight: 80, background: '#232326', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    {/* Fallback placeholder if CAPTCHA is not injected */}
+    <noscript style={{ color: '#fff', fontSize: 12 }}>CAPTCHA will appear here if required</noscript>
+  </div>
+        
       </form>
 
       <div className="relative">

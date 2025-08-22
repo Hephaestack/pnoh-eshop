@@ -135,12 +135,21 @@ def get_cart(
 
 
 @router.post("/merge/cart", status_code=status.HTTP_204_NO_CONTENT)
-def merge_guest_cart_into_user(
+async def merge_guest_cart_into_user(
     response: Response,
     db: Session = Depends(get_db),
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
+    request=None
 ):
+    import sys
+    print("[DEBUG] /merge/cart endpoint called", file=sys.stderr)
+    if request:
+        try:
+            body = await request.json()
+            print(f"[DEBUG] Request body: {body}", file=sys.stderr)
+        except Exception as e:
+            print(f"[DEBUG] Could not parse request body: {e}", file=sys.stderr)
     if not auth or "user_id" not in auth:
         raise HTTPException(status_code=401, detail="Login required to merge cart")
 

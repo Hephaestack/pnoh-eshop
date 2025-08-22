@@ -13,6 +13,8 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="el">
         <body className="min-h-screen bg-[#18181b]">
+          {/* Clerk Smart CAPTCHA container - required for clerk-captcha initialization */}
+          <div id="clerk-captcha" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true" />
           <CartProviderWrapper>
             <ClientLayout>{children}</ClientLayout>
           </CartProviderWrapper>

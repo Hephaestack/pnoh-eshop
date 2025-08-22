@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useSignIn, useUser } from '@clerk/nextjs'
+import { useSignIn, useUser, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
 
-export default function CustomSignIn({ redirectUrl = '/' }) {
+export default function CustomSignIn({ redirectUrl }) {
   const { t } = useTranslation()
   const { isLoaded, signIn, setActive } = useSignIn()
   const { user } = useUser()
   const { mergeCart } = useCart()
+  const { getToken } = useAuth()
   const router = useRouter()
   
   const [email, setEmail] = useState('')
@@ -23,12 +24,16 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
+  // Determine redirect URL: if coming from cart, go to /cart
+  const effectiveRedirectUrl = redirectUrl || (typeof window !== 'undefined' && window.location?.search?.includes('fromCart=true') ? '/cart' : '/');
+
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
     if (user) {
-      router.push(redirectUrl)
+      // use the effective redirect (considers fromCart query)
+      router.push(effectiveRedirectUrl)
     }
-  }, [user, router, redirectUrl])
+  }, [user, router, effectiveRedirectUrl])
 
   // Signal page ready for smooth loading animation
   useEffect(() => {
@@ -38,6 +43,7 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
   }, [isLoaded]);
 
   if (user) return null
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -55,30 +61,62 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId })
         
-        // Check if user has items in guest cart before merging
-        const localCart = localStorage.getItem("cart");
-        const hasGuestItems = localCart && JSON.parse(localCart)?.items?.length > 0;
-        
-        console.log('Login successful, checking cart merge:', { hasGuestItems, localCart, mergeCart });
-        
-        if (hasGuestItems && mergeCart) {
-          console.log('Attempting cart merge after login...');
-          // Add a small delay to ensure auth state and token are propagated
-          setTimeout(async () => {
-            try {
-              const result = await mergeCart();
-              if (result) {
+  // Compute a fresh view of localStorage right before attempting merge.
+  const localCart = localStorage.getItem("cart");
+  const hasGuestItemsNow = localCart && JSON.parse(localCart)?.items?.length > 0;
+
+  console.log('Login successful, checking cart merge (fresh):', { hasGuestItemsNow, mergeCart });
+
+  let finalRedirect = effectiveRedirectUrl;
+  // Always attempt merge when there are items in localStorage at merge time.
+  if (hasGuestItemsNow && mergeCart && getToken) {
+          console.log('Attempting cart merge after login (synchronous)...');
+          try {
+            console.debug('[SignIn] requesting token for merge');
+            const token = await getToken();
+            console.debug('[SignIn] token fetched', !!token, token ? `len=${token.length}` : '');
+            if (!token) {
+              console.warn('[SignIn] No token available for cart merge after login');
+            } else {
+              console.debug('[SignIn] calling mergeCart with token');
+              const merged = await mergeCart(token);
+              console.debug('[SignIn] mergeCart result', merged);
+              if (merged) {
                 console.log('Cart merge after login successful');
               } else {
-                console.log('Cart merge returned null - may have failed due to timing');
+                console.log('Cart merge returned null or 204');
               }
-            } catch (mergeError) {
-              console.error('Failed to merge cart after login:', mergeError);
+        // Fetch canonical cart from backend and persist/update context
+              try {
+                const { getCart } = await import('@/lib/cart');
+                const latestCart = await getCart(token);
+                if (latestCart) {
+                  localStorage.setItem('cart', JSON.stringify(latestCart));
+                  if (typeof window !== 'undefined' && window.__setCart) {
+                    window.__setCart(latestCart);
+                  }
+                  // Write a preloaded cart marker so CartProvider can use it immediately
+                  if (typeof window !== 'undefined') {
+                    try {
+                      window.__preloadedCart = latestCart;
+                      localStorage.setItem('cart_preloaded', JSON.stringify(latestCart));
+                    } catch (e) {
+                      console.warn('Could not set preloaded cart', e);
+                    }
+                  }
+                  // If guest had items, prefer redirecting to cart page
+          finalRedirect = '/cart';
+                }
+              } catch (fetchErr) {
+                console.error('Failed to fetch latest cart after merge:', fetchErr);
+              }
             }
-          }, 1500); // Give more time for auth to fully propagate
+          } catch (mergeError) {
+            console.error('Failed to merge cart after login:', mergeError);
+          }
         }
-        
-        router.push(redirectUrl)
+
+        router.push(finalRedirect)
       } else {
         // Handle other statuses like needs verification
         console.log('Additional steps required:', result)
@@ -222,6 +260,11 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
             t('auth.sign_in.button') || 'Sign In'
           )}
         </Button>
+  {/* Clerk Smart CAPTCHA container (required for Smart CAPTCHA init) */}
+        <div id="clerk-captcha" style={{ minHeight: 80, background: '#232326', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Fallback placeholder if CAPTCHA is not injected */}
+          <noscript style={{ color: '#fff', fontSize: 12 }}>CAPTCHA will appear here if required</noscript>
+        </div>
       </form>
 
       <div className="relative">

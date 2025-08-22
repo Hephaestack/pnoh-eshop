@@ -79,23 +79,39 @@ export async function mergeCart(token) {
   // Get guest cart data from localStorage
   const guestCartData = localStorage.getItem('cart');
   const guestCart = guestCartData ? JSON.parse(guestCartData) : { items: [] };
-  
-  const res = await fetch(`${API_BASE}/merge/cart`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Ensure token is always included
-    },
-    body: JSON.stringify({
-      guestCart: guestCart
-    }),
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Failed to merge cart: ${res.status} ${res.statusText} - ${errorText}`);
+  try {
+    console.debug('[mergeCart] token length', token ? token.length : 0);
+    console.debug('[mergeCart] sending guestCart', guestCart);
+    const res = await fetch(`${API_BASE}/merge/cart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Ensure token is always included
+      },
+      body: JSON.stringify({ guestCart }),
+      credentials: "include",
+    });
+
+    console.debug('[mergeCart] response status', res.status, res.statusText);
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '<no-body>');
+      console.error('[mergeCart] non-ok response', res.status, res.statusText, errorText);
+      throw new Error(`Failed to merge cart: ${res.status} ${res.statusText} - ${errorText}`);
+    }
+
+    // If 204 No Content, return null (caller should fetch /cart)
+    if (res.status === 204) {
+      console.debug('[mergeCart] 204 No Content from merge endpoint');
+      return null;
+    }
+
+    const json = await res.json().catch(() => null);
+    console.debug('[mergeCart] response json', json);
+    return json;
+  } catch (err) {
+    // Surface the error in console for easier debugging in browser DevTools
+    console.error('[mergeCart] error', err);
+    throw err;
   }
-  // If 204 No Content, just return null
-  if (res.status === 204) return null;
-  return res.json();
 }

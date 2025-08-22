@@ -8,29 +8,35 @@ export default function CartProviderWrapper({ children }) {
   const { getToken, isSignedIn } = useAuth();
   const { user } = useUser();
   const [token, setToken] = useState(null);
+  const [tokenLoaded, setTokenLoaded] = useState(false);
 
   useEffect(() => {
     const fetchToken = async () => {
-      if (isSignedIn) {
-        try {
+      try {
+        if (isSignedIn) {
           const jwt = await getToken();
           console.log('Token fetched:', jwt ? 'present' : 'null');
           setToken(jwt);
-        } catch (error) {
-          console.error("Error getting token:", error);
+        } else {
+          console.log('User not signed in, setting token to null');
           setToken(null);
         }
-      } else {
-        console.log('User not signed in, setting token to null');
+      } catch (error) {
+        console.error("Error getting token:", error);
         setToken(null);
+      } finally {
+        setTokenLoaded(true);
       }
     };
 
     fetchToken();
   }, [getToken, isSignedIn, user?.id]); // Re-run when auth state changes
 
+  // Always render CartProvider so `useCart` is available to the app. Pass
+  // `tokenLoaded` so the provider can delay API fetches until we've resolved
+  // the initial token and avoid overwriting a merged cart.
   return (
-    <CartProvider token={token}>
+    <CartProvider token={token} tokenLoaded={tokenLoaded}>
       {children}
     </CartProvider>
   );
