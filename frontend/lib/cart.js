@@ -72,17 +72,28 @@ export async function updateCartItem(itemId, quantity, token) {
 }
 
 export async function mergeCart(token) {
+  if (!token) {
+    throw new Error('Token is required for cart merge');
+  }
+  
+  // Get guest cart data from localStorage
+  const guestCartData = localStorage.getItem('cart');
+  const guestCart = guestCartData ? JSON.parse(guestCartData) : { items: [] };
+  
   const res = await fetch(`${API_BASE}/merge/cart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`, // Ensure token is always included
     },
+    body: JSON.stringify({
+      guestCart: guestCart
+    }),
     credentials: "include",
   });
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(errorText);
+    throw new Error(`Failed to merge cart: ${res.status} ${res.statusText} - ${errorText}`);
   }
   // If 204 No Content, just return null
   if (res.status === 204) return null;

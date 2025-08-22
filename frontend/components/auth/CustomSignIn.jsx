@@ -63,13 +63,19 @@ export default function CustomSignIn({ redirectUrl = '/' }) {
         
         if (hasGuestItems && mergeCart) {
           console.log('Attempting cart merge after login...');
-          try {
-            await mergeCart();
-            console.log('Cart merge after login successful');
-          } catch (mergeError) {
-            console.error('Failed to merge cart:', mergeError);
-            // Continue with redirect even if cart merge fails
-          }
+          // Add a small delay to ensure auth state and token are propagated
+          setTimeout(async () => {
+            try {
+              const result = await mergeCart();
+              if (result) {
+                console.log('Cart merge after login successful');
+              } else {
+                console.log('Cart merge returned null - may have failed due to timing');
+              }
+            } catch (mergeError) {
+              console.error('Failed to merge cart after login:', mergeError);
+            }
+          }, 1500); // Give more time for auth to fully propagate
         }
         
         router.push(redirectUrl)

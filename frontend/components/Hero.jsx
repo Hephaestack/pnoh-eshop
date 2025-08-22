@@ -1,33 +1,134 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const items = [
-  { id: 1, title: "hero_diamond_ring", img: "/images/test2.jpg" },
-  { id: 2, title: "hero_emerald_necklace", img: "/images/test2.jpg" },
-  { id: 3, title: "hero_luxury_watch", img: "/images/test2.jpg" },
-  { id: 4, title: "hero_sapphire_earrings", img: "/images/test2.jpg" },
-];
+// Fallback items in case API fails - empty array to force API usage
+const fallbackItems = [];
 
 export function Hero() {
   const { t } = useTranslation();
-  const [centerIdx, setCenterIdx] = useState(1);
+  const router = useRouter();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const intervalRef = useRef();
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
 
-  const handlePrev = useCallback(() => {
-    setCenterIdx((prev) => (prev - 1 + items.length) % items.length);
-    startAutoplay();
+  // Fetch products for hero carousel
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        console.log("Fetching ALL products from:", "http://localhost:8000/products/all");
+        const response = await fetch("http://localhost:8000/products/all");
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+        
+        if (response.ok) {
+          const products = await response.json();
+          console.log("Raw products from API:", products);
+          console.log("Products type:", typeof products);
+          console.log("Products length:", Array.isArray(products) ? products.length : 'Not an array');
+          
+          if (Array.isArray(products) && products.length > 0) {
+            console.log(`Found ${products.length} total products in database`);
+            
+            // Better random shuffle using Fisher-Yates algorithm
+            const shuffledProducts = [...products];
+            for (let i = shuffledProducts.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffledProducts[i], shuffledProducts[j]] = [shuffledProducts[j], shuffledProducts[i]];
+            }
+            
+            // Take EXACTLY 5 products maximum from the shuffled array
+            const selectedProducts = shuffledProducts.slice(0, 5);
+            
+            console.log(`Randomly selected ${selectedProducts.length} products from ${products.length} total products`);
+            console.log('Selected product names:', selectedProducts.map(p => p.name));
+            
+            // Transform products to carousel items and fix image URLs
+            const carouselItems = selectedProducts.map((product, index) => {
+              console.log(`Processing product ${index}:`, product.name);
+              
+              // Convert Dropbox URLs to direct image URLs
+              let imageUrl = "/images/test2.jpg"; // Default fallback
+              
+              if (product.image_url && Array.isArray(product.image_url) && product.image_url.length > 0) {
+                let url = product.image_url[0];
+                // Convert Dropbox share URL to direct URL
+                if (url.includes('dropbox.com') && url.includes('dl=0')) {
+                  url = url.replace('dl=0', 'dl=1');
+                }
+                imageUrl = url;
+              } else if (product.image_url && typeof product.image_url === 'string') {
+                let url = product.image_url;
+                if (url.includes('dropbox.com') && url.includes('dl=0')) {
+                  url = url.replace('dl=0', 'dl=1');
+                }
+                imageUrl = url;
+              }
+              
+              const item = {
+                id: product.id || index + 1,
+                title: product.name || `Product ${index + 1}`,
+                img: imageUrl,
+                price: product.price || 0,
+                category: product.category,
+                description: product.description
+              };
+              
+              console.log(`Processed item ${index}: ${item.title}`);
+              return item;
+            });
+            
+            // FORCE exactly 5 items maximum
+            const finalItems = carouselItems.slice(0, 5);
+            
+            console.log(`FINAL: Setting exactly ${finalItems.length} random items in slider`);
+            console.log('Final slider items:', finalItems.map(item => item.title));
+            setItems(finalItems);
+          } else {
+            console.log("No products in response or empty array");
+            setItems([]);
+          }
+        } else {
+          console.log("API response not ok. Status:", response.status);
+          const errorText = await response.text();
+          console.log("Error response:", errorText);
+          setItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        console.error("Error details:", error.message);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  const handleNext = useCallback(() => {
-    setCenterIdx((prev) => (prev + 1) % items.length);
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
     startAutoplay();
-  }, []);
+  }, [items.length]);
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % items.length);
+    startAutoplay();
+  }, [items.length]);
+
+  const handleImageClick = () => {
+    const currentItem = items[currentIndex];
+    if (currentItem?.id) {
+      router.push(`/shop/products/${currentItem.id}`);
+    }
+  };
 
   const handleTouchStart = (e) => {
     const touchX = e.touches[0].clientX;
@@ -35,9 +136,15 @@ export function Hero() {
     touchEndX.current = touchX;
   };
 
+  const handleTouchMove = (e) => {
+    if (touchStartX.current !== null) {
+      touchEndX.current = e.touches[0].clientX;
+    }
+  };
+
   const handleTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 40) {
+    if (Math.abs(diff) > 30) { // Reduced threshold for easier swiping
       diff > 0 ? handleNext() : handlePrev();
     }
     touchStartX.current = null;
@@ -47,9 +154,9 @@ export function Hero() {
   const startAutoplay = useCallback(() => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setCenterIdx((prev) => (prev + 1) % items.length);
-    }, 3500);
-  }, []);
+      setCurrentIndex((prev) => (prev + 1) % items.length);
+    }, 4000);
+  }, [items.length]);
 
   useEffect(() => {
     startAutoplay();
@@ -66,151 +173,165 @@ export function Hero() {
   }, [handleNext, handlePrev]);
 
   return (
-    <motion.section
-      className="relative flex flex-col items-center justify-center min-h-[80vh] bg-gradient-to-br from-[#18181b] via-[#23232a] to-[#18181b] py-20 overflow-hidden border-b border-[#23232a]"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-    >
- 
-      {/* Background Layers */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,_rgba(255,255,255,0.07)_1px,_transparent_0)] bg-[length:24px_24px]" />
-        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-[#3b82f6]/30 rounded-full blur-3xl opacity-40" style={{ filter: 'blur(120px)' }} />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#f59e42]/20 rounded-full blur-2xl opacity-30" style={{ filter: 'blur(80px)' }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/40" />
-      </div>
+    <div className="relative w-full h-screen overflow-hidden bg-black">
+      {/* Loading State */}
+      {loading && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
+          <div className="text-xl text-white">Loading products...</div>
+        </div>
+      )}
 
-      {/* Title */}
-      <motion.div className="relative z-10 mb-12 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.7 }}
-      >
-        <h1 className="mb-4 text-4xl font-light tracking-wide text-gray-100 md:text-6xl goth-title">
-          {t('our_jewelry')}
-        </h1>
-        <p className="text-lg font-light tracking-wide text-gray-300 md:text-xl">
-          {t('your_art')}
-        </p>
-        <Link href="/collections">
-          <button className="mt-6 px-6 py-2 text-sm font-medium text-white bg-[#353545]/70 rounded-full hover:bg-[#353545] transition-all duration-300 shadow">
-            {t('explore_collection')}
-          </button>
-        </Link>
-      </motion.div>
+      {/* No Products State */}
+      {!loading && items.length === 0 && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
+          <div className="max-w-md px-4 text-center text-white">
+            <h2 className="mb-4 text-2xl">No products available</h2>
+            <p className="mb-4 text-gray-400">Check the browser console for detailed error information</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 text-white transition-all border rounded-lg bg-white/20 border-white/30 hover:bg-white/30"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Carousel */}
-      <motion.div className="relative flex items-center justify-center w-full"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-      >
-        {/* Prev Button */}
-        <button onClick={handlePrev} aria-label="Previous"
-          className="hidden md:flex absolute left-8 z-20 items-center justify-center w-12 h-12 -translate-y-1/2 rounded-full bg-[#23232a]/60 backdrop-blur-md border border-[#353545] shadow-lg hover:bg-[#18181b]/80 text-gray-200 hover:text-white transition-all duration-300 top-1/2 group"
-        >
-          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' strokeWidth={2} stroke='currentColor' className='w-5 h-5'>
-            <path strokeLinecap='round' strokeLinejoin='round' d='M15.75 19.5L8.25 12l7.5-7.5' />
-          </svg>
-        </button>
+      {/* Hero Content - Only show when we have products */}
+      {!loading && items.length > 0 && (
+        <>
+          {/* Swipe Hint for Mobile - Only shown on first load */}
+          <div className="absolute z-30 top-1/2 left-4 md:hidden">
+            <motion.div
+              initial={{ opacity: 1, x: 0 }}
+              animate={{ opacity: 0, x: 10 }}
+              transition={{ delay: 2, duration: 1, repeat: 2, repeatType: "reverse" }}
+              className="flex items-center text-sm text-white/60"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              Swipe
+            </motion.div>
+          </div>
 
-        <div
-          className="flex items-center justify-center w-full max-w-6xl h-[32rem] perspective-[1400px] overflow-visible"
+      {/* Main Image Display */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          className="absolute inset-0 cursor-pointer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          onClick={handleImageClick}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseEnter={() => clearInterval(intervalRef.current)}
           onMouseLeave={startAutoplay}
         >
-          {items.map((item, idx) => {
-            const offset = idx - centerIdx;
-            const absOffset = Math.abs(offset);
-            const isCenter = offset === 0;
-            const rotateY = offset * -25;
-            const scale = isCenter ? 1 : 0.85 - absOffset * 0.1;
-            const translateX = offset * (typeof window !== 'undefined' && window.innerWidth < 768 ? 120 : 200);
-            const translateZ = isCenter ? 0 : -100 * absOffset;
-            const opacity = isCenter ? 1 : Math.max(0.3, 0.8 - absOffset * 0.2);
-            const zIndex = 20 - absOffset;
+          <Image
+            src={items[currentIndex]?.img || "/images/test2.jpg"}
+            alt={items[currentIndex]?.title || "Product"}
+            fill
+            className="object-cover"
+            priority
+            onError={(e) => {
+              console.log("Image failed to load:", items[currentIndex]?.img);
+              console.log("Falling back to test image");
+              e.currentTarget.src = "/images/test2.jpg";
+            }}
+            onLoad={() => {
+              console.log("Image loaded successfully:", items[currentIndex]?.img);
+            }}
+          />
+          
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/30" />
+          
+          {/* Product Info Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="max-w-4xl text-white"
+            >
+              <h1 className="mb-2 text-2xl font-light leading-tight tracking-wide sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+                {items[currentIndex]?.title || "Loading..."}
+              </h1>
+              <p className="mb-4 text-lg font-light text-gray-200 sm:text-xl md:text-2xl lg:text-3xl">
+                ${items[currentIndex]?.price || "0"}
+              </p>
+              <div className="flex flex-col items-start space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleImageClick();
+                  }}
+                  className="w-full px-4 py-2 text-sm text-white transition-all duration-300 border rounded-full sm:w-auto sm:px-6 sm:py-3 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 md:text-base"
+                >
+                  View Product
+                </button>
+                <Link href="/shop/products" className="w-full sm:w-auto">
+                  <button className="w-full px-4 py-2 text-sm text-white transition-all duration-300 bg-transparent border rounded-full sm:w-auto sm:px-6 sm:py-3 border-white/50 hover:bg-white/10 md:text-base">
+                    Shop All
+                  </button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
 
-            return (
-              <motion.div
-                key={item.id}
-                className="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"
-                style={{ zIndex, opacity, pointerEvents: isCenter ? "auto" : "none" }}
-                animate={{ scale, rotateY, x: translateX, z: translateZ }}
-                transition={{ type: "spring", stiffness: 200, damping: 25, mass: 0.8, delay: absOffset * 0.05 }}
-              >
-                <div className="cursor-pointer group">
-                  <div className="relative overflow-hidden w-[20rem] md:w-[28rem] h-[26rem] md:h-[32rem] rounded-3xl shadow-2xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#23232a]/80 via-[#18181b]/70 to-[#23232a]/60 backdrop-blur-xl border border-[#353545] shadow-2xl rounded-2xl" />
-                    <div className="absolute inset-0 shadow-inner rounded-2xl" />
-                    <div className="relative w-full h-[18rem] md:h-[23rem] overflow-hidden rounded-t-3xl">
-                      <Image
-                        src={item.img}
-                        alt={t(item.title)}
-                        fill
-                        priority={isCenter}
-                        className="object-cover transition-transform duration-700 ease-out transform group-hover:scale-105"
-                        draggable={false}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      <div className="absolute inset-0 transition-opacity duration-500 opacity-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent group-hover:opacity-80" />
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      {/* Only show text for center card */}
-                      {isCenter && (
-                        <>
-                          <h3 className="mb-1 text-xl font-semibold tracking-wide text-gray-100 goth-title">
-                            {t(item.title)}
-                          </h3>
-                          <p className="text-sm font-light text-gray-400">Limited Edition</p>
-                          <div className="w-12 h-0.5 mt-2 bg-gradient-to-r from-gray-400/60 to-transparent" />
-                        </>
-                      )}
-                    </div>
-                    <div className="absolute h-8 -bottom-2 left-2 right-2 bg-gradient-to-b from-white/10 to-transparent rounded-b-2xl blur-sm opacity-30" />
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+      {/* Navigation Arrows - Hidden on Mobile */}
+      <button
+        onClick={handlePrev}
+        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex left-4 lg:left-8 top-1/2 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
+        aria-label="Previous product"
+      >
+        <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
 
-        {/* Next Button */}
-        <button onClick={handleNext} aria-label="Next"
-          className="hidden md:flex absolute right-8 z-20 items-center justify-center w-12 h-12 -translate-y-1/2 rounded-full bg-[#23232a]/60 backdrop-blur-md border border-[#353545] shadow-lg hover:bg-[#18181b]/80 text-gray-200 hover:text-white transition-all duration-300 top-1/2 group"
-        >
-          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' strokeWidth={2} stroke='currentColor' className='w-5 h-5'>
-            <path strokeLinecap='round' strokeLinejoin='round' d='M8.25 4.5l7.5 7.5-7.5 7.5' />
-          </svg>
-        </button>
-      </motion.div>
+      <button
+        onClick={handleNext}
+        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex right-4 lg:right-8 top-1/2 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
+        aria-label="Next product"
+      >
+        <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
 
       {/* Indicators */}
-      <motion.div className="z-10 flex mt-8 space-x-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7, duration: 0.7 }}
-      >
-        {items.map((_, idx) => (
+      <div className="absolute z-20 flex space-x-2 -translate-x-1/2 bottom-16 sm:bottom-20 md:bottom-24 lg:bottom-28 left-1/2">
+        {items.slice(0, 5).map((_, index) => (
           <button
-            key={idx}
+            key={index}
             onClick={() => {
-              setCenterIdx(idx);
+              setCurrentIndex(index);
               startAutoplay();
             }}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === centerIdx ? 'bg-[#353545] w-8' : 'bg-[#23232a] hover:bg-[#353545]'}`}
-            aria-label={`Go to slide ${idx + 1}`}
+            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+              index === currentIndex 
+                ? 'bg-white w-6 sm:w-8 md:w-10 lg:w-12' 
+                : 'bg-white/50 hover:bg-white/80'
+            }`}
+            aria-label={`Go to product ${index + 1}`}
           />
         ))}
-      </motion.div>
-
-      {/* ARIA live region for screen readers */}
-      <div aria-live="polite" className="sr-only">
-        {t(items[centerIdx].title)}
       </div>
-    </motion.section>
+
+      {/* Product Counter */}
+      <div className="absolute z-20 px-2 py-1 text-xs text-white rounded-full top-4 sm:top-6 right-4 sm:right-6 bg-black/50 backdrop-blur-sm sm:px-3 sm:py-1 sm:text-sm">
+        {currentIndex + 1} / {Math.min(items.length, 5)}
+      </div>
+        </>
+      )}
+    </div>
   );
 }
 

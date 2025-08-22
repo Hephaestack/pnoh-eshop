@@ -46,27 +46,21 @@ export function CartProvider({ children, token }) {
         
         console.log('Cart context loading:', { hadGuestCart, isNewLogin, previousToken, token });
         
+        // Skip automatic cart merge to prevent 401 errors
+        // Cart merge will only happen when explicitly called (e.g., after login)
         if (isNewLogin && hadGuestCart) {
-          // User just logged in and has guest cart items - merge them
-          console.log('Attempting to merge guest cart with user cart...');
-          try {
-            const mergedCart = await mergeCart(token);
-            console.log('Cart merge successful:', mergedCart);
-            setCart(mergedCart);
-            localStorage.setItem("cart", JSON.stringify(mergedCart));
-            setPreviousToken(token);
-            setLoading(false);
-            return;
-          } catch (mergeError) {
-            console.error("Error merging cart:", mergeError);
-            // Fall back to regular cart fetch if merge fails
-          }
+          console.log('New login detected with guest cart, but skipping automatic merge to prevent auth issues');
         }
 
         // Regular cart fetch
-        const data = await getCart(token);
-        setCart(data);
-        localStorage.setItem("cart", JSON.stringify(data));
+        if (token) {
+          const data = await getCart(token);
+          setCart(data);
+          localStorage.setItem("cart", JSON.stringify(data));
+        } else {
+          // No valid token, use local cart or empty cart
+          setCart(local ? JSON.parse(local) : { items: [] });
+        }
         setPreviousToken(token);
       } catch (error) {
         console.error("Error fetching cart:", error);
@@ -214,7 +208,10 @@ export function CartProvider({ children, token }) {
 
   // Merge guest cart with user cart after login
   const handleMergeCart = useCallback(async () => {
-    if (!token) return;
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      console.warn('Cannot merge cart: invalid or missing token');
+      return null;
+    }
     
     console.log('Manual cart merge called with token:', token);
     try {
@@ -225,7 +222,12 @@ export function CartProvider({ children, token }) {
       return mergedCart;
     } catch (error) {
       console.error("Error merging cart:", error);
-      throw error;
+      // Check if it's an auth error
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        console.log('Authentication error during cart merge - token may not be ready');
+      }
+      // Don't throw - let the calling code handle the error gracefully
+      return null;
     }
   }, [token]);
 

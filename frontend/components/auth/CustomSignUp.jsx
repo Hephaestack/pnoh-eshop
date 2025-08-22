@@ -208,12 +208,20 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
         // Merge cart if user had guest items
         if (hasGuestItems && mergeCart) {
-          try {
-            await mergeCart();
-          } catch (mergeError) {
-            console.error('Failed to merge cart after sign up:', mergeError);
-            // Continue with redirect even if cart merge fails
-          }
+          console.log('Attempting cart merge after sign up...');
+          // Add a small delay to ensure auth state and token are propagated
+          setTimeout(async () => {
+            try {
+              const result = await mergeCart();
+              if (result) {
+                console.log('Cart merge after sign up successful');
+              } else {
+                console.log('Cart merge returned null - may have failed due to timing');
+              }
+            } catch (mergeError) {
+              console.error('Failed to merge cart after sign up:', mergeError);
+            }
+          }, 1500); // Give more time for auth to fully propagate
         }
 
         router.push(redirectUrl)

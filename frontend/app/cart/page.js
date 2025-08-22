@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import CheckoutAuthModal from "../../components/checkout-auth-modal";
 
 function CartPageInner() {
   const { t } = useTranslation();
@@ -31,6 +32,7 @@ function CartPageInner() {
 
   const { cart, removeFromCart, updateCartItem, loading } = useCart();
   const [removing, setRemoving] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Signal page ready for cart page
   useEffect(() => {
@@ -331,8 +333,8 @@ function CartPageInner() {
                       onClick={async () => {
                         // Check if user is authenticated before proceeding to checkout
                         if (!isSignedIn || !user) {
-                          // Redirect to login with return URL to checkout
-                          router.push('/auth/sign-in?redirect_url=/checkout');
+                          // Show checkout auth modal instead of redirecting
+                          setShowAuthModal(true);
                           return;
                         }
 
@@ -386,6 +388,13 @@ function CartPageInner() {
           </div>
         </div>
       </div>
+
+      {/* Checkout Auth Modal */}
+      <CheckoutAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        cartTotal={totals.total.toFixed(2)}
+      />
     </div>
   );
 }
