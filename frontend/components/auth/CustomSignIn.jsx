@@ -24,8 +24,22 @@ export default function CustomSignIn({ redirectUrl }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
-  // Determine redirect URL: if coming from cart, go to /cart
-  const effectiveRedirectUrl = redirectUrl || (typeof window !== 'undefined' && window.location?.search?.includes('fromCart=true') ? '/cart' : '/');
+  // Determine redirect URL: prefer prop, then query params (redirect_url or redirectUrl), then fromCart flag, then '/'
+  const getEffectiveRedirectUrl = () => {
+    if (redirectUrl) return redirectUrl;
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('redirect_url') || params.get('redirectUrl');
+        if (q) return q;
+        if (params.get('fromCart') === 'true') return '/cart';
+      } catch (e) {
+        // ignore
+      }
+    }
+    return '/';
+  };
+  const effectiveRedirectUrl = getEffectiveRedirectUrl();
 
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
@@ -159,7 +173,8 @@ export default function CustomSignIn({ redirectUrl }) {
       await signIn.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: redirectUrl,
+        // ensure we pass the effective redirect so Clerk will complete there after SSO
+        redirectUrlComplete: effectiveRedirectUrl,
       })
     } catch (err) {
       console.error('Google sign in error:', err)

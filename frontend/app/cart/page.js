@@ -12,7 +12,7 @@ import {
   Lock,
   CreditCard,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { useCart } from "../cart-context";
 import { startCheckout } from "../../lib/stripe-client";
@@ -61,11 +61,29 @@ function CartPageInner() {
 
   const totals = getTotals();
 
+  // Determine if any items are missing price data (optimistic entries)
+  const itemsMissingPrice = !!(
+    cart?.items && cart.items.some((it) => typeof it.product?.price !== "number")
+  );
+
+  const SmallSpinner = ({ size = 4 }) => (
+    <span
+      className={`inline-block rounded-full border-2 border-t-transparent border-gray-400 animate-spin`} 
+      style={{ width: `${size}rem`, height: `${size}rem` }}
+      aria-hidden="true"
+    />
+  );
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || loading) {
+  // If we already have a local cart with items, render immediately so the
+  // user doesn't see the full-page loading skeleton. Show the skeleton only
+  // when there are no local items yet.
+  const hasLocalItems = cart?.items && cart.items.length > 0;
+
+  if (!mounted || (loading && !hasLocalItems)) {
     return (
       <div className="min-h-screen bg-[#18181b] pt-8">
         <div className="container px-4 mx-auto">
@@ -149,27 +167,27 @@ function CartPageInner() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <AnimatePresence>
                   {cart.items.map((item, idx) => (
-                    <motion.div
+                    <div
                       key={item.product_id || item.id || idx}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
                       className="flex flex-row items-center gap-3 p-3 bg-transparent sm:bg-[#18181b] rounded-none sm:rounded-lg border-none sm:border border-gray-700/60"
                     >
                       {/* Product Image */}
                       <div className="flex-shrink-0">
-                        <img
-                          src={
-                            item.product?.image_url?.[0]?.replace(
+                        {item.product?.image_url?.[0] ? (
+                          <img
+                            src={item.product.image_url[0].replace(
                               "dl=0",
                               "raw=1"
-                            ) || "/placeholder-product.jpg"
-                          }
-                          alt={item.product?.name || "Product"}
-                          className="object-cover w-20 h-20 rounded-md sm:w-24 sm:h-24 sm:rounded-lg"
-                        />
+                            )}
+                            alt={item.product?.name || "Product"}
+                            className="object-cover w-20 h-20 rounded-md sm:w-24 sm:h-24 sm:rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-md bg-[#1f1f23] sm:w-24 sm:h-24 sm:rounded-lg flex items-center justify-center text-gray-500">
+                            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 10l5-5 5 5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </div>
+                        )}
                       </div>
 
                       {/* Product Details */}
@@ -183,14 +201,22 @@ function CartPageInner() {
                             overflow: "hidden",
                           }}
                         >
-                          {item.product?.name || "Unknown Product"}
+                          {item.product?.name ? (
+                            item.product.name
+                          ) : (
+                            <span className="inline-block w-40 h-4 bg-gray-700 rounded" />
+                          )}
                         </h3>
                       </div>
 
                       {/* Price & Actions (right aligned) */}
                       <div className="flex flex-col items-end ml-2 space-y-2">
                         <p className="text-lg font-bold text-white sm:text-2xl">
-                          €{item.product?.price || 0}
+                          {typeof item.product?.price === "number" ? (
+                            `€${item.product.price}`
+                          ) : (
+                            <span className="inline-block w-16 h-5 bg-gray-700 rounded" />
+                          )}
                         </p>
 
                         <div className="flex items-center space-x-3">
@@ -202,32 +228,24 @@ function CartPageInner() {
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              const id =
-                                item.product?.id || item.product_id || item.id;
+                              // prefer product id (stable across sessions) and fall back to product_id
+                              const id = item.product?.id || item.product_id;
                               if (!id) return;
                               setRemoving(id);
                               const ok = await removeFromCart(id);
                               setRemoving(null);
+                              // If backend reports item missing (404) or removal failed,
+                              // treat it silently in the UI (optimistic removal already applied).
+                              // Avoid showing alerts or noisy console.error for expected races.
                               if (!ok) {
-                                console.error(
-                                  "Failed to remove item from cart",
-                                  id
-                                );
-                                alert(
-                                  t("error_removing_item") ||
-                                    "Failed to remove item from cart"
-                                );
+                                // no-op: failure is non-fatal for the user experience
                               }
                             }}
-                            disabled={
-                              removing ===
-                              (item.product?.id || item.product_id || item.id)
-                            }
+                            disabled={removing === (item.product?.id || item.product_id)}
                             className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
                             aria-live="polite"
                           >
-                            {removing ===
-                            (item.product?.id || item.product_id || item.id) ? (
+                            {removing === (item.product?.id || item.product_id) ? (
                               <span className="flex items-center space-x-2 text-sm text-red-300">
                                 <span
                                   className="animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full border-red-400"
@@ -241,9 +259,8 @@ function CartPageInner() {
                           </Button>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
-                </AnimatePresence>
               </CardContent>
             </Card>
             {/* Trust Badges - show under product list on large screens */}
@@ -293,28 +310,56 @@ function CartPageInner() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <div className="flex justify-between text-gray-300">
-                      <span>
-                        {t("cart.subtotal")} ({totals.itemCount} προϊόντα)
+                    <div className="flex justify-between text-gray-300 items-center">
+                      <span className="flex items-center space-x-2">
+                        <span>{t("cart.subtotal")} ({totals.itemCount} προϊόντα)</span>
+                        {(itemsMissingPrice || loading) && <SmallSpinner size={2} />}
                       </span>
-                      <span>€{totals.subtotal}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>{t("cart.shipping")}</span>
                       <span>
-                        {totals.shipping === 0
-                          ? t("cart.free_shipping_message")
-                          : `€${totals.shipping}`}
+                        {itemsMissingPrice || loading ? (
+                          <span className="inline-block w-16 h-5 bg-gray-700 rounded" />
+                        ) : (
+                          `€${totals.subtotal}`
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-gray-300 items-center">
+                      <span className="flex items-center space-x-2">
+                        <span>{t("cart.shipping")}</span>
+                        {(itemsMissingPrice || loading) && (
+                          <SmallSpinner size={2} />
+                        )}
+                      </span>
+                      <span>
+                        {itemsMissingPrice || loading ? (
+                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
+                        ) : totals.shipping === 0 ? (
+                          t("cart.free_shipping_message")
+                        ) : (
+                          `€${totals.shipping}`
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-300">
                       <span>{t("cart.tax")}</span>
-                      <span>€{totals.tax}</span>
+                      <span>
+                        {itemsMissingPrice ? (
+                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
+                        ) : (
+                          `€${totals.tax}`
+                        )}
+                      </span>
                     </div>
                     <hr className="border-gray-600" />
                     <div className="flex justify-between text-lg font-bold text-white">
                       <span>{t("cart.total")}</span>
-                      <span>€{totals.total}</span>
+                      <span>
+                        {itemsMissingPrice ? (
+                          <span className="inline-block w-20 h-6 bg-gray-700 rounded" />
+                        ) : (
+                          `€${totals.total}`
+                        )}
+                      </span>
                     </div>
                   </div>
 

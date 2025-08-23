@@ -46,10 +46,17 @@ export async function removeFromCart(productId, token) {
     credentials: "include",
   });
   if (!res.ok) {
+    // If the item or cart is already gone, treat as success to avoid noisy UI errors
+    if (res.status === 404) {
+      console.debug('[removeFromCart] item or cart not found (404) - treating as success');
+      return true;
+    }
     const errorText = await res.text();
     throw new Error(errorText);
   }
-  return;
+
+  // Some backends return 204 No Content; normalize to boolean success for callers
+  return true;
 }
 
 export async function updateCartItem(itemId, quantity, token) {
@@ -102,12 +109,30 @@ export async function mergeCart(token) {
 
     // If 204 No Content, return null (caller should fetch /cart)
     if (res.status === 204) {
-      console.debug('[mergeCart] 204 No Content from merge endpoint');
-      return null;
+      console.debug('[mergeCart] 204 No Content from merge endpoint - fetching canonical cart');
+      try {
+        // backend didn't return the merged cart; fetch canonical cart now
+        const canonical = await getCart(token);
+        console.debug('[mergeCart] fetched canonical cart after 204', canonical);
+        try {
+          localStorage.setItem('cart_merged', '1');
+        } catch (e) {
+          console.debug('[mergeCart] could not set cart_merged flag', e);
+        }
+        return canonical;
+      } catch (fetchErr) {
+        console.error('[mergeCart] failed to fetch cart after 204:', fetchErr);
+        return null;
+      }
     }
 
     const json = await res.json().catch(() => null);
     console.debug('[mergeCart] response json', json);
+    try {
+      localStorage.setItem('cart_merged', '1');
+    } catch (e) {
+      console.debug('[mergeCart] could not set cart_merged flag', e);
+    }
     return json;
   } catch (err) {
     // Surface the error in console for easier debugging in browser DevTools

@@ -28,13 +28,27 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const [pendingVerification, setPendingVerification] = useState(false)
   const [code, setCode] = useState('')
 
+  // Compute effective redirect URL: prefer prop, then query params, then '/'
+  const getEffectiveRedirectUrl = () => {
+    if (redirectUrl) return redirectUrl;
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('redirect_url') || params.get('redirectUrl');
+        if (q) return q;
+      } catch (e) {}
+    }
+    return '/';
+  };
+  const effectiveRedirectUrl = getEffectiveRedirectUrl();
+
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
     if (user) {
       // use a router push inside an effect to avoid updating Router during render
-      router.push(redirectUrl)
+      router.push(effectiveRedirectUrl)
     }
-  }, [user, router, redirectUrl])
+  }, [user, router, effectiveRedirectUrl])
 
   // Signal page ready for smooth loading animation
   useEffect(() => {
@@ -72,7 +86,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       if (lastName) payload.lastName = lastName
 
       try {
-        await signUp.create(payload)
+    await signUp.create(payload)
       } catch (createErr) {
         // If Clerk responds that first_name/last_name are unknown params, retry without names
         const unknownNameParam = createErr?.errors?.some((e) => e.code === 'form_param_unknown' && (e.meta?.paramName === 'first_name' || e.meta?.paramName === 'last_name'))
@@ -85,7 +99,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       }
 
       // Send email verification
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+  await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setPendingVerification(true)
     } catch (err) {
       // Log full error for easier debugging
@@ -281,7 +295,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       await signUp.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: redirectUrl,
+        redirectUrlComplete: effectiveRedirectUrl,
       })
     } catch (err) {
       console.error('Google sign up error:', err)
