@@ -23,16 +23,12 @@ export function Hero() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        console.log("Fetching ALL products from:", "http://localhost:8000/products/all");
+        
         const response = await fetch("http://localhost:8000/products/all");
-        console.log("Response status:", response.status);
-        console.log("Response ok:", response.ok);
+       
         
         if (response.ok) {
           const products = await response.json();
-          console.log("Raw products from API:", products);
-          console.log("Products type:", typeof products);
-          console.log("Products length:", Array.isArray(products) ? products.length : 'Not an array');
           
           if (Array.isArray(products) && products.length > 0) {
             console.log(`Found ${products.length} total products in database`);
@@ -173,7 +169,7 @@ export function Hero() {
   }, [handleNext, handlePrev]);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
+  <div className="relative w-full h-[85vh] overflow-hidden bg-black">
       {/* Loading State */}
       {loading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
@@ -232,9 +228,11 @@ export function Hero() {
           onMouseLeave={startAutoplay}
         >
           <Image
+          sizes="100vw"
             src={items[currentIndex]?.img || "/images/test2.jpg"}
             alt={items[currentIndex]?.title || "Product"}
             fill
+            quality={90}
             className="object-cover"
             priority
             onError={(e) => {
@@ -288,7 +286,7 @@ export function Hero() {
       {/* Navigation Arrows - Hidden on Mobile */}
       <button
         onClick={handlePrev}
-        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex left-4 lg:left-8 top-1/2 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
+        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex left-4 lg:left-8 top-1/3 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
         aria-label="Previous product"
       >
         <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -298,7 +296,7 @@ export function Hero() {
 
       <button
         onClick={handleNext}
-        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex right-4 lg:right-8 top-1/2 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
+        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex right-4 lg:right-8 top-1/3 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
         aria-label="Next product"
       >
         <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,7 +305,7 @@ export function Hero() {
       </button>
 
       {/* Indicators */}
-      <div className="absolute z-20 flex space-x-2 -translate-x-1/2 bottom-16 sm:bottom-20 md:bottom-24 lg:bottom-28 left-1/2">
+  <div className="absolute z-20 flex space-x-2 -translate-x-1/2 bottom-6 sm:bottom-8 md:bottom-10 lg:bottom-12 left-1/2">
         {items.slice(0, 5).map((_, index) => (
           <button
             key={index}

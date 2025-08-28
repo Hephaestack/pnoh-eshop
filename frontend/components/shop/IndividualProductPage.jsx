@@ -475,7 +475,7 @@ function IndividualProductPage({ params, category }) {
             <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
             <div>
               <h3 className="text-sm font-medium text-[#bcbcbc] uppercase tracking-widest mb-3">{t("description", "Description")}</h3>
-              <p className="text-[#e5e5e5] leading-relaxed text-base md:text-lg font-light">
+              <p className="text-[#e5e5e5] leading-relaxed text-base md:text-lg font-light whitespace-pre-line">
                 {productData.description}
               </p>
             </div>
