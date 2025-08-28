@@ -8,6 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/scl/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'f003.backblazeb2.com',
+        port: '',
+        pathname: '/file/PNOH-ESHOP/products/thumbnails/**',
+      },
     ],
   },
 };

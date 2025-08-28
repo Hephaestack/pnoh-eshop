@@ -256,41 +256,41 @@ function IndividualProductPage({ params, category }) {
   if (isLoading) {
     if (!showSkeleton) {
       return (
-        <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl min-h-screen">
+        <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8">
           <div className="invisible w-full" style={{ minHeight: "640px" }} />
         </main>
       );
     }
 
     return (
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl min-h-screen" aria-hidden>
+      <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8" aria-hidden>
         <div className="animate-pulse">
-          <div className="h-4 w-32 bg-gray-700 rounded mb-6 md:mb-8" />
+          <div className="w-32 h-4 mb-6 bg-gray-700 rounded md:mb-8" />
           
-          <div className="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 mb-12 md:mb-16">
+          <div className="grid gap-6 mb-12 md:grid-cols-2 md:gap-8 lg:gap-12 md:mb-16">
             {/* Image skeleton */}
             <div className="space-y-3 md:space-y-4">
-              <div className="aspect-square bg-gray-700 rounded-lg max-w-sm mx-auto md:max-w-none md:mx-0" />
-              <div className="flex gap-2 justify-center md:justify-start">
+              <div className="max-w-sm mx-auto bg-gray-700 rounded-lg aspect-square md:max-w-none md:mx-0" />
+              <div className="flex justify-center gap-2 md:justify-start">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-14 h-14 md:w-16 md:h-16 bg-gray-700 rounded-md" />
+                  <div key={i} className="bg-gray-700 rounded-md w-14 h-14 md:w-16 md:h-16" />
                 ))}
               </div>
             </div>
             
             {/* Content skeleton */}
-            <div className="space-y-6 md:space-y-6 text-center md:text-left px-2 md:px-0">
-              <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto md:mx-0" />
-              <div className="h-5 bg-gray-700 rounded w-1/2 mx-auto md:mx-0" />
-              <div className="h-6 bg-gray-700 rounded w-1/3 mx-auto md:mx-0" />
+            <div className="px-2 space-y-6 text-center md:space-y-6 md:text-left md:px-0">
+              <div className="w-3/4 h-8 mx-auto bg-gray-700 rounded md:mx-0" />
+              <div className="w-1/2 h-5 mx-auto bg-gray-700 rounded md:mx-0" />
+              <div className="w-1/3 h-6 mx-auto bg-gray-700 rounded md:mx-0" />
               <div className="space-y-3">
-                <div className="h-4 bg-gray-700 rounded w-full" />
-                <div className="h-4 bg-gray-700 rounded w-5/6 mx-auto md:mx-0" />
-                <div className="h-4 bg-gray-700 rounded w-4/6 mx-auto md:mx-0" />
+                <div className="w-full h-4 bg-gray-700 rounded" />
+                <div className="w-5/6 h-4 mx-auto bg-gray-700 rounded md:mx-0" />
+                <div className="w-4/6 h-4 mx-auto bg-gray-700 rounded md:mx-0" />
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 md:gap-4 pt-6 max-w-sm mx-auto md:max-w-none md:mx-0">
-                <div className="h-12 md:h-12 bg-gray-700 rounded flex-1" />
-                <div className="h-12 md:h-12 bg-gray-700 rounded flex-1" />
+              <div className="flex flex-col max-w-sm gap-4 pt-6 mx-auto sm:flex-row md:gap-4 md:max-w-none md:mx-0">
+                <div className="flex-1 h-12 bg-gray-700 rounded md:h-12" />
+                <div className="flex-1 h-12 bg-gray-700 rounded md:h-12" />
               </div>
             </div>
           </div>
@@ -301,7 +301,7 @@ function IndividualProductPage({ params, category }) {
 
   if (notFound) {
     return (
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl min-h-screen">
+      <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8">
         <Link
           href="/shop/products"
           className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block"
@@ -322,7 +322,7 @@ function IndividualProductPage({ params, category }) {
 
   if (!productData) {
     return (
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl min-h-screen">
+      <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8">
         <Link
           href="/shop/products"
           className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block"
@@ -338,7 +338,7 @@ function IndividualProductPage({ params, category }) {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-white text-black rounded-md hover:bg-gray-100 transition-colors"
+            className="px-6 py-2 text-black transition-colors bg-white rounded-md hover:bg-gray-100"
           >
             {t("retry", "Retry")}
           </button>
@@ -348,14 +348,14 @@ function IndividualProductPage({ params, category }) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8 md:py-12 max-w-5xl min-h-screen">
+    <main className="container max-w-5xl min-h-screen px-4 py-8 mx-auto md:py-12">
       {/* Back navigation with enhanced styling */}
       <div className="mb-8 md:mb-12">
         <Link
           href={backUrl}
           className="inline-flex items-center gap-3 text-[#bcbcbc] hover:text-[#f8f8f8] text-sm font-medium group transition-all duration-300 hover:gap-4"
         >
-          <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/10 transition-all duration-300">
+          <div className="flex items-center justify-center w-8 h-8 transition-all duration-300 border rounded-full bg-white/5 border-white/10 backdrop-blur-sm group-hover:bg-white/10">
             <svg 
               className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" 
               fill="none" 
@@ -372,13 +372,13 @@ function IndividualProductPage({ params, category }) {
       </div>
 
       {/* Main product content with enhanced layout */}
-      <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 mb-16 md:mb-20">
+      <div className="grid gap-8 mb-16 lg:grid-cols-5 lg:gap-12 md:mb-20">
         {/* Image gallery - takes 3 columns */}
-        <div className="lg:col-span-3 space-y-4 md:space-y-6">
+        <div className="space-y-4 lg:col-span-3 md:space-y-6">
           {/* Main image with enhanced container */}
           <div className="relative group">
             <div 
-              className="relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in shadow-xl ring-1 ring-black/5 max-w-md mx-auto lg:max-w-none lg:mx-0"
+              className="relative max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in ring-1 ring-black/5 lg:max-w-none lg:mx-0"
               onClick={() => openEnlarged(currentImageIndex)}
             >
               <img
@@ -395,7 +395,7 @@ function IndividualProductPage({ params, category }) {
                       e.stopPropagation();
                       handleImageNavigation('prev');
                     }}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 left-4 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -406,7 +406,7 @@ function IndividualProductPage({ params, category }) {
                       e.stopPropagation();
                       handleImageNavigation('next');
                     }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 hover:scale-110"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 right-4 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -426,7 +426,7 @@ function IndividualProductPage({ params, category }) {
 
           {/* Enhanced thumbnail gallery */}
           {productData.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2 justify-center lg:justify-start">
+            <div className="flex justify-center gap-3 pb-2 overflow-x-auto lg:justify-start">
               {productData.images.map((image, index) => (
                 <button
                   key={index}
@@ -440,7 +440,7 @@ function IndividualProductPage({ params, category }) {
                   <img
                     src={image}
                     alt={`${productData.name} - Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="object-cover w-full h-full"
                   />
                 </button>
               ))}
@@ -449,7 +449,7 @@ function IndividualProductPage({ params, category }) {
         </div>
 
         {/* Enhanced product details - takes 2 columns */}
-        <div className="lg:col-span-2 space-y-8 text-center lg:text-left px-2 lg:px-0">
+        <div className="px-2 space-y-8 text-center lg:col-span-2 lg:text-left lg:px-0">
           {/* Product header with refined typography */}
           <div className="space-y-4">
             <div className="space-y-2">
@@ -461,7 +461,7 @@ function IndividualProductPage({ params, category }) {
               </p>
             </div>
             
-            <div className="flex items-center justify-center lg:justify-start gap-4">
+            <div className="flex items-center justify-center gap-4 lg:justify-start">
               <div className="text-3xl md:text-4xl font-light text-[#f8f8f8] tracking-tight">
                 €{productData.price}
               </div>
@@ -483,8 +483,8 @@ function IndividualProductPage({ params, category }) {
           </div>
 
           {/* Enhanced add to cart section */}
-          <div className="space-y-4 pt-4">
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto lg:max-w-none lg:mx-0">
+          <div className="pt-4 space-y-4">
+            <div className="flex flex-col max-w-md gap-4 mx-auto sm:flex-row lg:max-w-none lg:mx-0">
               <button
                 className={`group relative overflow-hidden px-8 py-4 text-base font-medium transition-all duration-300 rounded-xl ${
                   added 
@@ -506,7 +506,7 @@ function IndividualProductPage({ params, category }) {
                 )}
               </button>
               
-              <button className="group relative overflow-hidden px-8 py-4 text-base font-medium bg-transparent border-2 border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-all duration-300 rounded-xl backdrop-blur-sm">
+              <button className="relative px-8 py-4 overflow-hidden text-base font-medium text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm">
                 <span className="relative z-10">{t("buy_now", "Buy Now")}</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               </button>
@@ -516,8 +516,8 @@ function IndividualProductPage({ params, category }) {
       </div>
 
       {/* Additional information sections */}
-      <div className="space-y-8 md:space-y-8 max-w-2xl mx-auto md:max-w-none px-2 md:px-0">
-        <section className="space-y-4 md:space-y-4 text-center md:text-left">
+      <div className="max-w-2xl px-2 mx-auto space-y-8 md:space-y-8 md:max-w-none md:px-0">
+        <section className="space-y-4 text-center md:space-y-4 md:text-left">
           <h2 className="text-xl md:text-xl font-semibold text-[#f8f8f8]">
             {t("shipping_title", "Shipping Information")}
           </h2>
@@ -544,7 +544,7 @@ function IndividualProductPage({ params, category }) {
           </p>
         </section>
 
-        <section className="space-y-4 md:space-y-4 text-center md:text-left">
+        <section className="space-y-4 text-center md:space-y-4 md:text-left">
           <h2 className="text-xl md:text-xl font-semibold text-[#f8f8f8]">
             {t("returns_title", "Returns & Exchange")}
           </h2>
@@ -560,11 +560,11 @@ function IndividualProductPage({ params, category }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
           onClick={() => setEnlarged(false)}
         >
-          <div className="relative w-full h-full flex items-center justify-center p-4">
+          <div className="relative flex items-center justify-center w-full h-full p-4">
             <img
               src={productData.images[enlargedImageIndex]}
               alt={`${productData.name} - Enlarged view`}
-              className="max-w-full max-h-full object-contain"
+              className="object-contain max-w-full max-h-full"
               onClick={(e) => e.stopPropagation()}
             />
             
@@ -576,7 +576,7 @@ function IndividualProductPage({ params, category }) {
                     e.stopPropagation();
                     handleEnlargedImageNavigation('prev');
                   }}
-                  className="absolute left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all"
+                  className="absolute flex items-center justify-center w-12 h-12 text-white transition-all -translate-y-1/2 rounded-full left-8 top-1/2 bg-black/50 hover:bg-black/70"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -587,7 +587,7 @@ function IndividualProductPage({ params, category }) {
                     e.stopPropagation();
                     handleEnlargedImageNavigation('next');
                   }}
-                  className="absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-all"
+                  className="absolute flex items-center justify-center w-12 h-12 text-white transition-all -translate-y-1/2 rounded-full right-8 top-1/2 bg-black/50 hover:bg-black/70"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -598,7 +598,7 @@ function IndividualProductPage({ params, category }) {
             
             {/* Close button */}
             <button
-              className="absolute top-8 right-8 w-12 h-12 text-white hover:text-gray-300 transition-colors"
+              className="absolute w-12 h-12 text-white transition-colors top-8 right-8 hover:text-gray-300"
               onClick={(e) => {
                 e.stopPropagation();
                 setEnlarged(false);
@@ -612,7 +612,7 @@ function IndividualProductPage({ params, category }) {
             
             {/* Image counter for enlarged view */}
             {productData.images.length > 1 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full">
+              <div className="absolute px-4 py-2 text-white -translate-x-1/2 rounded-full bottom-8 left-1/2 bg-black/50">
                 {enlargedImageIndex + 1} / {productData.images.length}
               </div>
             )}
