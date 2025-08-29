@@ -1,5 +1,15 @@
 {
-  "description": "Description",
+  "hero": {
+    "click_to_view": "Click to view product",
+    "loading_products": "Loading products...",
+    "no_products": "No products available",
+    "no_products_desc": "Check the browser console for detailed error information",
+    "retry": "Retry",
+    "swipe_hint": "Swipe",
+    "view_product": "View Product",
+    "shop_all": "Shop All",
+    "loading": "Loading..."
+  },
   "shipping_notice": "For orders over €150, shipping is free. Orders are shipped within 1-2 business days.",
   "returns_notice": "Didn't like any of the products you chose? No problem! You have the right to return it within 15 calendar days and request a replacement or a refund. To process the return, the product must be in excellent condition and you must send us a photo or receipt.",
   "checkout": {

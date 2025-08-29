@@ -7,20 +7,32 @@ function MegaMenuItem({ href, img, label, onClick }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center min-w-[10rem] w-56 group text-white no-underline"
+      className="flex flex-col items-center min-w-[100px] w-full max-w-[180px] group text-white no-underline"
       style={{ textDecoration: "none" }}
       onClick={onClick}
     >
-      <div className="w-56 h-56 bg-gradient-to-br from-[#232326] to-[#18181b] rounded-2xl overflow-hidden flex items-center justify-center mb-4 border border-[#232326] shadow-[0_2px_12px_0_rgba(30,30,30,0.18)] group-hover:scale-105 group-hover:shadow-[0_4px_24px_0_rgba(80,80,80,0.22)] transition-all duration-200">
-        <img
+      <motion.div
+        className="w-full aspect-square bg-gradient-to-br from-[#232326] to-[#18181b] rounded-xl overflow-hidden flex items-center justify-center mb-4 border border-[#232326] shadow-[0_2px_12px_0_rgba(30,30,30,0.18)] group-hover:shadow-[0_4px_24px_0_rgba(80,80,80,0.22)] transition-all duration-300"
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.img
           src={img}
           alt={label}
-          className="object-contain w-48 h-48 drop-shadow-[0_2px_8px_#00000033] group-hover:scale-110 transition-transform duration-200"
+          className="object-contain w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 drop-shadow-[0_2px_8px_#00000033] group-hover:scale-110 transition-transform duration-300"
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.2 }}
         />
-      </div>
-      <span className="block text-base font-medium px-4 py-2 rounded-xl bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center group-hover:bg-[#232326] group-hover:text-[#f8f8f8] transition-all duration-200">
+      </motion.div>
+      <motion.span
+        className="block text-sm sm:text-base font-medium px-4 py-2 rounded-lg bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center group-hover:bg-[#232326] group-hover:text-[#f8f8f8] transition-all duration-300"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ duration: 0.2 }}
+      >
         {label}
-      </span>
+      </motion.span>
     </Link>
   );
 }
@@ -57,16 +69,24 @@ export function Header() {
     setMounted(true);
   }, []);
 
-  // Close dropdown on outside click
+  // Close dropdown on scroll for better UX
   useEffect(() => {
     if (!jewelryOpen) return;
-    function handleClick(e) {
-      if (jewelryRef.current && !jewelryRef.current.contains(e.target)) {
+    const handleScroll = () => setJewelryOpen(false);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [jewelryOpen]);
+
+  // Close dropdown on resize to smaller screens
+  useEffect(() => {
+    if (!jewelryOpen) return;
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
         setJewelryOpen(false);
       }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [jewelryOpen]);
 
   // Close user menu on outside click
@@ -153,36 +173,45 @@ export function Header() {
                   aria-haspopup="menu"
                   aria-expanded={jewelryOpen}
                   onClick={() => setJewelryOpen((v) => !v)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setJewelryOpen((v) => !v);
+                    }
+                    if (e.key === "Escape") {
+                      setJewelryOpen(false);
+                    }
+                  }}
                   className={`text-md font-light transition-colors pb-0.5 flex items-center gap-1 focus:outline-none text-white hover:text-white`}
                 >
                   {t("jewelry")}
-                  <svg
-                    className={`w-3 h-3 ml-1 transition-transform ${
-                      jewelryOpen ? "rotate-180" : ""
-                    }`}
+                  <motion.svg
+                    className="w-3 h-3 ml-1"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     viewBox="0 0 24 24"
+                    animate={{ rotate: jewelryOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       d="M19 9l-7 7-7-7"
                     />
-                  </svg>
+                  </motion.svg>
                 </button>
                 <div
-                  className={`absolute left-1/2 -translate-x-1/2 top-full mt-10 w-[1400px] max-w-[99vw] bg-[#18181b] border border-[#232326] rounded-2xl shadow-[0_8px_32px_0_#23232a99] ring-1 ring-[#23232a]/30 z-40 transition-all duration-200 ${
+                  className={`absolute left-1/2 -translate-x-1/2 top-full mt-12 w-[95vw] max-w-7xl bg-[#18181b] border border-[#232326] rounded-2xl shadow-[0_8px_32px_0_#23232a99] ring-1 ring-[#23232a]/30 z-40 transition-all duration-200 ${
                     jewelryOpen
                       ? "opacity-100 scale-100 pointer-events-auto"
                       : "opacity-0 scale-95 pointer-events-none"
-                  } origin-top flex justify-center items-center`}
+                  } origin-top`}
                   style={{ boxShadow: "0 8px 32px 0 #23232a99" }}
                   role="menu"
                   tabIndex={-1}
                 >
-                  <div className="flex justify-center w-full gap-20 py-10 px-14">
+                  <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16 sm:p-8 md:p-10 lg:p-12 xl:p-16">
                     <MegaMenuItem
                       href="/shop/products"
                       img="/images/all_jewelry.jpg"
@@ -370,19 +399,34 @@ export function Header() {
               
               {/* Mobile Menu Button - only visible on mobile */}
               <div className="ml-4 lg:hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-[#232326] border border-white rounded-full"
-                  onClick={() => setMobileMenuOpen((v) => !v)}
-                  aria-label={mobileMenuOpen ? t("close_menu") : t("open_menu")}
+                <motion.div
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.1 }}
                 >
-                  {mobileMenuOpen ? (
-                    <X className="w-6 h-6 text-white" />
-                  ) : (
-                    <Menu className="w-6 h-6 text-white" />
-                  )}
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-[#232326] border border-white rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#18181b]"
+                    onClick={() => setMobileMenuOpen((v) => !v)}
+                    aria-label={mobileMenuOpen ? t("close_menu") : t("open_menu")}
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={mobileMenuOpen ? "close" : "open"}
+                        initial={{ rotate: -90, opacity: 0 }}
+                        animate={{ rotate: 0, opacity: 1 }}
+                        exit={{ rotate: 90, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {mobileMenuOpen ? (
+                          <X className="w-6 h-6 text-white" />
+                        ) : (
+                          <Menu className="w-6 h-6 text-white" />
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -486,74 +530,112 @@ function MobileDropdownNav({ onLinkClick }) {
   };
 
   return (
-    <div className="border-b border-white">
-      <button
+    <div className="border-b border-white/20">
+      <motion.button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full flex items-center justify-between text-lg font-light text-white hover:text-white transition-colors pb-0.5 focus:outline-none`}
+        className={`w-full flex items-center justify-between text-lg font-light text-white hover:text-white transition-colors py-3 focus:outline-none`}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.1 }}
       >
         <span>{t("jewelry")}</span>
-        <svg
-          className={`w-4 h-4 ml-2 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+        <motion.svg
+          className="w-4 h-4 ml-2"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
           viewBox="0 0 24 24"
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M19 9l-7 7-7-7"
           />
-        </svg>
-      </button>
-      <div
-        className={`pl-2 mt-1 flex flex-col gap-1 transition-all duration-200 ${
-          open
-            ? "max-h-96 opacity-100"
-            : "max-h-0 opacity-0 pointer-events-none"
-        } overflow-hidden`}
-      >
-        <Link
-          href="/shop/products"
-          className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors"
-          onClick={handleLinkClick}
-        >
-          {t("all_jewelry")}
-        </Link>
-        <Link
-          href="/shop/rings"
-          className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors"
-          onClick={handleLinkClick}
-        >
-          {t("rings")}
-        </Link>
-        <Link
-          href="/shop/bracelets"
-          className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors"
-          onClick={handleLinkClick}
-        >
-          {t("bracelets")}
-        </Link>
-        <Link
-          href="/shop/necklaces"
-          className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors"
-          onClick={handleLinkClick}
-        >
-          {t("necklaces")}
-        </Link>
-        <Link
-          href="/shop/earrings"
-          className="block py-2 pl-4 text-base text-white hover:text-white hover:bg-[#232326] rounded transition-colors"
-          onClick={handleLinkClick}
-        >
-          {t("earrings")}
-        </Link>
-      </div>
+        </motion.svg>
+      </motion.button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="pb-2 pl-4 space-y-1">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Link
+                  href="/shop/products"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("all_jewelry")}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Link
+                  href="/shop/rings"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("rings")}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Link
+                  href="/shop/bracelets"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("bracelets")}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.25 }}
+              >
+                <Link
+                  href="/shop/necklaces"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("necklaces")}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Link
+                  href="/shop/earrings"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("earrings")}
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

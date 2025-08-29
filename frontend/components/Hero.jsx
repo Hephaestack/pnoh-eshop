@@ -121,8 +121,8 @@ export function Hero() {
 
   const handleImageClick = () => {
     const currentItem = items[currentIndex];
-    if (currentItem?.id) {
-      router.push(`/shop/products/${currentItem.id}`);
+    if (currentItem?.id && currentItem?.category) {
+      router.push(`/shop/${currentItem.category}/${currentItem.id}`);
     }
   };
 
@@ -151,7 +151,7 @@ export function Hero() {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, 4000);
+    }, 3500);
   }, [items.length]);
 
   useEffect(() => {
@@ -173,7 +173,7 @@ export function Hero() {
       {/* Loading State */}
       {loading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
-          <div className="text-xl text-white">Loading products...</div>
+          <div className="text-xl text-white">{t("hero.loading_products")}</div>
         </div>
       )}
 
@@ -181,13 +181,13 @@ export function Hero() {
       {!loading && items.length === 0 && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
           <div className="max-w-md px-4 text-center text-white">
-            <h2 className="mb-4 text-2xl">No products available</h2>
-            <p className="mb-4 text-gray-400">Check the browser console for detailed error information</p>
+            <h2 className="mb-4 text-2xl">{t("hero.no_products")}</h2>
+            <p className="mb-4 text-gray-400">{t("hero.no_products_desc")}</p>
             <button 
               onClick={() => window.location.reload()} 
               className="px-4 py-2 text-white transition-all border rounded-lg bg-white/20 border-white/30 hover:bg-white/30"
             >
-              Retry
+              {t("hero.retry")}
             </button>
           </div>
         </div>
@@ -202,12 +202,12 @@ export function Hero() {
               initial={{ opacity: 1, x: 0 }}
               animate={{ opacity: 0, x: 10 }}
               transition={{ delay: 2, duration: 1, repeat: 2, repeatType: "reverse" }}
-              className="flex items-center text-sm text-white/60"
+              className="flex items-center text-sm text-white/60 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
               </svg>
-              Swipe
+              {t("hero.swipe_hint")}
             </motion.div>
           </div>
 
@@ -257,7 +257,7 @@ export function Hero() {
               className="max-w-4xl text-white"
             >
               <h1 className="mb-2 text-2xl font-light leading-tight tracking-wide sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-                {items[currentIndex]?.title || "Loading..."}
+                {items[currentIndex]?.title || t("hero.loading")}
               </h1>
               <p className="mb-4 text-lg font-light text-gray-200 sm:text-xl md:text-2xl lg:text-3xl">
                 ${items[currentIndex]?.price || "0"}
@@ -270,11 +270,11 @@ export function Hero() {
                   }}
                   className="w-full px-4 py-2 text-sm text-white transition-all duration-300 border rounded-full sm:w-auto sm:px-6 sm:py-3 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 md:text-base"
                 >
-                  View Product
+                  {t("hero.view_product")}
                 </button>
                 <Link href="/shop/products" className="w-full sm:w-auto">
                   <button className="w-full px-4 py-2 text-sm text-white transition-all duration-300 bg-transparent border rounded-full sm:w-auto sm:px-6 sm:py-3 border-white/50 hover:bg-white/10 md:text-base">
-                    Shop All
+                    {t("hero.shop_all")}
                   </button>
                 </Link>
               </div>
