@@ -84,7 +84,7 @@ export function Header() {
   // Hide mobile menu if resizing to desktop
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) setMobileMenuOpen(false);
+      if (window.innerWidth >= 1024) setMobileMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -127,7 +127,7 @@ export function Header() {
               </Link>
             </div>
             {/* Centered Menu (hidden placeholder on mobile to keep grid layout) */}
-            <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 md:flex shrink-0">
+            <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 lg:flex shrink-0">
               <Link
                 href="/about"
                 className="text-md font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
@@ -225,7 +225,7 @@ export function Header() {
               </Link>
             </nav>
             {/* Placeholder for center column on mobile */}
-            <div className="block md:hidden" />
+            <div className="block lg:hidden" />
             {/* Icons Right */}
             <div className="flex items-center justify-end min-w-0 shrink-0">
               <div className="flex items-center space-x-4">
@@ -369,7 +369,7 @@ export function Header() {
               </div>
               
               {/* Mobile Menu Button - only visible on mobile */}
-              <div className="ml-4 md:hidden">
+              <div className="ml-4 lg:hidden">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -416,7 +416,7 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             {/* Mobile Menu Panel */}

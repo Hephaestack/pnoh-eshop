@@ -19,15 +19,16 @@ export default function ClientLayout({ children }) {
   useEffect(() => {
     // Only show loading for routes that actually need it (dynamic product pages)
     const isDynamicRoute = pathname.includes('[') || pathname.includes('/shop/') && pathname.split('/').length > 3;
+    const isProductPage = pathname.includes('/shop/') && pathname.split('/').length > 3 && !pathname.includes('/categories');
     
-    if (isDynamicRoute) {
+    if (isDynamicRoute && !isProductPage) {
       // Delay showing loading overlay to avoid flash for fast operations
       loadingDelayRef.current = setTimeout(() => {
         setLoading(true);
         setShowContent(false);
       }, 150); // Only show loading if operation takes longer than 150ms
     } else {
-      // For static routes, show content immediately
+      // For static routes and product pages (which handle their own loading), show content immediately
       setLoading(false);
       setShowContent(true);
       return;
