@@ -331,8 +331,8 @@ function AllProductsPageInner() {
     const fetchAllProducts = async () => {
       try {
         // Check if we have cached data from sessionStorage
-        const cachedProducts = sessionStorage.getItem('allProductsCache');
-        const cacheTimestamp = sessionStorage.getItem('allProductsCacheTime');
+        const cachedProducts = sessionStorage.getItem('allProductsCache_v2');
+        const cacheTimestamp = sessionStorage.getItem('allProductsCacheTime_v2');
         const cacheExpiry = 5 * 60 * 1000; // 5 minutes cache
         
         if (cachedProducts && cacheTimestamp && 
@@ -361,7 +361,7 @@ function AllProductsPageInner() {
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-        const response = await fetch(`${apiUrl}/products/all`, {
+        const response = await fetch(`${apiUrl}/products/all?limit=1000`, {
           method: "GET",
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -391,8 +391,8 @@ function AllProductsPageInner() {
         clearTimeout(skeletonTimer);
         
         // Cache the fresh data
-        sessionStorage.setItem('allProductsCache', JSON.stringify(mappedProducts));
-        sessionStorage.setItem('allProductsCacheTime', Date.now().toString());
+        sessionStorage.setItem('allProductsCache_v2', JSON.stringify(mappedProducts));
+        sessionStorage.setItem('allProductsCacheTime_v2', Date.now().toString());
         
         setAllProducts(mappedProducts);
         setContentReady(true);
