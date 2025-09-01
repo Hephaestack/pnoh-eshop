@@ -86,13 +86,13 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       if (lastName) payload.lastName = lastName
 
       try {
-    await signUp.create(payload)
+    await signUp.create(payload, { captchaMode: 'always_on' })
       } catch (createErr) {
         // If Clerk responds that first_name/last_name are unknown params, retry without names
         const unknownNameParam = createErr?.errors?.some((e) => e.code === 'form_param_unknown' && (e.meta?.paramName === 'first_name' || e.meta?.paramName === 'last_name'))
         if (unknownNameParam) {
           console.warn('Clerk rejected name params; retrying sign up without first/last name')
-          await signUp.create({ emailAddress: email, password })
+          await signUp.create({ emailAddress: email, password }, { captchaMode: 'always_on' })
         } else {
           throw createErr
         }
@@ -307,7 +307,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
       </div>
     )
   }
@@ -315,7 +315,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   if (pendingVerification) {
     return (
       <div className="w-full max-w-md mx-auto space-y-6">
-        <div className="text-center space-y-2">
+        <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold text-white">
             {t('auth.verify_email.title') || 'Verify Your Email'}
           </h1>
@@ -325,7 +325,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         </div>
 
         {errors.code && (
-          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="p-4 text-sm text-red-400 border rounded-lg bg-red-500/10 border-red-500/20">
             {errors.code}
           </div>
         )}
@@ -350,7 +350,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
           <Button
             type="submit"
-            className="w-full bg-white text-black hover:bg-gray-200 font-medium"
+            className="w-full font-medium text-black bg-white hover:bg-gray-200"
             disabled={isLoading || !code}
           >
             {isLoading ? (
@@ -367,7 +367,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         <div className="text-center">
           <button
             onClick={() => setPendingVerification(false)}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="text-sm text-gray-400 transition-colors hover:text-white"
           >
             {t('auth.back_to_signup') || 'Back to sign up'}
           </button>
@@ -378,7 +378,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      <div className="text-center space-y-2">
+      <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold text-white">
           {t('auth.sign_up.title') || 'Create Account'}
         </h1>
@@ -388,7 +388,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       </div>
 
       {errors.general && (
-        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className="p-4 text-sm text-red-400 border rounded-lg bg-red-500/10 border-red-500/20">
           {errors.general}
         </div>
       )}
@@ -400,7 +400,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
               {t('auth.first_name') || 'First Name'}
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <Input
                 id="firstName"
                 type="text"
@@ -436,7 +436,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             {t('auth.email') || 'Email'}
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Mail className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
             <Input
               id="email"
               type="email"
@@ -458,7 +458,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             {t('auth.password') || 'Password'}
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Lock className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -472,7 +472,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              className="absolute text-gray-400 transform -translate-y-1/2 right-3 top-1/2 hover:text-white"
               disabled={isLoading}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -488,7 +488,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
 
         <Button
           type="submit"
-          className="w-full bg-white text-black hover:bg-gray-200 font-medium"
+          className="w-full font-medium text-black bg-white hover:bg-gray-200"
           disabled={isLoading || !email || !password || !firstName || !lastName}
         >
           {isLoading ? (
@@ -500,12 +500,6 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             t('auth.sign_up.button') || 'Create Account'
           )}
         </Button>
-        
-  {/* Clerk Smart CAPTCHA container (required for Smart CAPTCHA init) */}
-  <div id="clerk-captcha" style={{ minHeight: 80, background: '#232326', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    {/* Fallback placeholder if CAPTCHA is not injected */}
-    <noscript style={{ color: '#fff', fontSize: 12 }}>CAPTCHA will appear here if required</noscript>
-  </div>
         
       </form>
 
@@ -557,7 +551,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
           {t('auth.already_have_account') || 'Already have an account?'}{' '}
           <Link
             href="/auth/sign-in"
-            className="text-white hover:underline font-medium"
+            className="font-medium text-white hover:underline"
           >
             {t('auth.sign_in.link') || 'Sign in'}
           </Link>

@@ -275,11 +275,6 @@ export default function CustomSignIn({ redirectUrl }) {
             t('auth.sign_in.button') || 'Sign In'
           )}
         </Button>
-  {/* Clerk Smart CAPTCHA container (required for Smart CAPTCHA init) */}
-        <div id="clerk-captcha" style={{ minHeight: 80, background: '#232326', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Fallback placeholder if CAPTCHA is not injected */}
-          <noscript style={{ color: '#fff', fontSize: 12 }}>CAPTCHA will appear here if required</noscript>
-        </div>
       </form>
 
       <div className="relative">

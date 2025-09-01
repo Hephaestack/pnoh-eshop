@@ -4,8 +4,9 @@ import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
+import { Grid, List, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import LoadingIndicator from "@/components/LoadingIndicator";
 
 const EnhancedProductCard = ({ product, viewMode }) => {
@@ -201,6 +202,8 @@ const EnhancedProductCard = ({ product, viewMode }) => {
 };
 
 function AllProductsPageInner() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTheme, setSelectedTheme] = useState("all");
@@ -214,6 +217,8 @@ function AllProductsPageInner() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [contentReady, setContentReady] = useState(false); // Track when content is ready to show
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || ""); // Initialize from URL
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // Add search dropdown state
   const { t } = useTranslation();
   const loadingDelayRef = useRef(null);
 
@@ -412,6 +417,19 @@ function AllProductsPageInner() {
   // Client-side filtering of the cached products (instant)
   const filteredProducts = React.useMemo(() => {
     let items = allProducts || [];
+    
+    // Apply search filter first
+    if (searchQuery.trim()) {
+      const searchTerm = searchQuery.toLowerCase().trim();
+      items = items.filter((product) => {
+        const nameMatch = product.name.toLowerCase().includes(searchTerm);
+        const categoryMatch = product.category?.toLowerCase().includes(searchTerm);
+        const themeMatch = product.theme?.toLowerCase().includes(searchTerm);
+        return nameMatch || categoryMatch || themeMatch;
+      });
+    }
+    
+    // Then apply category and theme filters
     if (selectedCategory !== "all") {
       items = items.filter((p) => p.category === selectedCategory);
     }
@@ -419,7 +437,7 @@ function AllProductsPageInner() {
       items = items.filter((p) => p.theme === selectedTheme);
     }
     return items;
-  }, [allProducts, selectedCategory, selectedTheme]);
+  }, [allProducts, selectedCategory, selectedTheme, searchQuery]);
 
   // Pagination using the filteredProducts (client-side)
   const totalPages = Math.max(
@@ -432,10 +450,21 @@ function AllProductsPageInner() {
 
   const hasMorePages = currentPage < totalPages;
 
-  // Reset to page 1 when filters change
+  // Update search query when URL parameters change
   useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, selectedTheme]);
+    const urlQuery = searchParams.get("q") || "";
+    setSearchQuery(urlQuery);
+  }, [searchParams]);
+
+  // Update URL when search query changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const newUrl = `/shop/products?q=${encodeURIComponent(searchQuery.trim())}`;
+      router.replace(newUrl, { scroll: false });
+    } else {
+      router.replace("/shop/products", { scroll: false });
+    }
+  }, [searchQuery, router]);
 
   // Scroll to top when page changes (pagination)
   useEffect(() => {
@@ -528,8 +557,38 @@ function AllProductsPageInner() {
         )}
       </p>
       {/* Filters and Controls */}
-      <div className="flex flex-col items-center justify-center gap-4 mb-8 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col gap-6 mb-8">
+        {/* Search Input - Centered on mobile only */}
+        <div className="flex justify-center md:justify-start">
+          <div className="relative w-full max-w-md md:max-w-xs">
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#bcbcbc]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("search_products", "Search products...")}
+                className="pl-10 pr-10 py-3 bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] rounded-lg focus:outline-none focus:border-[#bcbcbc55] w-full transition-colors text-center md:text-left"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#bcbcbc] hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Other Filters */}
+        <div className="flex flex-wrap justify-center gap-4 md:flex-row md:justify-start md:items-center">
           {/* Category Filter */}
           <div className="relative">
             <motion.select

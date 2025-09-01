@@ -39,6 +39,7 @@ function MegaMenuItem({ href, img, label, onClick }) {
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, User, ShoppingBag, Menu, X, Settings, LogOut } from "lucide-react";
@@ -49,6 +50,7 @@ import { useCart } from "@/app/cart-context";
 
 export function Header() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { isSignedIn, user } = useUser();
   const { signOut } = useClerk();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -56,9 +58,13 @@ export function Header() {
   const [jewelryOpen, setJewelryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const jewelryRef = useRef(null);
   const headerRef = useRef(null);
   const userMenuRef = useRef(null);
+  const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   // Get cart state
   const { cart } = useCart();
@@ -68,6 +74,40 @@ export function Header() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle search
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (searchQuery.trim() && !isSearching) {
+      setIsSearching(true);
+      setIsSearchOpen(false);
+      router.push(`/shop/products?q=${encodeURIComponent(searchQuery.trim())}`);
+      // Reset searching state after navigation
+      setTimeout(() => setIsSearching(false), 1000);
+    }
+  };
+
+  // Handle search input key press
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch(e);
+    }
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery("");
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   // Close dropdown on scroll for better UX
   useEffect(() => {
@@ -100,6 +140,27 @@ export function Header() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [userMenuOpen]);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    function handleClick(e) {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setIsSearchOpen(false);
+      }
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSearchOpen]);
 
   // Hide mobile menu if resizing to desktop
   useEffect(() => {
@@ -259,14 +320,58 @@ export function Header() {
             <div className="flex items-center justify-end min-w-0 shrink-0">
               <div className="flex items-center space-x-4">
                 <LanguageSwitcher />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="hover:bg-[#232326] border border-white rounded-full"
-                >
-                  <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
-                </Button>
+                <div className="relative" ref={searchRef}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                    className="hover:bg-[#232326] border border-white rounded-full"
+                  >
+                    <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
+                  </Button>
+                  {/* Search Dropdown */}
+                  <AnimatePresence>
+                    {isSearchOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 sm:right-0 top-12 w-80 sm:w-96 md:w-80 lg:w-80 xl:w-96 bg-[#18181b] border border-[#232326] rounded-lg shadow-xl z-50 p-4 max-w-[calc(100vw-2rem)] left-0 sm:left-auto transform sm:transform-none -translate-x-1/2 sm:translate-x-0"
+                      >
+                        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              ref={searchInputRef}
+                              type="search"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onKeyPress={handleSearchKeyPress}
+                              placeholder={t("search_products")}
+                              className="pr-10 border-[#404040] focus:border-white bg-[#232326] text-[#e5e5e5] placeholder:text-[#bcbcbc] transition-colors"
+                            />
+                            {searchQuery && (
+                              <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#bcbcbc] hover:text-white"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          <Button
+                            type="submit"
+                            className="border-[#404040] hover:border-white bg-[#232326] text-[#e5e5e5] hover:bg-[#2a2a2e] w-full sm:w-auto"
+                            disabled={!searchQuery.trim() || isSearching}
+                          >
+                            {isSearching ? t("searching", "Searching...") : t("search")}
+                          </Button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
                 <Link href="/cart">
                   <Button
                     variant="ghost"
@@ -430,24 +535,6 @@ export function Header() {
               </div>
             </div>
           </div>
-          {/* Search Bar */}
-          {isSearchOpen && (
-            <div className="pt-4 mt-4 mb-4 border-t border-white">
-              <div className="flex gap-2">
-                <Input
-                  type="search"
-                  placeholder={t("search_products")}
-                  className="flex-1 border-white focus:border-white bg-[#232326] text-[#e5e5e5] placeholder:text-[#bcbcbc] transition-colors shadow-[0_1px_4px_#bcbcbc33]"
-                />
-                <Button
-                  variant="outline"
-                  className="border-white hover:border-[#f8f8f8] transition-colors bg-[#232326] text-[#e5e5e5] shadow-[0_1px_4px_#bcbcbc33]"
-                >
-                  {t("search")}
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </header>
 
