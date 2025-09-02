@@ -1,6 +1,6 @@
 
 "use client";
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,15 +8,23 @@ import { Award, Users, Heart, Gem } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
+import { AboutSkeleton } from "@/components/skeletons/AboutSkeleton"
 
 export default function AboutPage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Signal page ready immediately for about page
   useEffect(() => {
+    // Since this is a static page with no data fetching,
+    // we can trigger page ready immediately
+    setIsLoading(false);
     window.dispatchEvent(new Event("page-ready"));
   }, []);
+
+  if (isLoading) {
+    return <AboutSkeleton />;
+  }
 
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">

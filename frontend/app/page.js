@@ -1,63 +1,32 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Hero from "@/components/Hero"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Truck, Shield, RotateCcw } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
+import { HomePageSkeleton } from "@/components/skeletons/HomePageSkeleton"
 
 export default function HomePage() {
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
   
-  // Signal page ready immediately for home page
   useEffect(() => {
+    // No need to simulate loading for static content
+    setLoading(false);
     window.dispatchEvent(new Event("page-ready"));
   }, []);
   
+  if (loading) {
+    return <HomePageSkeleton />;
+  }
+
   return (
     <div className="bg-[#18181b] min-h-screen">
       {/* Hero Section */}
       <Hero />
-
-      {/* Featured Collections - Minimal Redesign */}
-      <section className="py-20 bg-[#23232a]">
-        <div className="container px-4 mx-auto">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl md:text-4xl font-light tracking-wide text-[#e5e7eb] mb-4">{t('featured_collections')}</h2>
-            <div className="w-16 h-px bg-[#bfc1c6] mx-auto"></div>
-          </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-            {[
-              { title: 'Ethnic', image: '/images/test2.jpg' },
-              { title: 'Minimal', image: '/images/test2.jpg' },
-              { title: 'Luxury', image: '/images/test2.jpg' },
-              { title: 'One of a kind', image: '/images/test2.jpg' },
-            ].map((collection, idx) => (
-              <div
-                key={collection.title}
-                className="group flex flex-col items-center justify-center bg-[#18181b] border border-[#23232a] rounded-xl shadow-sm transition-all duration-300 cursor-pointer overflow-hidden hover:border-[#bfc1c6] hover:shadow-[0_4px_24px_0_#bfc1c655] hover:bg-[#202024]"
-                style={{ minHeight: 320 }}
-              >
-                <div className="relative w-full aspect-[4/3] flex items-center justify-center bg-[#23232a] rounded-t-xl overflow-hidden">
-                  <Image
-                    src={collection.image}
-                    alt={collection.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    className="object-cover object-center w-full h-full transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-[#23232a]/10 transition-all duration-300 pointer-events-none rounded-t-xl"></div>
-                </div>
-                <div className="flex flex-col items-center justify-center flex-1 px-4 py-8">
-                  <h3 className="text-lg font-normal text-[#e5e7eb] tracking-wide mb-1 uppercase letter-spacing-[0.1em]">{collection.title}</h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* About Section */}
       <section className="py-20 bg-[#18181b]">

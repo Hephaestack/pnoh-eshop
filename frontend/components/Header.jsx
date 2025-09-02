@@ -20,8 +20,7 @@ function MegaMenuItem({ href, img, label, onClick }) {
         <motion.img
           src={img}
           alt={label}
-          className="object-contain w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 drop-shadow-[0_2px_8px_#00000033] group-hover:scale-110 transition-transform duration-300"
-          whileHover={{ scale: 1.1 }}
+          className="w-full h-full object-cover drop-shadow-[0_2px_8px_#00000033]"
           transition={{ duration: 0.2 }}
         />
       </motion.div>
@@ -41,12 +40,11 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, User, ShoppingBag, Menu, X, Settings, LogOut } from "lucide-react";
-
+import { User, ShoppingBag, Menu, X, Settings, LogOut, Search } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSwitcher from "./language-switcher";
 import { useCart } from "@/app/cart-context";
+import SearchBar from "./ui/search-bar";
 
 export function Header() {
   const { t } = useTranslation();
@@ -275,31 +273,31 @@ export function Header() {
                   <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16 sm:p-8 md:p-10 lg:p-12 xl:p-16">
                     <MegaMenuItem
                       href="/shop/products"
-                      img="/images/all_jewelry.jpg"
+                      img="/products/allprod.jpeg"
                       label={t("all_products")}
                       onClick={() => setJewelryOpen(false)}
                     />
                     <MegaMenuItem
                       href="/shop/rings"
-                      img="/images/rings.jpg"
+                      img="/products/ring.jpeg"
                       label={t("rings")}
                       onClick={() => setJewelryOpen(false)}
                     />
                     <MegaMenuItem
                       href="/shop/bracelets"
-                      img="/images/bracelets.jpg"
+                      img="/products/bracelet.jpeg"
                       label={t("bracelets")}
                       onClick={() => setJewelryOpen(false)}
                     />
                     <MegaMenuItem
                       href="/shop/necklaces"
-                      img="/images/necklaces.jpg"
+                      img="/products/necklace.jpeg"
                       label={t("necklaces")}
                       onClick={() => setJewelryOpen(false)}
                     />
                     <MegaMenuItem
                       href="/shop/earrings"
-                      img="/images/earrings.jpg"
+                      img="/products/earrings.jpeg"
                       label={t("earrings")}
                       onClick={() => setJewelryOpen(false)}
                     />
@@ -339,35 +337,27 @@ export function Header() {
                         transition={{ duration: 0.2 }}
                         className="absolute right-0 sm:right-0 top-12 w-80 sm:w-96 md:w-80 lg:w-80 xl:w-96 bg-[#18181b] border border-[#232326] rounded-lg shadow-xl z-50 p-4 max-w-[calc(100vw-2rem)] left-0 sm:left-auto transform sm:transform-none -translate-x-1/2 sm:translate-x-0"
                       >
-                        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
-                          <div className="relative flex-1">
-                            <Input
-                              ref={searchInputRef}
-                              type="search"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              onKeyPress={handleSearchKeyPress}
-                              placeholder={t("search_products")}
-                              className="pr-10 border-[#404040] focus:border-white bg-[#232326] text-[#e5e5e5] placeholder:text-[#bcbcbc] transition-colors"
-                            />
-                            {searchQuery && (
-                              <button
-                                type="button"
-                                onClick={clearSearch}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#bcbcbc] hover:text-white"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
-                          <Button
-                            type="submit"
-                            className="border-[#404040] hover:border-white bg-[#232326] text-[#e5e5e5] hover:bg-[#2a2a2e] w-full sm:w-auto"
-                            disabled={!searchQuery.trim() || isSearching}
+                        <SearchBar
+                          value={searchQuery}
+                          onChange={setSearchQuery}
+                          onSubmit={handleSearch}
+                          onClear={clearSearch}
+                          placeholder={t("search_products")}
+                          autoFocus
+                          className="w-full"
+                        />
+                        {searchQuery.trim() && (
+                          <motion.button
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="w-full mt-2 py-2 px-4 bg-[#232326] text-slate-200 rounded-lg hover:bg-[#2a2a2e] transition-colors disabled:opacity-50"
+                            onClick={handleSearch}
+                            disabled={isSearching}
                           >
                             {isSearching ? t("searching", "Searching...") : t("search")}
-                          </Button>
-                        </form>
+                          </motion.button>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -11,7 +11,28 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-      <html lang="el">
+      <html lang="el" data-scroll-behavior="smooth">
+        <head>
+          {/* Optimize font loading */}
+          <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
+          />
+          {/* Add display=swap to prevent FOIT */}
+          <style dangerouslySetInnerHTML={{ 
+            __html: `
+              @font-face {
+                font-display: swap;
+              }
+            `
+          }} />
+        </head>
         <body className="min-h-screen bg-[#18181b]">
           {/* Clerk Smart CAPTCHA container - required for clerk-captcha initialization */}
           <div id="clerk-captcha" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true" />

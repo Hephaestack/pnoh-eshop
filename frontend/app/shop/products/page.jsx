@@ -6,8 +6,9 @@ import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Grid, List, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import LoadingIndicator from "@/components/LoadingIndicator";
+import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
+import SearchBar from "@/components/ui/search-bar";
+import { ProductsPageSkeleton } from "@/components/skeletons/ProductsPageSkeleton";
 
 const EnhancedProductCard = ({ product, viewMode }) => {
   const { t } = useTranslation();
@@ -208,18 +209,23 @@ function AllProductsPageInner() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTheme, setSelectedTheme] = useState("all");
   const [viewMode, setViewMode] = useState("grid");
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [allProducts, setAllProducts] = useState([]); // Cache all products
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [loading, setLoading] = useState(false); // Start without loading - will be set conditionally
-  const [showSkeleton, setShowSkeleton] = useState(false); // Separate skeleton state
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Track initial load state
+  // Initialize with default values to prevent empty state
+  const [categories, setCategories] = useState([
+    { value: "all", label: t("all_categories", "All Categories") }
+  ]);
+  const [subcategories, setSubcategories] = useState([
+    { value: "all", label: t("all_themes", "All Themes") }
+  ]);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState(null);
-  const [contentReady, setContentReady] = useState(false); // Track when content is ready to show
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || ""); // Initialize from URL
   const [isSearchOpen, setIsSearchOpen] = useState(false); // Add search dropdown state
-  const { t } = useTranslation();
+  const [showSkeleton, setShowSkeleton] = useState(false); // Control skeleton visibility
+  const [contentReady, setContentReady] = useState(false); // Track when content is ready to display
   const loadingDelayRef = useRef(null);
 
   // Pagination settings - 4 rows with 3 columns = 12 products per page
@@ -345,9 +351,7 @@ function AllProductsPageInner() {
           setIsInitialLoad(false);
           
           // Signal page ready immediately for cached data
-          setTimeout(() => {
-            window.dispatchEvent(new Event("page-ready"));
-          }, 10);
+          window.dispatchEvent(new Event("page-ready"));
           return;
         }
         
@@ -398,9 +402,7 @@ function AllProductsPageInner() {
         setContentReady(true);
         
         // Signal to the root layout that this page is ready
-        setTimeout(() => {
-          window.dispatchEvent(new Event("page-ready"));
-        }, 50);
+        window.dispatchEvent(new Event("page-ready"));
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
@@ -420,12 +422,19 @@ function AllProductsPageInner() {
     
     // Apply search filter first
     if (searchQuery.trim()) {
-      const searchTerm = searchQuery.toLowerCase().trim();
+      // The actual filtering will be done by the backend
+      // This is just a fallback in case the backend search fails
+      const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
       items = items.filter((product) => {
-        const nameMatch = product.name.toLowerCase().includes(searchTerm);
-        const categoryMatch = product.category?.toLowerCase().includes(searchTerm);
-        const themeMatch = product.theme?.toLowerCase().includes(searchTerm);
-        return nameMatch || categoryMatch || themeMatch;
+        return searchTerms.every(term => {
+          const productText = [
+            product.name,
+            product.category,
+            product.theme,
+            product.description
+          ].filter(Boolean).join(' ').toLowerCase();
+          return productText.includes(term);
+        });
       });
     }
     
@@ -514,6 +523,11 @@ function AllProductsPageInner() {
   };
 
 
+  // Show skeleton while loading
+  if (showSkeleton || !contentReady) {
+    return <ProductsPageSkeleton viewMode={viewMode} />;
+  }
+
   if (error) {
     return (
       <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
@@ -539,11 +553,13 @@ function AllProductsPageInner() {
     );
   }
 
+  // Show skeleton while loading
+  if (loading) {
+    return <ProductsPageSkeleton viewMode={viewMode} />;
+  }
+
   return (
-    <main 
-      className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden transition-opacity duration-300 max-w-7xl"
-      style={{ opacity: contentReady ? 1 : 0 }}
-    >
+    <main className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-center mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full">
@@ -560,31 +576,21 @@ function AllProductsPageInner() {
       <div className="flex flex-col gap-6 mb-8">
         {/* Search Input - Centered on mobile only */}
         <div className="flex justify-center md:justify-start">
-          <div className="relative w-full max-w-md md:max-w-xs">
-            <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#bcbcbc]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("search_products", "Search products...")}
-                className="pl-10 pr-10 py-3 bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] rounded-lg focus:outline-none focus:border-[#bcbcbc55] w-full transition-colors text-center md:text-left"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#bcbcbc] hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-md md:max-w-xs"
+          >
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onClear={() => setSearchQuery("")}
+              placeholder={t("search_products", "Search products...")}
+              variant="default"
+              className="w-full"
+            />
+          </motion.div>
         </div>
 
         {/* Other Filters */}
@@ -594,10 +600,13 @@ function AllProductsPageInner() {
             <motion.select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
-              whileHover={{ borderColor: "rgba(188, 188, 188, 0.4)" }}
-              whileFocus={{ borderColor: "rgba(188, 188, 188, 0.6)" }}
+              className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
+              whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
               transition={{ duration: 0.2 }}
+              disabled={loading}
             >
               {categories.map((cat) => (
                 <option key={cat.value} value={cat.value}>
@@ -630,10 +639,13 @@ function AllProductsPageInner() {
             <motion.select
               value={selectedTheme}
               onChange={(e) => setSelectedTheme(e.target.value)}
-              className="appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
-              whileHover={{ borderColor: "rgba(188, 188, 188, 0.4)" }}
-              whileFocus={{ borderColor: "rgba(188, 188, 188, 0.6)" }}
+              className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
+              whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
               transition={{ duration: 0.2 }}
+              disabled={loading}
             >
               {subcategories.map((theme) => (
                 <option key={theme.value} value={theme.value}>
