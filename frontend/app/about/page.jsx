@@ -8,23 +8,16 @@ import { Award, Users, Heart, Gem } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
-import { AboutSkeleton } from "@/components/skeletons/AboutSkeleton"
+
 
 export default function AboutPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Signal page ready immediately for about page
   useEffect(() => {
-    // Since this is a static page with no data fetching,
-    // we can trigger page ready immediately
-    setIsLoading(false);
     window.dispatchEvent(new Event("page-ready"));
   }, []);
-
-  if (isLoading) {
-    return <AboutSkeleton />;
-  }
 
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
@@ -226,7 +219,7 @@ export default function AboutPage() {
               {t('about_cta_contact')}
             </Button>
             <Button
-              onClick={() => router.push("/collections")}
+              onClick={() => router.push("/shop/products")}
               variant="outline"
               size="lg"
               className="border-[#bfc1c6] text-[#bfc1c6] hover:bg-[#23232a] px-8 py-3 text-sm font-light tracking-wide transition-all duration-300 bg-transparent"

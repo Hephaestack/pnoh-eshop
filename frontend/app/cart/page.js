@@ -29,6 +29,7 @@ function CartPageInner() {
   const { getToken } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [hasRenderedContent, setHasRenderedContent] = useState(false);
 
   const { cart, removeFromCart, updateCartItem, loading } = useCart();
   const [removing, setRemoving] = useState(null);
@@ -78,30 +79,23 @@ function CartPageInner() {
     setMounted(true);
   }, []);
 
+  // Mark that we've rendered content once we have cart data (empty or with items)
+  useEffect(() => {
+    if (mounted && cart !== null) {
+      setHasRenderedContent(true);
+    }
+  }, [mounted, cart]);
+
   // If we already have a local cart with items, render immediately so the
   // user doesn't see the full-page loading skeleton. Show the skeleton only
   // when there are no local items yet.
   const hasLocalItems = cart?.items && cart.items.length > 0;
 
-  if (!mounted || (loading && !hasLocalItems)) {
-    return (
-      <div className="min-h-screen bg-[#18181b] pt-8">
-        <div className="container px-4 mx-auto">
-          <div className="animate-pulse">
-            <div className="w-1/4 h-8 mb-8 bg-gray-700 rounded"></div>
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              <div className="space-y-4 lg:col-span-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-32 bg-gray-700 rounded"></div>
-                ))}
-              </div>
-              <div className="bg-gray-700 rounded h-96"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Only show skeleton if:
+  // 1. Component hasn't mounted yet, OR
+  // 2. We're loading AND we haven't rendered any content yet
+  // This prevents flickering between skeleton and empty state
+  
 
   if (!cart?.items || cart.items.length === 0) {
     return (

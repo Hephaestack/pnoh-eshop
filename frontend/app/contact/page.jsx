@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,28 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import dynamic from "next/dynamic";
-
-// Dynamically import the ContactSkeleton component
-const ContactSkeleton = dynamic(() => import("@/components/skeletons/ContactSkeleton"), {
-  ssr: false,
-});
 
 export default function ContactPage() {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
 
-   useEffect(() => {
-      // Since this is a static page with no data fetching,
-      // we can trigger page ready immediately
-      setIsLoading(false);
-      window.dispatchEvent(new Event("page-ready"));
-    }, []);
-  
-    if (isLoading) {
-      return <ContactSkeleton />;
-    }
-
+  // Signal page ready for smooth loading animation
+  useEffect(() => {
+    window.dispatchEvent(new Event("page-ready"));
+  }, []);
   return (
     <div className="bg-[#18181b] text-[#e5e7eb]">
       {/* Hero Section */}

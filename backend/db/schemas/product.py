@@ -13,6 +13,7 @@ class ProductSummary(BaseModel):
     category: Optional[Category]
     sub_category: Optional[SubCategory]
     image_url: Optional[List[str]]
+    big_image_url: Optional[List[str]]
 
     class Config:
         from_attributes = True

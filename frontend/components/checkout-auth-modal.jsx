@@ -44,7 +44,7 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1a1a1d] border-gray-700 text-white max-w-md mx-4 sm:max-w-lg">
+      <DialogContent className="bg-[#1a1a1d] border-gray-700 text-white max-w-sm mx-auto sm:max-w-md md:max-w-lg lg:max-w-xl">
         {/* Close button */}
         <Button
           onClick={onClose}
@@ -72,52 +72,14 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
           <DialogDescription className="text-sm text-gray-300 sm:text-base">
             {t("checkout.modal.description", "Please create an account or sign in to complete your purchase.")}
             <br />
-            {t("checkout.modal.benefits_intro", "Enjoy faster checkout, order tracking, and personalized recommendations.")}
+            {t("checkout.modal.benefits_intro")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-6">
-          {/* Sign-in Benefits */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="mb-3 text-sm text-gray-300">
-              <span className="font-medium text-white">{t("checkout.modal.benefits_title", "With an account you get")}:</span>
-            </div>
-            <div className="space-y-2 text-sm">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center space-x-3"
-              >
-                <Check className="w-3 h-3 text-red-400 sm:w-4 sm:h-4" />
-                <span className="text-gray-300">{t("checkout.modal.benefit_faster", "Faster checkout")}</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center space-x-3"
-              >
-                <Package className="w-3 h-3 text-blue-400 sm:w-4 sm:h-4" />
-                <span className="text-gray-300">{t("checkout.modal.benefit_tracking", "Track orders & returns")}</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center space-x-3"
-              >
-                <Star className="w-3 h-3 text-yellow-400 sm:w-4 sm:h-4" />
-                <span className="text-gray-300">{t("checkout.modal.benefit_offers", "Personalized offers")}</span>
-              </motion.div>
-            </div>
-          </motion.div>
+        
 
-          {/* Action Buttons */}
+       
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -168,13 +130,13 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
             transition={{ delay: 0.4 }}
             className="flex justify-center space-x-4 text-xs text-gray-400"
           >
-            <button 
+            {/* <button 
               onClick={handleSignIn}
               className="transition-colors hover:text-white"
             >
               {t("checkout.modal.forgot_password", "Forgot password?")}
-            </button>
-            <span>•</span>
+            </button> */}
+           
             <button 
               onClick={handleSignUp}
               className="transition-colors hover:text-white"

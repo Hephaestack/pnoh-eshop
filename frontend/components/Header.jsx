@@ -7,7 +7,7 @@ function MegaMenuItem({ href, img, label, onClick }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center min-w-[100px] w-full max-w-[180px] group text-white no-underline"
+      className="flex flex-col items-center w-full max-w-[130px] xl:max-w-[180px] group text-white no-underline justify-self-center"
       style={{ textDecoration: "none" }}
       onClick={onClick}
     >
@@ -261,16 +261,19 @@ export function Header() {
                   </motion.svg>
                 </button>
                 <div
-                  className={`absolute left-1/2 -translate-x-1/2 top-full mt-12 w-[95vw] max-w-7xl bg-[#18181b] border border-[#232326] rounded-2xl shadow-[0_8px_32px_0_#23232a99] ring-1 ring-[#23232a]/30 z-40 transition-all duration-200 ${
+                  className={`absolute left-1/2 -translate-x-1/2 top-full mt-12 bg-[#18181b] border border-[#232326] rounded-2xl shadow-[0_8px_32px_0_#23232a99] ring-1 ring-[#23232a]/30 z-40 transition-all duration-200 ${
                     jewelryOpen
                       ? "opacity-100 scale-100 pointer-events-auto"
                       : "opacity-0 scale-95 pointer-events-none"
                   } origin-top`}
-                  style={{ boxShadow: "0 8px 32px 0 #23232a99" }}
+                  style={{ 
+                    boxShadow: "0 8px 32px 0 #23232a99",
+                    width: 'max-content'
+                  }}
                   role="menu"
                   tabIndex={-1}
                 >
-                  <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-8 md:gap-10 lg:gap-12 xl:gap-16 sm:p-8 md:p-10 lg:p-12 xl:p-16">
+                  <div className="grid grid-cols-3 xl:grid-cols-6 gap-4 xl:gap-16 p-6 xl:px-8 w-full max-w-[600px] xl:max-w-none">
                     <MegaMenuItem
                       href="/shop/products"
                       img="/products/allprod.jpeg"
@@ -281,6 +284,12 @@ export function Header() {
                       href="/shop/rings"
                       img="/products/ring.jpeg"
                       label={t("rings")}
+                      onClick={() => setJewelryOpen(false)}
+                    />
+                    <MegaMenuItem
+                      href="/shop/crosses"
+                      img="#"
+                      label={t("crosses")}
                       onClick={() => setJewelryOpen(false)}
                     />
                     <MegaMenuItem
@@ -668,6 +677,19 @@ function MobileDropdownNav({ onLinkClick }) {
                   onClick={handleLinkClick}
                 >
                   {t("rings")}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Link
+                  href="/shop/crosses"
+                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  onClick={handleLinkClick}
+                >
+                  {t("crosses")}
                 </Link>
               </motion.div>
               <motion.div

@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../app/cart-context";
 import { IndividualProductSkeleton } from "@/components/skeletons/IndividualProductSkeleton";
-import { motion } from "framer-motion";
 
 function IndividualProductPage({ params, category }) {
   const routeParams = React.use(params);
@@ -16,10 +15,8 @@ function IndividualProductPage({ params, category }) {
   const [enlargedImageIndex, setEnlargedImageIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEnlargedImageLoading, setIsEnlargedImageLoading] = useState(true);
   const [productData, setProductData] = useState(null);
   const [notFound, setNotFound] = useState(false);
-  const [preloadedImages, setPreloadedImages] = useState({});
   const [backUrl, setBackUrl] = useState(`/shop/${category}`);
   const requestIdRef = React.useRef(0);
   const loadingStartRef = React.useRef(0);
@@ -178,15 +175,10 @@ function IndividualProductPage({ params, category }) {
           images: data.image_url && data.image_url.length > 0
             ? data.image_url.map((url) => url.replace("dl=0", "raw=1"))
             : ["/placeholder-product.jpg"],
-          bigImages: data.big_image_url && data.big_image_url.length > 0
-            ? data.big_image_url.map((url) => url.replace("dl=0", "raw=1"))
-            : data.image_url && data.image_url.length > 0
-              ? data.image_url.map((url) => url.replace("dl=0", "raw=1"))
-              : ["/placeholder-product.jpg"],
         };
         setProductData(mapped);
 
-        // Preload first regular image
+        // Preload first image
         try {
           const imgLoader = new Image();
           imgLoader.onload = () => {
@@ -200,19 +192,6 @@ function IndividualProductPage({ params, category }) {
             checkHideSkeleton();
           };
           imgLoader.src = mapped.images[0];
-
-          // Start preloading big images in the background
-          mapped.bigImages.forEach((url, index) => {
-            const bigImgLoader = new Image();
-            bigImgLoader.onload = () => {
-              if (reqId !== requestIdRef.current) return;
-              setPreloadedImages(prev => ({
-                ...prev,
-                [index]: true
-              }));
-            };
-            bigImgLoader.src = url;
-          });
         } catch (e) {
           imageLoadedRef.current = true;
           checkHideSkeleton();
@@ -543,36 +522,21 @@ function IndividualProductPage({ params, category }) {
       </div>
 
       {/* Enlarged image modal */}
-      {enlarged && productData && productData.bigImages && productData.bigImages[enlargedImageIndex] && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black"
+      {enlarged && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
           onClick={() => setEnlarged(false)}
         >
           <div className="relative flex items-center justify-center w-full h-full p-4">
-            {!preloadedImages[enlargedImageIndex] && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-white/20 border-t-white/100 rounded-full animate-spin"></div>
-              </div>
-            )}
-            <motion.img
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ 
-                opacity: preloadedImages[enlargedImageIndex] ? 1 : 0.5,
-                scale: preloadedImages[enlargedImageIndex] ? 1 : 0.9
-              }}
-              transition={{ duration: 0.3 }}
-              src={productData.bigImages[enlargedImageIndex]}
-              alt={`${productData.name || 'Product'} - Enlarged view`}
+            <img
+              src={productData.images[enlargedImageIndex]}
+              alt={`${productData.name} - Enlarged view`}
               className="object-contain max-w-full max-h-full"
               onClick={(e) => e.stopPropagation()}
             />
             
             {/* Navigation arrows for enlarged view */}
-            {productData?.images?.length > 1 && (
+            {productData.images.length > 1 && (
               <>
                 <button
                   onClick={(e) => {
@@ -614,13 +578,13 @@ function IndividualProductPage({ params, category }) {
             </button>
             
             {/* Image counter for enlarged view */}
-            {productData?.images?.length > 1 && (
+            {productData.images.length > 1 && (
               <div className="absolute px-4 py-2 text-white -translate-x-1/2 rounded-full bottom-8 left-1/2 bg-black/50">
                 {enlargedImageIndex + 1} / {productData.images.length}
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       )}
     </main>
   );

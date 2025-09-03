@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import EnhancedPaginationBar from "@/components/ui/EnhancedPaginationBar";
 
 // Format theme label: prefer translation, fallback to capitalized words
 const formatThemeLabel = (t, theme) => {
@@ -325,7 +326,9 @@ function CategoryPageInner({ category }) {
           setContentReady(true);
           
           // Signal page ready immediately for cached data
-          window.dispatchEvent(new Event("page-ready"));
+          setTimeout(() => {
+            window.dispatchEvent(new Event("page-ready"));
+          }, 10);
           return;
         }
         
@@ -341,7 +344,7 @@ function CategoryPageInner({ category }) {
 
         // Fetch ALL products for this category once
         const response = await fetch(
-          `${apiUrl}/products/category/${category}`,
+          `${apiUrl}/products/category/${category}?limit=1000`,
           {
             method: "GET",
             headers: {
@@ -381,7 +384,9 @@ function CategoryPageInner({ category }) {
         setContentReady(true);
         
         // Signal to the root layout that this page is ready
-        window.dispatchEvent(new Event("page-ready"));
+        setTimeout(() => {
+          window.dispatchEvent(new Event("page-ready"));
+        }, 50);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError(err.message);
@@ -551,7 +556,7 @@ function CategoryPageInner({ category }) {
 
   // Add loading and error states
   if (loading || showSkeleton) {
-    return <CategoryPageSkeleton />;
+    return <CategoryPageSkeleton viewMode={viewMode} />;
   }
 
   if (error) {
@@ -753,60 +758,15 @@ function CategoryPageInner({ category }) {
         </AnimatePresence>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Enhanced Pagination Controls */}
       {totalPages > 1 && (
-        <motion.div
-          className="flex items-center justify-center gap-6 mt-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <motion.button
-            onClick={goToPreviousPage}
-            disabled={currentPage === 1}
-            className="flex items-center justify-center gap-2 px-4 py-2 w-36 min-w-[9rem] font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={
-              currentPage !== 1
-                ? {
-                    backgroundColor: "rgb(203 213 225)",
-                    color: "rgb(0 0 0)",
-                    transition: { duration: 0.15 },
-                  }
-                : {}
-            }
-            whileTap={currentPage !== 1 ? { scale: 0.98 } : {}}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            {t("previous_page", "Previous")}
-          </motion.button>
-
-          {/* Current page indicator (stacked, unified text design) */}
-          <div className="flex flex-col items-center px-4 py-2 font-serif text-center bg-transparent text-slate-200">
-            <span className="text-sm">{t("page", "Σελίδα")}</span>
-            <span className="text-xl font-semibold leading-none">
-              {currentPage}
-            </span>
-          </div>
-
-          <motion.button
-            onClick={goToNextPage}
-            disabled={currentPage === totalPages}
-            className="flex items-center justify-center gap-2 px-4 py-2 w-36 min-w-[9rem] font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={
-              currentPage !== totalPages
-                ? {
-                    backgroundColor: "rgb(203 213 225)",
-                    color: "rgb(0 0 0)",
-                    transition: { duration: 0.15 },
-                  }
-                : {}
-            }
-            whileTap={currentPage !== totalPages ? { scale: 0.98 } : {}}
-          >
-            {t("next_page", "Next")}
-            <ChevronRight className="w-4 h-4" />
-          </motion.button>
-        </motion.div>
+        <EnhancedPaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onGoToPage={goToPage}
+          onGoToPreviousPage={goToPreviousPage}
+          onGoToNextPage={goToNextPage}
+        />
       )}
 
       {/* No Results */}

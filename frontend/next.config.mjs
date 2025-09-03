@@ -15,6 +15,7 @@ const nextConfig = {
         pathname: '/file/PNOH-ESHOP/products/thumbnails/**',
       },
     ],
+    qualities: [25, 50, 75, 90, 95,85, 100],
   },
 };
 

@@ -44,11 +44,7 @@ header {
   z-index: 40;
 }
 
-/* Ensure smooth scrolling and prevent layout shifts */
-html {
-  scroll-behavior: smooth;
-}
-
+/* Prevent layout shifts */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

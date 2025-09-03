@@ -1,190 +1,138 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid, List } from "lucide-react";
+import { ProductCardSkeleton } from "./ProductCardSkeleton";
 
-const ProductCardSkeleton = ({ viewMode }) => {
-  if (viewMode === "grid") {
-    return (
-      <div className="relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150">
-        {/* Image Skeleton */}
-        <motion.div 
-          className="relative w-full aspect-square bg-[#232326] mb-4"
-          animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Content */}
-        <div className="px-2 pb-2 text-center">
-          {/* Title */}
-          <motion.div 
-            className="h-6 bg-[#232326] rounded-lg mb-1 mx-auto"
-            style={{ width: '80%' }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
-          />
-          {/* Category */}
-          <motion.div 
-            className="h-4 bg-[#232326] rounded-lg mb-2 mx-auto"
-            style={{ width: '60%' }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-          />
-          {/* Price */}
-          <motion.div 
-            className="h-6 w-20 bg-[#232326] rounded-lg mx-auto mb-3"
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-          />
-          {/* Buttons */}
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <motion.div 
-              className="h-10 w-24 bg-[#232326] rounded-md"
-              animate={{ opacity: [0.4, 0.7, 0.4] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-            />
-            <motion.div 
-              className="h-10 w-24 bg-[#232326] rounded-md"
-              animate={{ opacity: [0.4, 0.7, 0.4] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+export function CategoryPageSkeleton({ viewMode = "grid" }) {
   return (
-    <div className="hidden lg:block relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150">
-      <div className="flex items-center gap-4 p-4">
-        {/* Image */}
-        <motion.div 
-          className="w-28 h-28 bg-[#232326] rounded-lg flex-shrink-0"
-          animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Content */}
-        <div className="flex-1">
-          <motion.div 
-            className="h-6 bg-[#232326] rounded-lg mb-2"
-            style={{ width: '60%' }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
-          />
-          <motion.div 
-            className="h-4 bg-[#232326] rounded-lg mb-2"
-            style={{ width: '40%' }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-          />
-          <motion.div 
-            className="h-5 w-20 bg-[#232326] rounded-lg"
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-          />
-        </div>
-        {/* Buttons */}
-        <div className="flex gap-2">
-          <motion.div 
-            className="h-10 w-24 bg-[#232326] rounded-md"
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-          />
-          <motion.div 
-            className="h-10 w-24 bg-[#232326] rounded-md"
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export function CategoryPageSkeleton() {
-  return (
-    <main className="relative min-h-screen px-4 py-10 mx-auto max-w-7xl">
-      {/* Header */}
+    <div className="relative min-h-screen px-4 py-10 mx-auto overflow-x-hidden max-w-7xl">
+      {/* Header Skeleton */}
       <div className="flex items-center justify-center mb-8">
         <motion.div 
-          className="h-12 md:h-16 bg-[#232326] rounded-lg"
-          style={{ width: '60%', maxWidth: '400px' }}
+          className="w-64 h-12 bg-[#232326] rounded-lg"
           animate={{ opacity: [0.4, 0.7, 0.4] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
-      <motion.div 
-        className="h-6 bg-[#232326] rounded-lg mb-12 mx-auto"
-        style={{ width: '80%', maxWidth: '600px' }}
-        animate={{ opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
-      />
-
-      {/* Filters and Controls */}
-      <div className="flex flex-col items-center justify-center gap-4 mb-8 md:flex-row md:items-center md:justify-between">
-        {/* Theme Dropdown */}
+      
+      {/* Subtitle Skeleton */}
+      <div className="flex justify-center mb-8">
         <motion.div 
-          className="h-10 w-48 bg-[#232326] rounded-lg"
+          className="w-96 h-6 bg-[#232326] rounded-lg"
           animate={{ opacity: [0.4, 0.7, 0.4] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
         />
-
-        {/* View Mode Toggle */}
-        <div className="items-center hidden gap-2 lg:flex">
-          <div className="p-2 text-[#bcbcbc]">
-            <Grid className="w-5 h-5" />
-          </div>
-          <div className="p-2 text-[#bcbcbc]">
-            <List className="w-5 h-5" />
-          </div>
-        </div>
       </div>
 
-      {/* Results Count */}
-      <motion.div 
-        className="h-5 w-48 bg-[#232326] rounded-lg mb-6"
-        animate={{ opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-      />
+      {/* Filters and Controls Skeleton */}
+      <div className="flex flex-col gap-6 mb-8">
+        {/* Search Input and View Toggle Skeleton */}
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          {/* Search Input Skeleton */}
+          <motion.div 
+            className="w-full max-w-md md:max-w-xs h-12 bg-[#232326] rounded-lg"
+            animate={{ opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
 
-      {/* Product Grid */}
-      <div style={{ minHeight: "400px" }}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {[...Array(9)].map((_, index) => (
-            <ProductCardSkeleton key={index} viewMode="grid" />
+          {/* View Toggle Skeleton */}
+          <motion.div 
+            className="w-24 h-10 bg-[#232326] rounded-lg ml-auto"
+            animate={{ opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+          />
+        </div>
+
+        {/* Filters Row Skeleton */}
+        <div className="flex flex-wrap justify-center gap-4 md:flex-row md:justify-start md:items-center">
+          {/* Filter dropdowns */}
+          {[...Array(3)].map((_, idx) => (
+            <motion.div
+              key={idx}
+              className="w-40 h-10 bg-[#232326] rounded-lg"
+              animate={{ opacity: [0.4, 0.7, 0.4] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.1 }}
+            />
           ))}
+          
+          {/* Sort dropdown */}
+          <motion.div
+            className="w-32 h-10 bg-[#232326] rounded-lg ml-auto"
+            animate={{ opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          />
         </div>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-center gap-6 mt-12">
-        {/* Previous */}
+      {/* Product count and pagination info skeleton */}
+      <div className="flex justify-between items-center mb-6">
         <motion.div 
-          className="h-10 w-36 bg-[#232326] rounded-md"
+          className="w-40 h-5 bg-[#232326] rounded"
           animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         />
-        {/* Page Number */}
         <motion.div 
-          className="h-14 w-14 bg-[#232326] rounded-md"
+          className="w-32 h-5 bg-[#232326] rounded"
           animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        />
-        {/* Next */}
-        <motion.div 
-          className="h-10 w-36 bg-[#232326] rounded-md"
-          animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
         />
       </div>
 
-      {/* Back to All Products */}
-      <div className="flex justify-center mt-12">
+      {/* Products Grid/List Skeleton */}
+      <div className={viewMode === "grid" 
+        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8" 
+        : "flex flex-col gap-4 mb-8"
+      }>
+        {[...Array(12)].map((_, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+          >
+            <ProductCardSkeleton viewMode={viewMode} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Pagination Skeleton */}
+      <div className="flex justify-center items-center space-x-2">
+        {/* Previous button */}
         <motion.div 
-          className="h-12 w-48 bg-[#232326] rounded-full"
+          className="w-20 h-10 bg-[#232326] rounded-lg"
           animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Page numbers */}
+        {[...Array(5)].map((_, idx) => (
+          <motion.div
+            key={idx}
+            className="w-10 h-10 bg-[#232326] rounded-lg"
+            animate={{ opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.05 }}
+          />
+        ))}
+        
+        {/* Next button */}
+        <motion.div 
+          className="w-20 h-10 bg-[#232326] rounded-lg"
+          animate={{ opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.25 }}
         />
       </div>
-    </main>
+
+      {/* Loading overlay effect */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0.1, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="w-full h-full bg-gradient-to-r from-transparent via-[#ffffff05] to-transparent transform -skew-x-12" />
+      </motion.div>
+    </div>
   );
 }
+
+export default CategoryPageSkeleton;

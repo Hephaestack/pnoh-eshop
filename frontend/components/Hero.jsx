@@ -87,6 +87,15 @@ export function Hero() {
             console.log(`FINAL: Setting exactly ${finalItems.length} random items in slider`);
             console.log('Final slider items:', finalItems.map(item => item.title));
             setItems(finalItems);
+            
+            // Preload first few images for better performance
+            finalItems.slice(0, 3).forEach((item, index) => {
+              if (item.img && !item.img.includes('/images/test2.jpg')) {
+                const preloadImg = document.createElement('img');
+                preloadImg.src = item.img;
+                console.log(`Preloading image ${index + 1}:`, item.img);
+              }
+            });
           } else {
             console.log("No products in response or empty array");
             setItems([]);
@@ -130,18 +139,32 @@ export function Hero() {
     const touchX = e.touches[0].clientX;
     touchStartX.current = touchX;
     touchEndX.current = touchX;
+    // Pause autoplay during touch interaction
+    clearInterval(intervalRef.current);
   };
 
   const handleTouchMove = (e) => {
     if (touchStartX.current !== null) {
       touchEndX.current = e.touches[0].clientX;
+      // Don't call preventDefault - React events are passive
     }
   };
 
   const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 30) { // Reduced threshold for easier swiping
-      diff > 0 ? handleNext() : handlePrev();
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const diff = touchStartX.current - touchEndX.current;
+      const minSwipeDistance = 50;
+      
+      if (Math.abs(diff) > minSwipeDistance) {
+        if (diff > 0) {
+          handleNext(); // Swipe left = next
+        } else {
+          handlePrev(); // Swipe right = previous
+        }
+      } else {
+        // If no swipe detected, restart autoplay
+        startAutoplay();
+      }
     }
     touchStartX.current = null;
     touchEndX.current = null;
@@ -169,23 +192,47 @@ export function Hero() {
   }, [handleNext, handlePrev]);
 
   return (
-  <div className="relative w-full h-[85vh] overflow-hidden bg-black">
+    <div className="relative w-full min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden">
+      {/* Multi-layer Background with Depth */}
+      <div className="absolute inset-0">
+        {/* Primary depth layer */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(64,64,64,0.15),_transparent_70%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(96,96,96,0.08),_transparent_60%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(32,32,32,0.2),_transparent_50%)]"></div>
+        
+        {/* Secondary depth layer */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(64,64,64,0.08),_transparent_50%)] opacity-60"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(96,96,96,0.03),_transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(64,64,64,0.04),_transparent_50%)]"></div>
+        
+        {/* Subtle noise texture for depth */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+      
+      {/* Bottom blend gradient to match next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#18181b] via-[#18181b]/80 to-transparent z-10"></div>
+
       {/* Loading State */}
       {loading && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
-          <div className="text-xl text-white">{t("hero.loading_products")}</div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
+            <div className="w-8 h-8 mx-auto mb-4 border-2 border-neutral-500/40 border-t-neutral-400 rounded-full animate-spin"></div>
+            <div className="text-lg text-neutral-300">{t("hero.loading_products")}</div>
+          </div>
         </div>
       )}
 
       {/* No Products State */}
       {!loading && items.length === 0 && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black">
-          <div className="max-w-md px-4 text-center text-white">
-            <h2 className="mb-4 text-2xl">{t("hero.no_products")}</h2>
-            <p className="mb-4 text-gray-400">{t("hero.no_products_desc")}</p>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="max-w-md p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
+            <h2 className="mb-4 text-2xl font-light text-neutral-200">{t("hero.no_products")}</h2>
+            <p className="mb-6 text-neutral-400">{t("hero.no_products_desc")}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="px-4 py-2 text-white transition-all border rounded-lg bg-white/20 border-white/30 hover:bg-white/30"
+              className="px-6 py-3 text-neutral-200 transition-all duration-300 bg-neutral-800/50 backdrop-blur-sm border border-neutral-600/40 rounded-xl hover:bg-neutral-700/60 hover:scale-105"
             >
               {t("hero.retry")}
             </button>
@@ -193,141 +240,184 @@ export function Hero() {
         </div>
       )}
 
-      {/* Hero Content - Only show when we have products */}
+      {/* Hero Content - Horizontal Carousel */}
       {!loading && items.length > 0 && (
-        <>
-          {/* Swipe Hint for Mobile - Only shown on first load */}
-          <div className="absolute z-30 top-1/2 left-4 md:hidden">
-            <motion.div
-              initial={{ opacity: 1, x: 0 }}
-              animate={{ opacity: 0, x: 10 }}
-              transition={{ delay: 2, duration: 1, repeat: 2, repeatType: "reverse" }}
-              className="flex items-center text-sm text-white/60 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-              </svg>
-              {t("hero.swipe_hint")}
-            </motion.div>
-          </div>
-
-      {/* Main Image Display */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          className="absolute inset-0 cursor-pointer"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          onClick={handleImageClick}
+        <div 
+          className="relative flex items-center min-h-screen p-4 md:p-8 touch-pan-y"
+          style={{ touchAction: 'pan-y' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseEnter={() => clearInterval(intervalRef.current)}
           onMouseLeave={startAutoplay}
         >
-          <Image
-          sizes="100vw"
-            src={items[currentIndex]?.img || "/images/test2.jpg"}
-            alt={items[currentIndex]?.title || "Product"}
-            fill
-            quality={90}
-            className="object-cover"
-            priority
-            onError={(e) => {
-              console.log("Image failed to load:", items[currentIndex]?.img);
-              console.log("Falling back to test image");
-              e.currentTarget.src = "/images/test2.jpg";
-            }}
-            onLoad={() => {
-              console.log("Image loaded successfully:", items[currentIndex]?.img);
-            }}
-          />
-          
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/30" />
-          
-          {/* Product Info Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+          {/* Swipe Hint for Mobile */}
+          <div className="absolute z-30 top-8 left-8 md:hidden">
             <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="max-w-4xl text-white"
+              initial={{ opacity: 1, x: 0 }}
+              animate={{ opacity: 0, x: 10 }}
+              transition={{ delay: 2, duration: 1, repeat: 2, repeatType: "reverse" }}
+              className="flex items-center text-sm text-neutral-400 bg-neutral-900/30 backdrop-blur-lg px-4 py-2 rounded-full border border-neutral-700/30"
             >
-              <h1 className="mb-2 text-2xl font-light leading-tight tracking-wide sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-                {items[currentIndex]?.title || t("hero.loading")}
-              </h1>
-              <p className="mb-4 text-lg font-light text-gray-200 sm:text-xl md:text-2xl lg:text-3xl">
-                ${items[currentIndex]?.price || "0"}
-              </p>
-              <div className="flex flex-col items-start space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleImageClick();
-                  }}
-                  className="w-full px-4 py-2 text-sm text-white transition-all duration-300 border rounded-full sm:w-auto sm:px-6 sm:py-3 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 md:text-base"
-                >
-                  {t("hero.view_product")}
-                </button>
-                <Link href="/shop/products" className="w-full sm:w-auto">
-                  <button className="w-full px-4 py-2 text-sm text-white transition-all duration-300 bg-transparent border rounded-full sm:w-auto sm:px-6 sm:py-3 border-white/50 hover:bg-white/10 md:text-base">
-                    {t("hero.shop_all")}
-                  </button>
-                </Link>
-              </div>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              {t("hero.swipe_hint")}
             </motion.div>
           </div>
-        </motion.div>
-      </AnimatePresence>
 
-      {/* Navigation Arrows - Hidden on Mobile */}
-      <button
-        onClick={handlePrev}
-        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex left-4 lg:left-8 top-1/3 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
-        aria-label="Previous product"
-      >
-        <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-
-      <button
-        onClick={handleNext}
-        className="absolute z-20 items-center justify-center hidden w-12 h-12 text-white transition-all duration-300 -translate-y-1/2 border rounded-full md:flex right-4 lg:right-8 top-1/3 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/30 group"
-        aria-label="Next product"
-      >
-        <svg className="w-6 h-6 transition-transform lg:w-8 lg:h-8 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Indicators */}
-  <div className="absolute z-20 flex space-x-2 -translate-x-1/2 bottom-6 sm:bottom-8 md:bottom-10 lg:bottom-12 left-1/2">
-        {items.slice(0, 5).map((_, index) => (
+          {/* Navigation Arrows - Hidden on Mobile */}
           <button
-            key={index}
-            onClick={() => {
-              setCurrentIndex(index);
-              startAutoplay();
-            }}
-            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? 'bg-white w-6 sm:w-8 md:w-10 lg:w-12' 
-                : 'bg-white/50 hover:bg-white/80'
-            }`}
-            aria-label={`Go to product ${index + 1}`}
-          />
-        ))}
-      </div>
+            onClick={handlePrev}
+            className="absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center"
+            aria-label="Previous product"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
 
-      {/* Product Counter */}
-      <div className="absolute z-20 px-2 py-1 text-xs text-white rounded-full top-4 sm:top-6 right-4 sm:right-6 bg-black/50 backdrop-blur-sm sm:px-3 sm:py-1 sm:text-sm">
-        {currentIndex + 1} / {Math.min(items.length, 5)}
-      </div>
-        </>
+          <button
+            onClick={handleNext}
+            className="absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center"
+            aria-label="Next product"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Horizontal Carousel */}
+          <div className="relative w-full max-w-7xl mx-auto px-4 md:px-0">
+            <div className="flex items-center justify-center md:space-x-8">
+              {items.map((item, index) => {
+                const isActive = index === currentIndex;
+                const isPrev = index === (currentIndex - 1 + items.length) % items.length;
+                const isNext = index === (currentIndex + 1) % items.length;
+                const isVisible = isActive || isPrev || isNext;
+
+                if (!isVisible) return null;
+
+                return (
+                  <motion.div
+                    key={item.id}
+                    className={`relative transition-all duration-700 ease-out ${
+                      isActive 
+                        ? 'scale-100 z-20 cursor-pointer flex justify-center' 
+                        : 'scale-75 md:scale-85 z-10 hover:scale-80 md:hover:scale-90 hidden md:block md:cursor-pointer'
+                    }`}
+                    onClick={() => {
+                      if (isActive) {
+                        handleImageClick();
+                      } else {
+                        // Only allow navigation on desktop (this will only execute on desktop due to hidden class on mobile)
+                        setCurrentIndex(index);
+                        startAutoplay();
+                      }
+                    }}
+                    initial={false}
+                    animate={{
+                      filter: isActive ? 'blur(0px)' : 'blur(2px)',
+                      opacity: isActive ? 1 : 0.6,
+                      y: isActive ? 0 : 20,
+                    }}
+                    transition={{ duration: 0.7, ease: "easeOut" }}
+                  >
+                    {/* Glass Card Container */}
+                    <div className={`relative bg-neutral-900/20 backdrop-blur-lg border border-neutral-700/30 rounded-3xl overflow-hidden shadow-2xl ${
+                      isActive ? 'shadow-neutral-500/10' : 'shadow-black/30'
+                    }`}>
+                      {/* Image Container */}
+                      <div className="relative w-80 sm:w-96 md:w-80 lg:w-[440px] xl:w-[480px] h-96 sm:h-[450px] md:h-96 lg:h-[520px] xl:h-[560px] mx-auto">
+                        <Image
+                          src={item.img || "/images/test2.jpg"}
+                          alt={item.title || "Product"}
+                          fill
+                          sizes="(max-width: 640px) 320px, (max-width: 768px) 384px, (max-width: 1024px) 320px, (max-width: 1280px) 440px, 480px"
+                          quality={100}
+                          className="object-cover"
+                          priority={true}
+                          loading="eager"
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyLDzLpPQ8t0M5/b7OFnT6t7C4m9BJ2vTw1NJkdNhOwh0u/OImLEggZDEyUWLpV2I0m+LWi1j3hVxOBXhQz/LjKEpz9lCZjH0P6+s4+zE+1s5a1uFQ=="
+                          onError={(e) => {
+                            console.log("Image failed to load:", item.img);
+                            e.currentTarget.src = "/images/test2.jpg";
+                          }}
+                        />
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      </div>
+
+                      {/* Product Info - Only show on active item */}
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="absolute bottom-0 left-0 right-0 p-6 md:p-8"
+                          >
+                            <h1 className="mb-3 text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-100 leading-tight drop-shadow-[2px_2px_4px_rgba(0,0,0,0.8)] shadow-black">
+                              {item.title}
+                            </h1>
+                            <p className="mb-6 text-xl md:text-2xl lg:text-3xl font-bold text-neutral-200 drop-shadow-[2px_2px_4px_rgba(0,0,0,0.8)] shadow-black">
+                              ${item.price}
+                            </p>
+                            <div className="flex flex-col w-full space-y-3">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleImageClick();
+                                }}
+                                className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-200 transition-all duration-300 bg-neutral-800/40 backdrop-blur-sm border border-neutral-600/40 rounded-full hover:bg-neutral-700/50 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]"
+                              >
+                                {t("hero.view_product")}
+                              </button>
+                              <Link href="/shop/products" className="w-full">
+                                <button className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-300 transition-all duration-300 bg-transparent border border-neutral-600/50 rounded-full hover:bg-neutral-800/30 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]">
+                                  {t("hero.shop_all")}
+                                </button>
+                              </Link>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Active Item Glow Effect */}
+                      {isActive && (
+                        <div className="absolute inset-0 rounded-3xl pointer-events-none">
+                          <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-neutral-500/10 via-transparent to-neutral-500/10 animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center mt-8 space-x-3">
+              {items.slice(0, 5).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    startAutoplay();
+                  }}
+                  className={`transition-all duration-300 rounded-full ${
+                    index === currentIndex 
+                      ? 'w-12 h-3 bg-neutral-400 shadow-lg shadow-neutral-500/20' 
+                      : 'w-3 h-3 bg-neutral-600 hover:bg-neutral-500 hover:scale-110'
+                  }`}
+                  aria-label={`Go to product ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
