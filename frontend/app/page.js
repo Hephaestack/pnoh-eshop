@@ -55,7 +55,7 @@ export default function HomePage() {
             </blockquote>
 
             {/* Subtle bottom decoration */}
-            <div className="flex items-center justify-center space-x-4 pt-4">
+            <div className="flex items-center justify-center pt-4 space-x-4">
               <div className="w-2 h-2 bg-[#bfc1c6] rounded-full opacity-50"></div>
               <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#bfc1c6] to-transparent"></div>
               <div className="w-2 h-2 bg-[#bfc1c6] rounded-full opacity-50"></div>
@@ -81,7 +81,7 @@ export default function HomePage() {
         <div className="container px-4 mx-auto">
           <div className="max-w-4xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-16">
+            <div className="mb-16 text-center">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-[#e5e7eb] mb-6">
                 {t('jewelry_art_title')}
               </h2>
@@ -89,7 +89,7 @@ export default function HomePage() {
             </div>
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
               {/* Text Content */}
               <div className="space-y-6 text-center lg:text-left">
                 <p className="text-lg md:text-xl text-[#bfc1c6] leading-relaxed font-light">
@@ -102,7 +102,7 @@ export default function HomePage() {
 
               <div className="relative">
                 <div className="relative max-w-md mx-auto lg:max-w-none">
-                  <div className="relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50">
+                  <div className="relative overflow-hidden aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50">
                     <Image
                       src="/images/texnh.jpeg"
                       alt="Jewelry crafting"
@@ -134,7 +134,7 @@ export default function HomePage() {
       </div>
 
       {/* Features */}
-      <section className="py-16 bg-[#23232a]">
+      <section className="py-16">
         <div className="container flex justify-center px-4 mx-auto">
           <div className="grid w-full max-w-xl grid-cols-1 gap-8 md:grid-cols-2">
             {[
@@ -152,6 +152,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+           {/* Section Divider 2 */}
+      <div className="mb-22 relative py-8 bg-[#18181b]">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-[#bfc1c6]/40 to-transparent"></div>
+        </div>
+      </div>
+
     </div>
   )
 }

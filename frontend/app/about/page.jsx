@@ -88,11 +88,11 @@ export default function AboutPage() {
               transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
             >
               <Image
-                src="/placeholder.svg?height=500&width=400"
-                alt="Jewelry workshop"
+                src="/images/pnoh9.jpeg"
+                alt="Pnoi Shop"
                 width={400}
                 height={500}
-                className="w-full h-96 object-cover grayscale-[30%]"
+                className="w-full h-150 object-cover grayscale-[30%]"
               />
             </motion.div>
           </div>

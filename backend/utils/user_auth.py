@@ -140,8 +140,8 @@ def get_or_create_guest_session(guest_session_id: Optional[str], response: Respo
         key="guest_session_id",
         value=new_session,
         httponly=True,
-        samesite="none",
+        samesite="lax",
         max_age=60 * 60 * 24 * 7,
-        secure=True,
+        secure=False,
     )
     return new_session

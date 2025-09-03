@@ -31,7 +31,7 @@ function Footer() {
             <h4 className="text-lg font-medium tracking-wide text-[#e5e7eb]">{t('footer_navigation')}</h4>
             <div className="space-y-3">
               <Link
-                href="/collections"
+                href="/shop/products"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
                 {t('jewelry')}
@@ -43,7 +43,7 @@ function Footer() {
                 {t('about_us')}
               </Link>
               <Link
-                href="/contact"
+                href="contact"
                 className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
               >
                 {t('contact')}
@@ -104,7 +104,7 @@ function Footer() {
         <div className="pt-8 mt-14 border-t border-[#bfc1c6] w-full">
           <div className="flex flex-col items-center justify-between w-full gap-6 md:flex-row">
             <div className="text-sm font-light text-[#bfc1c6] text-center md:text-left">
-              © 2025 {t('brand_name')}. {t('footer_rights')}
+              © 2025 Pnoi. All rights reserved.
             </div>
 
             {/* Payment Methods */}

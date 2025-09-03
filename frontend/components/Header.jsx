@@ -276,7 +276,7 @@ export function Header() {
                   <div className="grid grid-cols-3 xl:grid-cols-6 gap-4 xl:gap-16 p-6 xl:px-8 w-full max-w-[600px] xl:max-w-none">
                     <MegaMenuItem
                       href="/shop/products"
-                      img="/products/allprod.jpeg"
+                      img="/images/all-products.jpeg"
                       label={t("all_products")}
                       onClick={() => setJewelryOpen(false)}
                     />
