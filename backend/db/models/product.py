@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, String, Float, Integer, DateTime, Enum
+from sqlalchemy import Column, String, Float, Integer, DateTime, Enum, event
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -13,6 +13,7 @@ class Category(str, enum.Enum):
     earrings = "earrings"
     bracelets = "bracelets"
     necklaces = "necklaces"
+    crosses = "crosses"
 
 class SubCategory(str, enum.Enum):
     ethnic = "ethnic"
@@ -40,3 +41,9 @@ class Product(Base):
 
     class Config:
         from_attributes = True
+
+@event.listens_for(Product, "before_insert")
+@event.listens_for(Product, "before_update")
+def _auto_clear_sub_for_crosses(mapper, connection, target: Product):
+    if target.category == Category.crosses:
+        target.sub_category = None

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from uuid import UUID
 from typing import List, Optional
 from datetime import datetime
@@ -27,6 +27,12 @@ class ProductBase(BaseModel):
     image_url: Optional[List[str]] = None
     big_image_url: Optional[List[str]] = None
 
+    @model_validator(mode="after")
+    def _auto_clear_sub_for_crosses(self):
+        if self.category == Category.crosses:
+            self.sub_category = None
+        return self
+
 class ProductCreate(ProductBase):
     pass
 
@@ -44,6 +50,12 @@ class ProductUpdateRequest(BaseModel):
     category: Optional[Category]
     sub_category: Optional[SubCategory]
     image_url: Optional[List[str]]
+
+    @model_validator(mode="after")
+    def _auto_clear_sub_for_crosses(self):
+        if self.category == Category.crosses:
+            self.sub_category = None
+        return self
 
 class ProductOut(ProductBase):
     id: UUID
