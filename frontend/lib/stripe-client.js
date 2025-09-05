@@ -51,7 +51,6 @@ export async function startCheckout(cartItems, token) {
   const successUrl = `${origin}/checkout/success`;
   const cancelUrl = `${origin}/cart`;
 
-  console.log('Checkout URLs:', { successUrl, cancelUrl, origin });
 
   const res = await fetch(`${API_BASE}/stripe/create-checkout-session`, {
     method: "POST",
@@ -68,12 +67,7 @@ export async function startCheckout(cartItems, token) {
   });
 
   if (!res.ok) {
-    const txt = await res.text();
-    console.error('Checkout session creation failed:', {
-      status: res.status,
-      statusText: res.statusText,
-      error: txt
-    });
+  const txt = await res.text();
     throw new Error(txt || `Failed creating checkout session (${res.status})`);
   }
 
@@ -81,7 +75,6 @@ export async function startCheckout(cartItems, token) {
   
   // Validate response data
   if (!data.url) {
-    console.error('Invalid checkout response:', data);
     throw new Error('No checkout URL received from server');
   }
 
@@ -89,11 +82,8 @@ export async function startCheckout(cartItems, token) {
   try {
     new URL(data.url);
   } catch (e) {
-    console.error('Invalid checkout URL format:', data.url);
     throw new Error('Invalid checkout URL received from server');
   }
-
-  console.log('Redirecting to Stripe checkout:', data.url);
   
   // If backend returned an absolute URL, navigate there directly
   window.location.href = data.url;

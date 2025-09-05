@@ -8,11 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Package, Calendar, CreditCard, Eye, ArrowLeft, ShoppingBag } from 'lucide-react'
 
 export default function OrdersPage() {
-  console.log('OrdersPage component rendering...')
+  // OrdersPage - runtime logs removed per cleanup
   const { t } = useTranslation()
   const { isLoaded, isSignedIn, user } = useUser()
   const { getToken } = useAuth()
-  console.log('OrdersPage - isLoaded:', isLoaded, 'isSignedIn:', isSignedIn, 'user:', user)
   const router = useRouter()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -25,12 +24,8 @@ export default function OrdersPage() {
   }, [isLoaded]);
 
   useEffect(() => {
-    console.log('Orders page useEffect - isLoaded:', isLoaded, 'isSignedIn:', isSignedIn)
     if (isLoaded && isSignedIn) {
-      console.log('Calling fetchOrders...')
       fetchOrders()
-    } else {
-      console.log('Not calling fetchOrders - conditions not met')
     }
   }, [isLoaded, isSignedIn])
 
@@ -39,20 +34,15 @@ export default function OrdersPage() {
       setLoading(true)
       setError(null)
       
-      console.log('Fetching orders...')
-      console.log('User:', user)
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL)
-      
+  // runtime logs removed
       // Get token directly from Clerk
       const token = await getToken()
-      console.log('Got token:', token ? 'Yes' : 'No')
+      
       if (!token) {
         throw new Error('No authentication token available')
       }
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/customer/orders`
-      console.log('Making request to:', apiUrl)
-
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/customer/orders`
       const ordersResponse = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -60,20 +50,14 @@ export default function OrdersPage() {
         }
       })
 
-      console.log('Response status:', ordersResponse.status)
-      console.log('Response ok:', ordersResponse.ok)
-
       if (!ordersResponse.ok) {
         const errorText = await ordersResponse.text()
-        console.log('Error response:', errorText)
         throw new Error(`Failed to fetch orders: ${ordersResponse.status} ${errorText}`)
       }
 
       const ordersData = await ordersResponse.json()
-      console.log('Orders data:', ordersData)
       setOrders(ordersData)
     } catch (err) {
-      console.error('Error fetching orders:', err)
       setError(err.message)
     } finally {
       setLoading(false)

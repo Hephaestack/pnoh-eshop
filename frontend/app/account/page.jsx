@@ -40,39 +40,28 @@ export default function AccountPage() {
       setOrdersLoading(true)
       setOrdersError(null)
       
-      console.log('Fetching orders from account page...')
-      
       // Get token directly from Clerk
       const token = await getToken()
-      console.log('Got token:', token ? 'Yes' : 'No')
       if (!token) {
         throw new Error('No authentication token available')
       }
 
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/customer/orders`
-      console.log('Making request to:', apiUrl)
-
       const ordersResponse = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
-
-      console.log('Response status:', ordersResponse.status)
-      console.log('Response ok:', ordersResponse.ok)
-
       if (!ordersResponse.ok) {
         const errorText = await ordersResponse.text()
-        console.log('Error response:', errorText)
         throw new Error(`Failed to fetch orders: ${ordersResponse.status} ${errorText}`)
       }
 
       const ordersData = await ordersResponse.json()
-      console.log('Orders data:', ordersData)
       setOrders(ordersData)
     } catch (err) {
-      console.error('Error fetching orders:', err)
+      setOrdersError(err.message)
       setOrdersError(err.message)
     } finally {
       setOrdersLoading(false)
@@ -189,7 +178,7 @@ export default function AccountPage() {
           {/* Order History Section */}
           <div className="bg-[#232326] border border-[#404040] rounded-lg p-6 md:p-8">
             <h3 className="text-xl md:text-2xl font-medium text-white text-center border-b border-[#404040] pb-4 mb-8">
-              {t('account.order_history', 'Ιστορικό Παραγγελιών')}
+                {t('account.order_history', 'Ιστορικό Παραγγελιών')}
             </h3>
             
             {ordersLoading ? (
@@ -216,7 +205,7 @@ export default function AccountPage() {
                   <Package className="w-10 h-10 text-gray-400" />
                 </div>
                 <p className="text-gray-400 text-lg mb-8 text-center max-w-md">
-                  {t('account.no_orders', 'Δεν υπάρχουν παραγγελίες ακόμα. Αρχίστε να ψωνίζετε για να δείτε το ιστορικό των παραγγελιών σας εδώ!')}
+                    {t('account.no_orders', 'Δεν υπάρχουν παραγγελίες ακόμα. Αρχίστε να ψωνίζετε για να δείτε το ιστορικό των παραγγελιών σας εδώ!')}
                 </p>
                 <Button
                   className="bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-medium"
@@ -263,11 +252,11 @@ export default function AccountPage() {
                             order.status === 'cancelled' ? 'bg-red-400' :
                             'bg-gray-400'
                           }`}></div>
-                          {t(`account.orders.status.${order.status}`, 
-                            order.status === 'completed' || order.status === 'fulfilled' ? 'Ολοκληρώθηκε' :
-                            order.status === 'pending' ? 'Εκκρεμεί' :
-                            order.status === 'cancelled' ? 'Ακυρώθηκε' :
-                            order.status)}
+                            {t(`account.orders.status.${order.status}`, 
+                              order.status === 'completed' || order.status === 'fulfilled' ? 'Ολοκληρώθηκε' :
+                              order.status === 'pending' ? 'Εκκρεμεί' :
+                              order.status === 'cancelled' ? 'Ακυρώθηκε' :
+                              order.status)}
                         </span>
                       </div>
                     </div>
@@ -306,7 +295,7 @@ export default function AccountPage() {
                           {order.items.slice(0, 3).map((item, index) => (
                             <div key={index} className="flex items-center justify-between">
                               <span className="text-gray-300 text-sm">
-                                {item.quantity}× {item.product_name || t('account.orders.product', 'Προϊόν')}
+                                  {item.quantity}× {item.product_name || t('account.orders.product', 'Προϊόν')}
                               </span>
                               <span className="text-white text-sm font-medium">
                                 €{Number(item.unit_amount || 0).toFixed(2)}
@@ -315,7 +304,7 @@ export default function AccountPage() {
                           ))}
                           {order.items.length > 3 && (
                             <p className="text-gray-500 text-xs text-center pt-2">
-                              {t('account.orders.more_products', '+{count} περισσότερα προϊόντα', { count: order.items.length - 3 })}
+                                {t('account.orders.more_products', '+{count} περισσότερα προϊόντα', { count: order.items.length - 3 })}
                             </p>
                           )}
                         </div>
@@ -329,7 +318,7 @@ export default function AccountPage() {
                         onClick={() => showOrderDetails(order)}
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        Προβολή Λεπτομερειών
+                          {t('account.orders.view_details', 'Προβολή Λεπτομερειών')}
                       </Button>
                     </div>
                   </div>
@@ -360,7 +349,7 @@ export default function AccountPage() {
             <div className="p-6 border-b border-[#404040] flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-white">
-                  Παραγγελία #{selectedOrder.id.slice(-8).toUpperCase()}
+                  {t('account.orders.modal.title', 'Παραγγελία')} #{selectedOrder.id.slice(-8).toUpperCase()}
                 </h2>
                 <p className="text-gray-400 text-sm">
                   {new Date(selectedOrder.created_at).toLocaleDateString('el-GR', {
@@ -386,32 +375,32 @@ export default function AccountPage() {
             <div className="p-6 space-y-6">
               {/* Payment Status */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">Πληρωμή:</span>
+                <span className="text-gray-400">{t('account.orders.modal.payment_label', 'Πληρωμή:')}</span>
                 <span className="text-white">
-                  {selectedOrder.payment_status === 'succeeded' ? 'Ολοκληρώθηκε' :
-                   selectedOrder.payment_status === 'pending' ? 'Εκκρεμεί' :
-                   selectedOrder.payment_status === 'failed' ? 'Απέτυχε' :
-                   'Άγνωστη'}
+                  {selectedOrder.payment_status === 'succeeded' ? t('account.orders.modal.payment_status.succeeded', 'Ολοκληρώθηκε') :
+                   selectedOrder.payment_status === 'pending' ? t('account.orders.modal.payment_status.pending', 'Εκκρεμεί') :
+                   selectedOrder.payment_status === 'failed' ? t('account.orders.modal.payment_status.failed', 'Απέτυχε') :
+                   t('account.orders.modal.payment_status.unknown', 'Άγνωστη')}
                 </span>
               </div>
 
               {/* Order Items */}
               <div>
-                <h3 className="text-white font-medium mb-4">Προϊόντα παραγγελίας:</h3>
+                <h3 className="text-white font-medium mb-4">{t('account.orders.order_products', 'Προϊόντα παραγγελίας:')}</h3>
                 <div className="space-y-3">
                   {selectedOrder.items?.map((item, index) => (
                     <div key={index} className="bg-[#2a2a2d] rounded-lg p-4 flex items-center justify-between">
                       <div>
                         <p className="text-white font-medium">{item.product_name || 'Προϊόν'}</p>
-                        <p className="text-gray-400 text-sm">Ποσότητα: {item.quantity}</p>
+                        <p className="text-gray-400 text-sm">{t('account.orders.modal.quantity', 'Ποσότητα')}: {item.quantity}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-white font-medium">€{Number(item.unit_amount || 0).toFixed(2)}</p>
-                        <p className="text-gray-400 text-sm">€{Number(item.line_total || (item.unit_amount || 0) * item.quantity).toFixed(2)} σύνολο</p>
+                        <p className="text-gray-400 text-sm">€{Number(item.line_total || (item.unit_amount || 0) * item.quantity).toFixed(2)} {t('account.orders.modal.line_total_suffix', 'σύνολο')}</p>
                       </div>
                     </div>
-                  )) || (
-                    <p className="text-gray-400">Δεν υπάρχουν λεπτομέρειες προϊόντων</p>
+                    )) || (
+                    <p className="text-gray-400">{t('account.orders.modal.no_product_details', 'Δεν υπάρχουν λεπτομέρειες προϊόντων')}</p>
                   )}
                 </div>
               </div>
@@ -419,14 +408,14 @@ export default function AccountPage() {
               {/* Order Total */}
               <div className="border-t border-[#404040] pt-4">
                 <div className="flex items-center justify-between text-lg">
-                  <span className="text-white font-semibold">Συνολικό ποσό:</span>
+                  <span className="text-white font-semibold">{t('account.orders.modal.total_label', 'Συνολικό ποσό:')}</span>
                   <span className="text-white font-bold">€{Number(selectedOrder.total_amount).toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Order ID for Reference */}
               <div className="bg-[#2a2a2d] rounded-lg p-4">
-                <p className="text-gray-400 text-sm mb-1">ID Παραγγελίας:</p>
+                <p className="text-gray-400 text-sm mb-1">{t('account.orders.modal.order_id_label', 'ID Παραγγελίας:')}</p>
                 <p className="text-white font-mono text-sm">{selectedOrder.id}</p>
               </div>
             </div>

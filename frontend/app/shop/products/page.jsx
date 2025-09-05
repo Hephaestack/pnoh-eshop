@@ -57,7 +57,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
         hideTimerRef.current = null;
       }
       setAdded(false);
-      console.error("Error adding to cart:", err);
+  // error handled silently for user-facing flow; preserve rollback
     } finally {
       setAdding(false);
     }
@@ -236,8 +236,7 @@ function AllProductsPageInner() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const currentPath = window.location.pathname;
-      sessionStorage.setItem("previousPath", currentPath);
-      console.log("AllProductsPage - Saved current path:", currentPath);
+  sessionStorage.setItem("previousPath", currentPath);
     }
   }, []);
 
@@ -308,7 +307,7 @@ function AllProductsPageInner() {
           setSubcategories(formattedSubcategories);
         }
       } catch (error) {
-        console.error("Error fetching filters:", error);
+    // failed to load filters; fall back to hardcoded values below
         // Fallback to hardcoded values if API fails
         setCategories([
           { value: "all", label: t("all_categories", "All Categories") },
@@ -346,7 +345,7 @@ function AllProductsPageInner() {
         if (cachedProducts && cacheTimestamp && 
             (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
           // Use cached data - no loading needed
-          console.log('Using cached products data');
+          // using cached products silently
           const mappedProducts = JSON.parse(cachedProducts);
           setAllProducts(mappedProducts);
           setContentReady(true);
@@ -410,7 +409,7 @@ function AllProductsPageInner() {
           window.dispatchEvent(new Event("page-ready"));
         }, 50);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        // suppressed product fetch error
         setError(err.message);
       } finally {
         setLoading(false);
