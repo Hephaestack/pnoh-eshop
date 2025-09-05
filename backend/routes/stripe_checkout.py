@@ -114,6 +114,7 @@ def create_checkout_session(
         success_url=success_url,
         cancel_url=cancel_url,
         billing_address_collection="auto",
+        phone_number_collection={"enabled": True},
         shipping_address_collection={"allowed_countries": ["GR", "DE", "FR", "IT", "ES", "GB"]},
         allow_promotion_codes=True,
         metadata={
