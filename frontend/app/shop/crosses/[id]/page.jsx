@@ -1,11 +1,5 @@
-import React from 'react'
+import IndividualProductPage from "../../../../components/shop/IndividualProductPage";
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+export default function CrossPage({ params }) {
+  return <IndividualProductPage params={params} category="crosses" />;
 }
-
-export default page

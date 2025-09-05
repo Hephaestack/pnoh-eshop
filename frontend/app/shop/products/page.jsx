@@ -316,6 +316,7 @@ function AllProductsPageInner() {
           { value: "bracelets", label: t("bracelets") },
           { value: "necklaces", label: t("necklaces") },
           { value: "earrings", label: t("earrings") },
+          { value: "crosses", label: t("crosses") },
         ]);
         setSubcategories([
           { value: "all", label: t("all_themes", "All Themes") },

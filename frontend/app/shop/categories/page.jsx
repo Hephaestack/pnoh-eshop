@@ -37,6 +37,12 @@ export default function CategoriesPage() {
       image: '/placeholder-earrings.jpg',
       href: '/shop/earrings', 
       themes: ['classic', 'ethnic', 'one-of-a-kind']
+    },
+    {
+      name: 'crosses',
+      image: '/placeholder-cross.jpg',
+      href: '/shop/crosses', 
+      themes: []
     }
   ];
 

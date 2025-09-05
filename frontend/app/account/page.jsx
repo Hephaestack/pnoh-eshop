@@ -40,126 +40,97 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-[#18181b] py-12">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-2xl mx-auto px-4">
         <div className="space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-white">
-              {t('account.title') || 'My Account'}
+              {t('account.title', 'Ο Λογαριασμός μου')}
             </h1>
             <p className="text-gray-400">
-              {t('account.subtitle') || 'Manage your account settings and preferences'}
+              {t('account.subtitle', 'Διαχειριστείτε τις ρυθμίσεις και τις προτιμήσεις του λογαριασμού σας')}
             </p>
           </div>
 
           {/* User Profile Card */}
-          <div className="bg-[#232326] border border-[#404040] rounded-lg p-6 space-y-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-[#404040] rounded-full flex items-center justify-center">
+          <div className="bg-[#232326] border border-[#404040] rounded-lg p-8 space-y-8">
+            {/* User Header */}
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="w-20 h-20 bg-[#404040] rounded-full flex items-center justify-center">
                 {user.imageUrl ? (
                   <img
                     src={user.imageUrl}
                     alt="Profile"
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-20 h-20 rounded-full object-cover"
                   />
                 ) : (
-                  <User className="w-8 h-8 text-gray-400" />
+                  <User className="w-10 h-10 text-gray-400" />
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-2xl font-semibold text-white">
                   {user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User'}
                 </h2>
-                <p className="text-gray-400">{user.primaryEmailAddress?.emailAddress}</p>
+                <p className="text-gray-400 text-lg">{user.primaryEmailAddress?.emailAddress}</p>
               </div>
             </div>
 
-            {/* Account Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white border-b border-[#404040] pb-2">
-                  {t('account.personal_info') || 'Personal Information'}
-                </h3>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-400">{t('account.full_name') || 'Full Name'}</p>
-                      <p className="text-white">
-                        {user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Not provided'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-400">{t('account.email') || 'Email'}</p>
-                      <p className="text-white">{user.primaryEmailAddress?.emailAddress}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-400">{t('account.member_since') || 'Member Since'}</p>
-                      <p className="text-white">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
-                      </p>
-                    </div>
+            {/* Personal Information */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-medium text-white text-center border-b border-[#404040] pb-3">
+                {t('account.personal_info', 'Προσωπικές Πληροφορίες')}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="flex flex-col items-center space-y-2 text-center">
+                  <User className="w-6 h-6 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-400">{t('account.full_name', 'Πλήρες Όνομα')}</p>
+                    <p className="text-white text-lg font-medium">
+                      {user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Δεν έχει οριστεί'}
+                    </p>
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white border-b border-[#404040] pb-2">
-                  {t('account.account_settings') || 'Account Settings'}
-                </h3>
-                
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start border-[#404040] bg-transparent text-white hover:bg-[#404040] hover:text-white"
-                    onClick={() => {
-                      // This would typically open Clerk's user profile modal
-                      // For now, we'll just show a message
-                      alert(t('account.edit_profile_notice') || 'Profile editing will be available soon')
-                    }}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    {t('account.edit_profile') || 'Edit Profile'}
-                  </Button>
+                <div className="flex flex-col items-center space-y-2 text-center">
+                  <Mail className="w-6 h-6 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-400">{t('account.email', 'Email')}</p>
+                    <p className="text-white text-lg font-medium">{user.primaryEmailAddress?.emailAddress}</p>
+                  </div>
+                </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start border-[#404040] bg-transparent text-white hover:bg-[#404040] hover:text-white"
-                    onClick={() => {
-                      alert(t('account.change_password_notice') || 'Password change will be available soon')
-                    }}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    {t('account.change_password') || 'Change Password'}
-                  </Button>
+                <div className="flex flex-col items-center space-y-2 text-center md:col-span-2">
+                  <Calendar className="w-6 h-6 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-400">{t('account.member_since', 'Μέλος από')}</p>
+                    <p className="text-white text-lg font-medium">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('el-GR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : 'Άγνωστο'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Order History Section (Placeholder) */}
-          <div className="bg-[#232326] border border-[#404040] rounded-lg p-6">
-            <h3 className="text-lg font-medium text-white border-b border-[#404040] pb-2 mb-4">
-              {t('account.order_history') || 'Order History'}
+          {/* Order History Section */}
+          <div className="bg-[#232326] border border-[#404040] rounded-lg p-8">
+            <h3 className="text-xl font-medium text-white text-center border-b border-[#404040] pb-3 mb-6">
+              {t('account.order_history', 'Ιστορικό Παραγγελιών')}
             </h3>
             <div className="text-center py-8">
-              <p className="text-gray-400">
-                {t('account.no_orders') || 'No orders yet. Start shopping to see your order history here!'}
+              <p className="text-gray-400 text-lg mb-6">
+                {t('account.no_orders', 'Δεν υπάρχουν παραγγελίες ακόμα. Αρχίστε να ψωνίζετε για να δείτε το ιστορικό των παραγγελιών σας εδώ!')}
               </p>
               <Button
-                className="mt-4 bg-white text-black hover:bg-gray-200"
-                onClick={() => router.push('/collections')}
+                className="mt-4 bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg"
+                onClick={() => router.push('/shop/products')}
               >
-                {t('account.start_shopping') || 'Start Shopping'}
+                {t('account.start_shopping', 'Αρχίστε να Ψωνίζετε')}
               </Button>
             </div>
           </div>
@@ -169,10 +140,10 @@ export default function AccountPage() {
             <Button
               variant="outline"
               onClick={handleSignOut}
-              className="border-red-500/20 bg-transparent text-red-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
+              className="border-red-500/20 bg-transparent text-red-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 px-8 py-3 text-lg"
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              {t('account.sign_out') || 'Sign Out'}
+              <LogOut className="w-5 h-5 mr-2" />
+              {t('account.sign_out', 'Αποσύνδεση')}
             </Button>
           </div>
         </div>

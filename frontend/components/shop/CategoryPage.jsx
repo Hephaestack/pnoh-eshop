@@ -355,6 +355,18 @@ function CategoryPageInner({ category }) {
           }
         );
         if (!response.ok) {
+          // Handle 404 as empty category (no products found)
+          if (response.status === 404) {
+            console.log(`No products found for category: ${category}`);
+            setAllProducts([]);
+            setContentReady(true);
+            
+            // Signal to the root layout that this page is ready
+            setTimeout(() => {
+              window.dispatchEvent(new Event("page-ready"));
+            }, 50);
+            return;
+          }
           throw new Error(`Failed to fetch products: ${response.status}`);
         }
 
@@ -472,6 +484,14 @@ function CategoryPageInner({ category }) {
           "Find the perfect earrings for any occasion"
         ),
         placeholder: "/placeholder-earrings.jpg",
+      },
+      crosses: {
+        title: t("crosses"),
+        description: t(
+          "crosses_category_desc",
+          "Discover our sacred collection of handcrafted crosses"
+        ),
+        placeholder: "/placeholder-cross.jpg",
       },
     };
     return categoryData[category] || categoryData.rings;
@@ -601,44 +621,47 @@ function CategoryPageInner({ category }) {
 
       {/* Filters and Controls */}
       <div className="flex flex-col items-center justify-center gap-4 mb-8 md:flex-row md:items-center md:justify-between">
-        <div className="relative">
-          <motion.select
-            value={selectedTheme}
-            onChange={(e) => handleThemeChange(e.target.value)}
-            className="appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
-            whileHover={{ borderColor: "rgba(188, 188, 188, 0.4)" }}
-            whileFocus={{ borderColor: "rgba(188, 188, 188, 0.6)" }}
-            transition={{ duration: 0.2 }}
-          >
-            {subcategories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
-          </motion.select>
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
-            {/* Custom dropdown SVG */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden
+        {/* Theme filter - only show for categories that have subcategories */}
+        {category !== "crosses" && (
+          <div className="relative">
+            <motion.select
+              value={selectedTheme}
+              onChange={(e) => handleThemeChange(e.target.value)}
+              className="appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55]"
+              whileHover={{ borderColor: "rgba(188, 188, 188, 0.4)" }}
+              whileFocus={{ borderColor: "rgba(188, 188, 188, 0.6)" }}
+              transition={{ duration: 0.2 }}
             >
-              <path
-                d="M7 10l5 5 5-5"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-        </div>
+              {subcategories.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </motion.select>
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
+              {/* Custom dropdown SVG */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <path
+                  d="M7 10l5 5 5-5"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
+        )}
 
         {/* View Mode Toggle */}
-        <div className="items-center hidden gap-2 lg:flex">
+        <div className={`items-center hidden gap-2 lg:flex ${category === "crosses" ? "ml-auto" : ""}`}>
           <motion.button
             onClick={() => setViewMode("grid")}
             className={`p-2 rounded-lg ${

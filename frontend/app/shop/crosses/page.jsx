@@ -1,11 +1,9 @@
-import React from 'react'
+"use client"
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+import CategoryPage from "../../../components/shop/CategoryPage";
+
+export default function CrossesPage() {
+ 
+  
+  return <CategoryPage category="crosses" />;
 }
-
-export default page
