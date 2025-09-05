@@ -107,7 +107,6 @@ def create_checkout_session(
 
     if not FRONTEND_URL.startswith(("http://", "https://")):
         raise HTTPException(status_code=500, detail="Invalid FRONTEND_URL configuration")
-    # idempotency_key = f"checkout_{cart.id}"
 
     session = stripe.checkout.Session.create(
         mode="payment",
@@ -122,8 +121,14 @@ def create_checkout_session(
             "user_id": (auth or {}).get("user_id") or "",
             "guest_session_id": guest_session_id or "",
         },
-        # payment_intent_data={"metadata": {...}}  # optional duplicate metadata at PI level
-        # customer_creation="if_required",  # creates a Customer if needed
+        idempotency_key=f"checkout_{cart.id}",
+        payment_intent_data={
+            "metadata": {
+                "cart_id": str(cart.id),
+                "user_id": (auth or {}).get("user_id") or "",
+                "guest_session_id": guest_session_id or "",
+            }
+        }
     )
 
     return {"url": session.url}
