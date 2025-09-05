@@ -288,7 +288,7 @@ export function Header() {
                     />
                     <MegaMenuItem
                       href="/shop/crosses"
-                      img="#"
+                      img="/products/cross.jpeg"
                       label={t("crosses")}
                       onClick={() => setJewelryOpen(false)}
                     />
