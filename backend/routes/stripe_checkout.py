@@ -1,13 +1,15 @@
+import json
 from typing import Dict, List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 from sqlalchemy.orm import Session
 import os
+
+from utils.orders import create_order_from_checkout_session
 from utils.database import get_db
 from utils.user_auth import get_current_user_optional, get_or_create_guest_session
 from utils.stripe_client import stripe
 from utils.dropbox_image import normalize_dropbox
-
 from db.models.cart import Cart
 from db.models.cart_item import CartItem
 from db.models.product import Product
@@ -129,48 +131,58 @@ def create_checkout_session(
 
 @router.post("/stripe/webhook", tags=["Stripe"])
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
-    if not WEBHOOK_SECRET:
-        payload = await request.body()
-        event = stripe.Event.construct_from(request.json(), stripe.api_key)
-    else:
-        payload = await request.body()
-        sig_header = request.headers.get("stripe-signature")
-        try:
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        if WEBHOOK_SECRET:
             event = stripe.Webhook.construct_event(
                 payload=payload, sig_header=sig_header, secret=WEBHOOK_SECRET
             )
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid payload")
-        except stripe.error.SignatureVerificationError:
-            raise HTTPException(status_code=400, detail="Invalid signature")
+        else:
+            event = json.loads(payload.decode("utf-8"))
+    except (ValueError, stripe.error.SignatureVerificationError):
+        raise HTTPException(status_code=400, detail="Invalid payload or signature")
 
-    if event["type"] == "checkout.session.completed":
-        session: dict = event["data"]["object"]
-        # Retrieve line items if you need details:
-        # line_items = stripe.checkout.Session.list_line_items(session["id"], limit=100)
-        cart_id = session.get("metadata", {}).get("cart_id")
-        user_id = session.get("metadata", {}).get("user_id") or None
-        guest_session_id = session.get("metadata", {}).get("guest_session_id") or None
+    event_type = event["type"] if isinstance(event, dict) else event["type"]
+    obj = event["data"]["object"]
 
-        # TODO: Create Order & OrderItems from the cart (server-side authoritative prices)
-        # Example:
-        # order = Order(..., total_amount=session["amount_total"]/100, currency=session["currency"], user_id=user_id, email=session["customer_details"]["email"], status="paid")
-        # db.add(order); db.commit()
-        # for each cart item -> create OrderItem
-        # Clear the cart after successful payment:
-        if cart_id:
-            cart = db.query(Cart).filter(Cart.id == cart_id).first()
-            if cart:
-                # delete all cart items
-                db.query(CartItem).filter(CartItem.cart_id == cart.id).delete()
+    if event_type == "checkout.session.completed":
+        session_id = obj["id"]
+
+        # 2) Re-fetch with expands so your helper gets consistent shapes
+        session = stripe.checkout.Session.retrieve(
+            session_id,
+            expand=[
+                "payment_intent",
+                "total_details",           # taxes/discounts (if used)
+                "shipping_details",        # ensure present
+                "customer_details",        # already present on Session but keep it consistent
+                "line_items"               # optional; you currently reprice from Cart
+            ],
+        )
+
+        # 3) Create (or fetch existing) Order from your authoritative cart/DB prices
+        order, created = create_order_from_checkout_session(db, session)
+
+        # 4) Clear cart only if the session is paid
+        # Stripe sends 'payment_status' on the Checkout Session
+        if session.get("payment_status") == "paid":
+            md = session.get("metadata") or {}
+            cart_id = md.get("cart_id")
+            if cart_id:
+                db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
                 db.commit()
 
-    elif event["type"] in (
-        "payment_intent.succeeded",
-        "payment_intent.payment_failed",
-        "charge.refunded",
-        # add more events you care about
-    ):
-        pass  # handle if you need
+        # It’s OK if this webhook fires multiple times; your helper is idempotent
+        return {"received": True, "order_id": str(order.id), "created": created}
 
+    # (Optional) Handle other lifecycle events if you need them later
+    elif event_type == "payment_intent.succeeded":
+        # You can upsert a payment log or reconcile if needed
+        return {"received": True}
+    elif event_type in ("payment_intent.payment_failed", "charge.refunded", "charge.refund.updated"):
+        return {"received": True}
+
+    # Unhandled events
     return {"received": True}
