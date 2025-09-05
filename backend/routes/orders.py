@@ -7,6 +7,7 @@ from sqlalchemy import cast, or_, and_, String
 from zoneinfo import ZoneInfo
 import stripe
 
+from utils.user_auth import get_current_user
 from utils.database import get_db
 from utils.admin_auth import get_current_admin, Admin
 from db.models.order import Order, OrderStatus, PaymentStatus
@@ -154,3 +155,38 @@ def confirm_order(
         "payment_intent_status": (pi or {}).get("status"),
         "order_id": getattr(order, "id", None) if order else None
     }
+
+@router.get("/customer/orders", response_model=List[OrderOut], tags=["Orders"])
+def get_customer_orders(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    orders = (
+        db.query(Order)
+        .options(joinedload(Order.items))
+        .filter(Order.user_id == current_user.id)
+        .all()
+    )
+
+    return orders
+
+@router.get("/customer/order/{order_id}", response_model=OrderOut, tags=["Orders"])
+def get_customer_order(
+    order_id: UUID,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    order = (
+        db.query(Order)
+        .options(joinedload(Order.items))
+        .filter(
+            Order.id == order_id,
+            Order.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    return order
