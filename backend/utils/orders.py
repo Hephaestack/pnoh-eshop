@@ -88,11 +88,11 @@ def create_order_from_checkout_session(
             stripe_payment_intent_id=_pi_id(checkout_session),
             stripe_checkout_session_id=session_id,
             # Store flattened JSON-safe copies (avoid raw StripeObject)
-            customer_details_json={
+            customer_details={
                 "email": _get_email_from_session(checkout_session),
                 **_addr_to_fields(checkout_session.get("customer_details"))
             },
-            shipping_details_json=_addr_to_fields(checkout_session.get("shipping_details")),
+            shipping_details=_addr_to_fields(checkout_session.get("shipping_details")),
             extra_metadata=meta,
         )
         db.add(order)
@@ -168,11 +168,11 @@ def create_order_from_checkout_session(
         billing_postal_code=bill.get("postal_code"),
         billing_country=bill.get("country"),
         # JSON-safe copies:
-        customer_details_json={
+        customer_details={
             "email": _get_email_from_session(checkout_session),
             **bill
         },
-        shipping_details_json=ship,
+        shipping_details=ship,
         extra_metadata=meta,
     )
     db.add(order)

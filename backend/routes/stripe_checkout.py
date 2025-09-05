@@ -121,7 +121,7 @@ def create_checkout_session(
             "user_id": (auth or {}).get("user_id") or "",
             "guest_session_id": guest_session_id or "",
         },
-        idempotency_key=f"checkout_{cart.id}",
+        # idempotency_key=f"checkout_{cart.id}",
         payment_intent_data={
             "metadata": {
                 "cart_id": str(cart.id),
@@ -161,14 +161,21 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             expand=[
                 "payment_intent",
                 "total_details",           # taxes/discounts (if used)
-                "shipping_details",        # ensure present
                 "customer_details",        # already present on Session but keep it consistent
                 "line_items"               # optional; you currently reprice from Cart
             ],
         )
 
         # 3) Create (or fetch existing) Order from your authoritative cart/DB prices
-        order, created = create_order_from_checkout_session(db, session)
+        try:
+            print(f"Calling create_order_from_checkout_session for session: {session_id}")
+            order, created = create_order_from_checkout_session(db, session)
+            print(f"Order created successfully: {order.id}, created: {created}")
+        except Exception as e:
+            print(f"ERROR in create_order_from_checkout_session: {type(e).__name__}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise e
 
         # 4) Clear cart only if the session is paid
         # Stripe sends 'payment_status' on the Checkout Session
@@ -177,6 +184,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             cart_id = md.get("cart_id")
             if cart_id:
                 db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
+                db.query(Cart).filter(Cart.id == cart_id).delete()
                 db.commit()
 
         # It’s OK if this webhook fires multiple times; your helper is idempotent
