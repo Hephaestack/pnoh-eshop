@@ -390,8 +390,42 @@
     "start_shopping": "Start Shopping",
     "sign_out": "Sign Out",
     "edit_profile_notice": "Profile editing will be available soon",
-    "change_password_notice": "Password change will be available soon"
-  },
+    "change_password_notice": "Password change will be available soon",
+    "orders": {
+      "loading": "Loading orders...",
+      "error": "Failed to load orders",
+      "retry": "Try again",
+      "status": {
+        "completed": "Completed",
+        "fulfilled": "Fulfilled",
+        "pending": "Pending",
+        "cancelled": "Cancelled"
+      },
+      "products": "Products",
+      "order_time": "Order Time",
+      "total": "Total",
+      "order_products": "Order products:",
+      "product": "Product",
+      "more_products": "+{{count}} more products",
+        "view_details": "View Details",
+        "modal": {
+          "title": "Order",
+          "payment_label": "Payment:",
+          "payment_status": {
+            "succeeded": "Succeeded",
+            "pending": "Pending",
+            "failed": "Failed",
+            "unknown": "Unknown"
+          },
+          "quantity": "Quantity",
+          "line_total_suffix": "total",
+          "no_product_details": "No product details available",
+          "total_label": "Total amount:",
+          "order_id_label": "Order ID:"
+        }
+      }
+    },
+    
 
   "cart": {
     "empty_title": "Your cart is empty",

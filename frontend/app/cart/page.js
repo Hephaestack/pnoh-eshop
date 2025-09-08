@@ -382,7 +382,6 @@ function CartPageInner() {
                           const token = await getToken();
                           await startCheckout(cart.items, token);
                         } catch (err) {
-                          console.error("Checkout failed", err);
                           alert(err?.message || t("cart.checkout_failed"));
                         }
                       }}

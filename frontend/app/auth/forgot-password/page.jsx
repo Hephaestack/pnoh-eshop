@@ -40,7 +40,6 @@ export default function ForgotPasswordPage() {
       })
       setEmailSent(true)
     } catch (err) {
-      console.error('Password reset error:', err)
       const errorMessages = {}
       
       if (err.errors) {

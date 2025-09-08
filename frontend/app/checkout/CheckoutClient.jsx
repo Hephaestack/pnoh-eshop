@@ -54,8 +54,7 @@ export default function CheckoutClient() {
       await startCheckout(cart.items, token);
       router.push("/checkout/success");
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Checkout failed");
+  setError(err.message || "Checkout failed");
       setProcessing(false);
     }
   }

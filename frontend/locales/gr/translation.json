@@ -377,9 +377,41 @@
       "start_shopping": "Αρχίστε να Ψωνίζετε",
       "sign_out": "Αποσύνδεση",
       "edit_profile_notice": "Η επεξεργασία προφίλ θα είναι διαθέσιμη σύντομα",
-      "change_password_notice": "Η αλλαγή κωδικού θα είναι διαθέσιμη σύντομα"
-    }
-  },
+      "change_password_notice": "Η αλλαγή κωδικού θα είναι διαθέσιμη σύντομα",
+      "orders": {
+        "loading": "Φόρτωση παραγγελιών...",
+        "error": "Σφάλμα φόρτωσης παραγγελιών",
+        "retry": "Προσπάθεια ξανά",
+        "status": {
+          "completed": "Ολοκληρώθηκε",
+          "fulfilled": "Ολοκληρώθηκε",
+          "pending": "Εκκρεμεί",
+          "cancelled": "Ακυρώθηκε"
+        },
+        "products": "Προϊόντα",
+        "order_time": "Ώρα παραγγελίας",
+        "total": "Σύνολο",
+        "order_products": "Προϊόντα παραγγελίας:",
+        "product": "Προϊόν",
+        "more_products": "+{{count}} περισσότερα προϊόντα",
+        "view_details": "Προβολή Λεπτομερειών",
+        "modal": {
+          "title": "Παραγγελία",
+          "payment_label": "Πληρωμή:",
+          "payment_status": {
+            "succeeded": "Ολοκληρώθηκε",
+            "pending": "Εκκρεμεί",
+            "failed": "Απέτυχε",
+            "unknown": "Άγνωστη"
+          },
+          "quantity": "Ποσότητα",
+          "line_total_suffix": "σύνολο",
+          "no_product_details": "Δεν υπάρχουν λεπτομέρειες προϊόντων",
+          "total_label": "Συνολικό ποσό:",
+          "order_id_label": "ID Παραγγελίας:"
+        }
+      }
+    },
 
   "cart": {
     "empty_title": "Το καλάθι σας είναι άδειο",
@@ -424,4 +456,5 @@
     "line2": "η αιωνιότητα σε άγγιγμα",
     "author": "— Πνοή.»"
   }
+}
 }
