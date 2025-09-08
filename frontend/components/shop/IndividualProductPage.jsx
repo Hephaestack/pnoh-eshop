@@ -28,6 +28,7 @@ function IndividualProductPage({ params, category }) {
 
   const { addToCart } = useCart();
   const [adding, setAdding] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
 
   const { t } = useTranslation();
@@ -67,6 +68,21 @@ function IndividualProductPage({ params, category }) {
       setAdded(false);
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!productData) return;
+    setBuyingNow(true);
+
+    try {
+      await addToCart(productData.id, 1);
+      router.push('/cart');
+    } catch (err) {
+      // Error adding to cart, stay on current page
+      console.error('Error adding to cart:', err);
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -472,8 +488,14 @@ function IndividualProductPage({ params, category }) {
                 )}
               </button>
               
-              <button className="relative px-8 py-4 overflow-hidden text-base font-medium text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm">
-                <span className="relative z-10">{t("buy_now", "Buy Now")}</span>
+              <button 
+                className="relative px-8 py-4 overflow-hidden text-base font-medium text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm"
+                onClick={handleBuyNow}
+                disabled={buyingNow}
+              >
+                <span className="relative z-10">
+                  {buyingNow ? t("buying", "Buying...") : t("buy_now", "Buy Now")}
+                </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               </button>
             </div>

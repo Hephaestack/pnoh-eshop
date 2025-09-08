@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,7 +41,9 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { addToCart, cart } = useCart();
   const [adding, setAdding] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
+  const router = useRouter();
 
   const hideTimerRef = React.useRef(null);
 
@@ -63,6 +66,21 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
       // suppressed addToCart error
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    setBuyingNow(true);
+
+    try {
+      await addToCart(product.id, 1);
+      router.push('/cart');
+    } catch (err) {
+      // Error adding to cart, stay on current page
+      console.error('Error adding to cart:', err);
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -140,8 +158,10 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   transition: { duration: 0.15 },
                 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
               >
-                {t("buy_now")}
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
               </motion.button>
             </div>
           </div>
@@ -205,8 +225,10 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   transition: { duration: 0.12 },
                 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
               >
-                {t("buy_now")}
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
               </motion.button>
             </div>
           </div>

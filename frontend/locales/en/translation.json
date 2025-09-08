@@ -7,7 +7,7 @@
     "retry": "Retry",
     "swipe_hint": "Swipe",
     "view_product": "View Product",
-    "shop_all": "Shop All",
+    "shop_all": "View all products",
     "loading": "Loading..."
   },
   "shipping_notice": "For orders over €150, shipping is free. Orders are shipped within 1-2 business days.",
@@ -55,6 +55,7 @@
   "adding": "Adding...",
   "added": "Added!",
   "buy_now": "Buy Now",
+  "buying": "Buying...",
   "previous_page": "Previous",
   "next_page": "Next",
   "page": "Page",

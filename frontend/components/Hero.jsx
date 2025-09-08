@@ -9,21 +9,51 @@ import { useRouter } from "next/navigation";
 // Fallback items in case API fails - empty array to force API usage
 const fallbackItems = [];
 
+// Cache for products to avoid refetching on navigation
+let productsCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export function Hero() {
   const { t } = useTranslation();
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState(() => {
+    // Initialize with cached data if available
+    return productsCache && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION 
+      ? productsCache 
+      : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    // Start with false if we have cached data
+    return !productsCache || (Date.now() - cacheTimestamp) > CACHE_DURATION;
+  });
+  const [showContent, setShowContent] = useState(false);
   const intervalRef = useRef();
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
 
-  // Fetch products for hero carousel
+  // Fetch products for hero carousel with caching
   useEffect(() => {
     const fetchProducts = async () => {
+      // Check if we have valid cached data
+      if (productsCache && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
+        setItems(productsCache);
+        setLoading(false);
+        // Small delay to ensure smooth fade-in
+        setTimeout(() => setShowContent(true), 50);
+        return;
+      }
+
+      setLoading(true);
+      
       try {
-        const response = await fetch("http://localhost:8000/products/all");
+        const response = await fetch("http://localhost:8000/products/all", {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
 
         if (response.ok) {
           const products = await response.json();
@@ -39,8 +69,8 @@ export function Hero() {
               ] = [shuffledProducts[j], shuffledProducts[i]];
             }
 
-            // Take EXACTLY 5 products maximum from the shuffled array
-            const selectedProducts = shuffledProducts.slice(0, 5);
+            // Take EXACTLY 10 products maximum from the shuffled array
+            const selectedProducts = shuffledProducts.slice(0, 10);
 
             // Transform products to carousel items and fix image URLs
             const carouselItems = selectedProducts.map((product, index) => {
@@ -55,13 +85,13 @@ export function Hero() {
                 let url = product.image_url[0];
                 // Convert Dropbox share URL to direct URL
                 if (url.includes("dropbox.com") && url.includes("dl=0")) {
-                  url = url.replace("dl=0", "dl=1");
+                  url = url.replace("dl=0", "raw=1");
                 }
                 imageUrl = url;
               } else if (product.image_url && typeof product.image_url === "string") {
                 let url = product.image_url;
                 if (url.includes("dropbox.com") && url.includes("dl=0")) {
-                  url = url.replace("dl=0", "dl=1");
+                  url = url.replace("dl=0", "raw=1");
                 }
                 imageUrl = url;
               }
@@ -71,16 +101,20 @@ export function Hero() {
                 title: product.name || `Product ${index + 1}`,
                 img: imageUrl,
                 price: product.price || 0,
-                category: product.category,
+                category: product.category ? product.category.toLowerCase() : 'rings',
                 description: product.description,
               };
 
               return item;
             });
 
-            // FORCE exactly 5 items maximum
-            const finalItems = carouselItems.slice(0, 5);
+            // FORCE exactly 10 items maximum
+            const finalItems = carouselItems.slice(0, 10);
 
+            // Cache the processed items
+            productsCache = finalItems;
+            cacheTimestamp = Date.now();
+            
             setItems(finalItems);
 
             // Preload first few images for better performance
@@ -92,19 +126,35 @@ export function Hero() {
             });
           } else {
             setItems([]);
+            productsCache = [];
+            cacheTimestamp = Date.now();
           }
         } else {
           setItems([]);
+          productsCache = [];
+          cacheTimestamp = Date.now();
         }
       } catch (error) {
         setItems([]);
+        productsCache = [];
+        cacheTimestamp = Date.now();
       } finally {
         setLoading(false);
+        // Delay showing content to ensure smooth fade-in
+        setTimeout(() => setShowContent(true), 100);
       }
     };
 
     fetchProducts();
   }, []);
+
+  // Initialize showContent for cached data
+  useEffect(() => {
+    if (!loading && items.length > 0) {
+      const timer = setTimeout(() => setShowContent(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, items.length]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
@@ -119,7 +169,12 @@ export function Hero() {
   const handleImageClick = () => {
     const currentItem = items[currentIndex];
     if (currentItem?.id && currentItem?.category) {
-      router.push(`/shop/${currentItem.category}/${currentItem.id}`);
+      // Ensure category is properly formatted for the route
+      const category = currentItem.category.toLowerCase().trim();
+      const productId = currentItem.id;
+      
+      // Navigate to the product page
+      router.push(`/shop/${category}/${productId}`);
     }
   };
 
@@ -180,18 +235,50 @@ export function Hero() {
   }, [handleNext, handlePrev]);
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden">
-      {/* Multi-layer Background with Depth */}
+    <motion.div 
+      className="relative w-full min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: showContent ? 1 : 0 }}
+      transition={{ 
+        duration: 0.6, 
+        ease: [0.25, 0.46, 0.45, 0.94] 
+      }}
+    >
+      {/* Enhanced Multi-layer Background with Silver Tones */}
       <div className="absolute inset-0">
-        {/* Primary depth layer */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(64,64,64,0.15),_transparent_70%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(96,96,96,0.08),_transparent_60%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(32,32,32,0.2),_transparent_50%)]"></div>
+        {/* Primary depth layer with silver accents */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(192,192,192,0.08),_transparent_70%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(169,169,169,0.06),_transparent_60%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(128,128,128,0.1),_transparent_50%)]"></div>
 
-        {/* Secondary depth layer */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(64,64,64,0.08),_transparent_50%)] opacity-60"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(96,96,96,0.03),_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(64,64,64,0.04),_transparent_50%)]"></div>
+        {/* Secondary depth layer with silver shimmer */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(192,192,192,0.05),_transparent_50%)] opacity-80"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(211,211,211,0.04),_transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(169,169,169,0.03),_transparent_50%)]"></div>
+
+        {/* Animated silver particles */}
+        <div className="absolute inset-0">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-silver-400/20 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${3 + Math.random() * 2}s`,
+                boxShadow: '0 0 4px rgba(192,192,192,0.3)'
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Silver mesh overlay */}
+        <div className="absolute inset-0 opacity-[0.02]" 
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C0C0C0' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
 
         {/* Subtle noise texture for depth */}
         <div
@@ -217,8 +304,8 @@ export function Hero() {
         </div>
       )}
 
-      {/* No Products State */}
-      {!loading && items.length === 0 && (
+      {/* No Products State - Only show after content is ready to prevent flash */}
+      {!loading && showContent && items.length === 0 && (
         <div className="flex items-center justify-center min-h-screen">
           <div className="max-w-md p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
             <h2 className="mb-4 text-2xl font-light text-neutral-200">
@@ -238,7 +325,7 @@ export function Hero() {
       )}
 
       {/* Hero Content - Horizontal Carousel */}
-      {!loading && items.length > 0 && (
+      {!loading && showContent && items.length > 0 && (
         <div
           className="relative flex items-center min-h-screen p-4 md:p-8 touch-pan-y"
           style={{ touchAction: "pan-y" }}
@@ -355,14 +442,27 @@ export function Hero() {
                     }}
                     transition={{ duration: 0.7, ease: "easeOut" }}
                   >
-                    {/* Glass Card Container */}
+                    {/* Glass Card Container with Silver Accents */}
                     <div
-                      className={`relative bg-neutral-900/20 backdrop-blur-lg border border-neutral-700/30 rounded-3xl overflow-hidden shadow-2xl ${
-                        isActive ? "shadow-neutral-500/10" : "shadow-black/30"
+                      className={`relative backdrop-blur-lg border rounded-3xl overflow-hidden shadow-2xl transition-all duration-700 ${
+                        isActive 
+                          ? "bg-gradient-to-br from-neutral-900/30 via-neutral-800/20 to-neutral-900/30 border-silver-400/30 shadow-silver-500/20" 
+                          : "bg-gradient-to-br from-neutral-900/20 via-neutral-800/15 to-neutral-900/20 border-neutral-700/30 shadow-black/30"
                       }`}
+                      style={{
+                        boxShadow: isActive 
+                          ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(192, 192, 192, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                          : '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(115, 115, 115, 0.1)'
+                      }}
                     >
-                      {/* Image Container */}
-                      <div className="relative w-80 sm:w-96 md:w-80 lg:w-[440px] xl:w-[480px] h-96 sm:h-[450px] md:h-96 lg:h-[520px] xl:h-[560px] mx-auto">
+                      {/* Image Container with Silver Frame */}
+                      <div className={`relative w-80 sm:w-96 md:w-80 lg:w-[440px] xl:w-[480px] h-96 sm:h-[450px] md:h-96 lg:h-[520px] xl:h-[560px] mx-auto ${
+                        isActive ? 'ring-1 ring-silver-400/20' : ''
+                      }`}>
+                        {/* Silver inner glow for active item */}
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-400/5 to-transparent animate-pulse"></div>
+                        )}
                         <Image
                           src={item.img || "/images/test2.jpg"}
                           alt={item.title || "Product"}
@@ -410,7 +510,12 @@ export function Hero() {
                                 {t("hero.view_product")}
                               </button>
                               <Link href="/shop/products" className="w-full">
-                                <button className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-300 transition-all duration-300 bg-transparent border border-neutral-600/50 rounded-full hover:bg-neutral-800/30 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-300 transition-all duration-300 bg-transparent border border-neutral-600/50 rounded-full hover:bg-neutral-800/30 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]"
+                                >
                                   {t("hero.shop_all")}
                                 </button>
                               </Link>
@@ -432,8 +537,8 @@ export function Hero() {
             </div>
 
             {/* Indicators */}
-            <div className="flex justify-center mt-8 space-x-3">
-              {items.slice(0, 5).map((_, index) => (
+            <div className="flex justify-center mt-8 space-x-2">
+              {items.slice(0, 10).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => {
@@ -442,8 +547,8 @@ export function Hero() {
                   }}
                   className={`transition-all duration-300 rounded-full ${
                     index === currentIndex
-                      ? "w-12 h-3 bg-neutral-400 shadow-lg shadow-neutral-500/20"
-                      : "w-3 h-3 bg-neutral-600 hover:bg-neutral-500 hover:scale-110"
+                      ? "w-8 h-2 bg-neutral-400 shadow-lg shadow-neutral-500/20"
+                      : "w-2 h-2 bg-neutral-600 hover:bg-neutral-500 hover:scale-110"
                   }`}
                   aria-label={`Go to product ${index + 1}`}
                 />
@@ -452,7 +557,7 @@ export function Hero() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
