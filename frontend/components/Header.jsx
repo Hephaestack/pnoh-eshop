@@ -636,14 +636,6 @@ export function Header() {
                 >
                   {t("contact")}
                 </Link>
-                <Link
-                  href="/cart"
-                  className="text-lg font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5 flex items-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <ShoppingBag className="w-5 h-5 mr-2" />
-                  Καλάθι {itemCount > 0 && `(${itemCount})`}
-                </Link>
               </div>
             </motion.nav>
           </>

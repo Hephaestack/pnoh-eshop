@@ -48,6 +48,22 @@ header {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scrollbar and ensure content stays centered */
+  overflow-x: hidden;
+  /* Reserve space for scrollbar to prevent layout shifts */
+  scrollbar-gutter: stable;
+  /* Fallback for browsers that don't support scrollbar-gutter */
+  overflow-y: scroll;
+  /* Ensure no extra margins that could cause off-center layout */
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure html also has proper overflow handling */
+html {
+  /* Ensure no extra margins that could cause off-center layout */
+  margin: 0;
+  padding: 0;
 }
 
 /* Force hardware acceleration for sticky elements */

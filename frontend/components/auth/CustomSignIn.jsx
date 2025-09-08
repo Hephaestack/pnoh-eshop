@@ -26,20 +26,31 @@ export default function CustomSignIn({ redirectUrl }) {
 
   // Determine redirect URL: prefer prop, then query params (redirect_url or redirectUrl), then fromCart flag, then '/'
   const getEffectiveRedirectUrl = () => {
-    if (redirectUrl) return redirectUrl;
+    if (redirectUrl) {
+      console.log('SignIn: Using prop redirectUrl:', redirectUrl);
+      return redirectUrl;
+    }
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('redirect_url') || params.get('redirectUrl');
-        if (q) return q;
-        if (params.get('fromCart') === 'true') return '/cart';
+        if (q) {
+          console.log('SignIn: Using query param redirect_url:', q);
+          return q;
+        }
+        if (params.get('fromCart') === 'true') {
+          console.log('SignIn: Using fromCart flag, redirecting to /cart');
+          return '/cart';
+        }
       } catch (e) {
         // ignore
       }
     }
+    console.log('SignIn: No redirect specified, using default /');
     return '/';
   };
   const effectiveRedirectUrl = getEffectiveRedirectUrl();
+  console.log('SignIn: Final effectiveRedirectUrl:', effectiveRedirectUrl);
 
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
@@ -79,26 +90,40 @@ export default function CustomSignIn({ redirectUrl }) {
   const localCart = localStorage.getItem("cart");
   const hasGuestItemsNow = localCart && JSON.parse(localCart)?.items?.length > 0;
 
+  console.log('SignIn: localCart exists:', !!localCart);
+  console.log('SignIn: hasGuestItemsNow:', hasGuestItemsNow);
+  console.log('SignIn: mergeCart function exists:', !!mergeCart);
+  console.log('SignIn: getToken function exists:', !!getToken);
+
   let finalRedirect = effectiveRedirectUrl;
+  console.log('SignIn: Initial finalRedirect:', finalRedirect);
+  
   // Always attempt merge when there are items in localStorage at merge time.
   if (hasGuestItemsNow && mergeCart && getToken) {
           // Attempting cart merge after login (synchronous)
+          console.log('SignIn: Attempting cart merge...');
           try {
             
             const token = await getToken();
+            console.log('SignIn: Got token for merge:', !!token);
             if (!token) {
+              console.log('SignIn: No token available for cart merge');
               // no token available for cart merge
             } else {
               const merged = await mergeCart(token);
+              console.log('SignIn: Merge result:', merged);
               if (merged) {
+                console.log('SignIn: Merge successful');
                 // merged successfully
               } else {
+                console.log('SignIn: Merge returned null or 204');
                 // merge returned null or 204
               }
         // Fetch canonical cart from backend and persist/update context
                 try {
                   const { getCart } = await import('@/lib/cart');
                   const latestCart = await getCart(token);
+                  console.log('SignIn: Latest cart from server:', latestCart);
                   if (latestCart) {
                     localStorage.setItem('cart', JSON.stringify(latestCart));
                     if (typeof window !== 'undefined' && window.__setCart) {
@@ -115,16 +140,20 @@ export default function CustomSignIn({ redirectUrl }) {
                     }
                     // If guest had items, prefer redirecting to cart page
           finalRedirect = '/cart';
+          console.log('SignIn: Updated finalRedirect to /cart due to merged cart');
                 }
               } catch (fetchErr) {
+                console.log('SignIn: Error fetching cart after merge:', fetchErr);
                 // ignore fetch error
               }
             }
           } catch (mergeError) {
+            console.log('SignIn: Error during cart merge:', mergeError);
             // failed to merge cart after login
           }
         }
 
+        console.log('SignIn: Final redirect URL:', finalRedirect);
         router.push(finalRedirect)
       } else {
         // Handle other statuses like needs verification
@@ -323,7 +352,7 @@ export default function CustomSignIn({ redirectUrl }) {
         <p className="text-sm text-gray-400">
           {t('auth.dont_have_account') || "Don't have an account?"}{' '}
           <Link
-            href="/auth/sign-up"
+            href={`/auth/sign-up${typeof window !== 'undefined' && window.location.search ? window.location.search : ''}`}
             className="font-medium text-white hover:underline"
           >
             {t('auth.sign_up.link') || 'Sign up'}

@@ -11,8 +11,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
+      signInFallbackRedirectUrl={undefined}
+      signUpFallbackRedirectUrl={undefined}
       signInForceRedirectUrl={undefined}
       signUpForceRedirectUrl={undefined}
     >

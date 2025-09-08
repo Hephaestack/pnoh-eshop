@@ -33,10 +33,13 @@ function CartPageInner() {
 
   const { cart, removeFromCart, updateCartItem, loading, isItemBeingRemoved } = useCart();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Signal page ready for cart page
   useEffect(() => {
     if (mounted && !loading) {
+      // Reset scroll position to top when cart page loads
+      window.scrollTo(0, 0);
       window.dispatchEvent(new Event("page-ready"));
     }
   }, [mounted, loading]);
@@ -44,7 +47,7 @@ function CartPageInner() {
   // Calculate totals from cart data
   const getTotals = () => {
     if (!cart?.items)
-      return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
+      return { itemCount: 0, subtotal: 0, shipping: 0, total: 0 };
 
     // No quantity support for now: each item counts as 1
     const itemCount = cart.items.length;
@@ -52,11 +55,16 @@ function CartPageInner() {
       (sum, item) => sum + (item.product?.price || 0),
       0
     );
-    const shipping = subtotal >= 50 ? 0 : 5; // Free shipping over €50
-    const tax = subtotal * 0.24; // 24% VAT
-    const total = subtotal + shipping + tax;
+    // Round up the subtotal
+    const roundedSubtotal = Math.ceil(subtotal);
+    
+    // Free shipping for orders €150 and above
+    const shipping = roundedSubtotal >= 150 ? 0 : 5;
+    
+    // No VAT/tax included - prices are final
+    const total = roundedSubtotal + shipping;
 
-    return { itemCount, subtotal, shipping, tax, total };
+    return { itemCount, subtotal: roundedSubtotal, shipping, total };
   };
 
   const totals = getTotals();
@@ -308,7 +316,7 @@ function CartPageInner() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">
-                        <span>{t("cart.subtotal")} ({totals.itemCount} προϊόντα)</span>
+                        <span>{t("cart.subtotal")} ({totals.itemCount} {totals.itemCount === 1 ? t("cart.product") : t("cart.products")})</span>
                         {(itemsMissingPrice || loading) && <SmallSpinner size={2} />}
                       </span>
                       <span>
@@ -336,16 +344,6 @@ function CartPageInner() {
                         )}
                       </span>
                     </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>{t("cart.tax")}</span>
-                      <span>
-                        {itemsMissingPrice ? (
-                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
-                        ) : (
-                          `€${totals.tax}`
-                        )}
-                      </span>
-                    </div>
                     <hr className="border-gray-600" />
                     <div className="flex justify-between text-lg font-bold text-white">
                       <span>{t("cart.total")}</span>
@@ -369,8 +367,8 @@ function CartPageInner() {
 
                   <div className="space-y-3">
                     <Button
-                      className="w-full font-semibold text-black bg-white hover:bg-gray-100"
-                      disabled={loading}
+                      className="w-full font-semibold text-black bg-white hover:bg-gray-100 disabled:opacity-50"
+                      disabled={loading || isCheckingOut}
                       onClick={async () => {
                         // Check if user is authenticated before proceeding to checkout
                         if (!isSignedIn || !user) {
@@ -380,16 +378,28 @@ function CartPageInner() {
                         }
 
                         try {
+                          setIsCheckingOut(true);
                           // Get token for authenticated request
                           const token = await getToken();
                           await startCheckout(cart.items, token);
                         } catch (err) {
                           alert(err?.message || t("cart.checkout_failed"));
+                        } finally {
+                          setIsCheckingOut(false);
                         }
                       }}
                     >
-                      <Lock className="w-4 h-4 mr-2" />
-                      {t("cart.secure_checkout")}
+                      {isCheckingOut ? (
+                        <>
+                          <SmallSpinner size={1} />
+                          <span className="ml-2">{t("cart.processing_checkout")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          {t("cart.secure_checkout")}
+                        </>
+                      )}
                     </Button>
 
                     <div className="flex items-center justify-center mt-4 space-x-2 text-xs text-gray-400">

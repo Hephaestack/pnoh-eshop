@@ -27,28 +27,41 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const [errors, setErrors] = useState({})
   const [pendingVerification, setPendingVerification] = useState(false)
   const [code, setCode] = useState('')
+  const [completingSignUp, setCompletingSignUp] = useState(false) // Prevent redirect during cart merge
 
   // Compute effective redirect URL: prefer prop, then query params, then '/'
   const getEffectiveRedirectUrl = () => {
-    if (redirectUrl) return redirectUrl;
+    if (redirectUrl) {
+      console.log('SignUp: Using prop redirectUrl:', redirectUrl);
+      return redirectUrl;
+    }
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('redirect_url') || params.get('redirectUrl');
-        if (q) return q;
+        if (q) {
+          console.log('SignUp: Using query param redirect_url:', q);
+          return q;
+        }
       } catch (e) {}
     }
+    console.log('SignUp: No redirect specified, using default /');
     return '/';
   };
   const effectiveRedirectUrl = getEffectiveRedirectUrl();
+  console.log('SignUp: Final effectiveRedirectUrl:', effectiveRedirectUrl);
 
   // If user is already signed in, redirect after render to avoid setState-in-render
+  // BUT don't redirect if we're in the middle of email verification OR completing signup with cart merge
   useEffect(() => {
-    if (user) {
+    if (user && !pendingVerification && !completingSignUp) {
+      console.log('SignUp: User exists, not pending verification, and not completing signup, redirecting to:', effectiveRedirectUrl);
       // use a router push inside an effect to avoid updating Router during render
       router.push(effectiveRedirectUrl)
+    } else if (user && (pendingVerification || completingSignUp)) {
+      console.log('SignUp: User exists but verification pending or completing signup, staying on page');
     }
-  }, [user, router, effectiveRedirectUrl])
+  }, [user, router, effectiveRedirectUrl, pendingVerification, completingSignUp])
 
   // Signal page ready for smooth loading animation
   useEffect(() => {
@@ -164,6 +177,11 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       })
 
       if (result.status === 'complete') {
+        console.log('SignUp: Email verification complete, setting completingSignUp=true');
+        console.log('SignUp: redirectUrl prop received:', redirectUrl);
+        console.log('SignUp: effectiveRedirectUrl computed:', effectiveRedirectUrl);
+        setCompletingSignUp(true); // Prevent useEffect redirect during cart merge
+        
         await setActive({ session: result.createdSessionId })
         
         // Check if user has items in guest cart before merging
@@ -220,36 +238,70 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         }
 
   // Merge cart if user has guest items in localStorage now
-  let finalRedirect = redirectUrl || '/';
+  let finalRedirect = effectiveRedirectUrl;
+  console.log('SignUp: Initial finalRedirect:', finalRedirect);
   const localCartNow = localStorage.getItem("cart");
   const hasGuestItemsNow = localCartNow && JSON.parse(localCartNow)?.items?.length > 0;
+  console.log('SignUp: localCart exists:', !!localCartNow);
+  console.log('SignUp: hasGuestItemsNow:', hasGuestItemsNow);
+  console.log('SignUp: mergeCart function exists:', !!mergeCart);
+  console.log('SignUp: getToken function exists:', !!getToken);
+  
+  // Always attempt merge when there are items in localStorage at merge time (same as sign-in)
   if (hasGuestItemsNow && mergeCart && getToken) {
-          try {
-            const token = await getToken();
-            if (token) {
-              const merged = await mergeCart(token);
-              if (merged) {
-                // merge successful (silent)
-              }
+    console.log('SignUp: Attempting cart merge...');
+    try {
+      const token = await getToken();
+      console.log('SignUp: Got token for merge:', !!token);
+      if (!token) {
+        console.log('SignUp: No token available for cart merge');
+      } else {
+        const merged = await mergeCart(token);
+        console.log('SignUp: Merge result:', merged);
+        if (merged) {
+          console.log('SignUp: Merge successful');
+        } else {
+          console.log('SignUp: Merge returned null or 204');
+        }
+        
+        // Fetch canonical cart from backend and persist/update context (same as sign-in)
+        try {
+          const { getCart } = await import('@/lib/cart');
+          const latestCart = await getCart(token);
+          console.log('SignUp: Latest cart from server:', latestCart);
+          if (latestCart) {
+            localStorage.setItem('cart', JSON.stringify(latestCart));
+            if (typeof window !== 'undefined' && window.__setCart) {
+              window.__setCart(latestCart);
+            }
+            // Write a preloaded cart marker so CartProvider can use it immediately
+            if (typeof window !== 'undefined') {
               try {
-                const { getCart } = await import('@/lib/cart');
-                const latestCart = await getCart(token);
-                if (latestCart) {
-                  localStorage.setItem('cart', JSON.stringify(latestCart));
-                  if (typeof window !== 'undefined' && window.__setCart) {
-                    window.__setCart(latestCart);
-                  }
-                  finalRedirect = '/cart';
-                }
-              } catch (fetchErr) {
-                // suppressed fetch error for latest cart
+                window.__preloadedCart = latestCart;
+                localStorage.setItem('cart_preloaded', JSON.stringify(latestCart));
+              } catch (e) {
+                // ignore
               }
             }
-          } catch (mergeError) {
-            // suppressed merge error
+            // If guest had items, prefer redirecting to cart page
+            finalRedirect = '/cart';
+            console.log('SignUp: Updated finalRedirect to /cart due to merged cart');
           }
+        } catch (fetchErr) {
+          console.log('SignUp: Error fetching cart after merge:', fetchErr);
+          // ignore fetch error
         }
+      }
+    } catch (mergeError) {
+      console.log('SignUp: Error during cart merge:', mergeError);
+      // failed to merge cart after sign up
+    }
+  }
 
+        console.log('SignUp: Final redirect URL:', finalRedirect);
+        console.log('SignUp: About to call router.push with:', finalRedirect);
+        console.log('SignUp: Current location before redirect:', window?.location?.href);
+        setCompletingSignUp(false); // Allow redirect now
         router.push(finalRedirect)
       } else {
         // verification incomplete (silent)
@@ -542,7 +594,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         <p className="text-sm text-gray-400">
           {t('auth.already_have_account') || 'Already have an account?'}{' '}
           <Link
-            href="/auth/sign-in"
+            href={`/auth/sign-in${typeof window !== 'undefined' && window.location.search ? window.location.search : ''}`}
             className="font-medium text-white hover:underline"
           >
             {t('auth.sign_in.link') || 'Sign in'}

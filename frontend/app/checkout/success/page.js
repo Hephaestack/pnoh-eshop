@@ -21,6 +21,7 @@ export default function SuccessPage() {
 
     async function confirm() {
       try {
+        console.log("🔄 Confirming order with session ID:", sessionId);
         const API_BASE =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         const res = await fetch(
@@ -33,23 +34,32 @@ export default function SuccessPage() {
         );
         if (!res.ok) {
           const txt = await res.text();
+          console.error("❌ Order confirmation failed:", txt);
           throw new Error(txt || "Failed to confirm order");
         }
         const data = await res.json();
+        console.log("📊 Order confirmation response:", data);
+        console.log("💳 Payment status:", data?.payment_status);
+        console.log("🎯 Payment intent status:", data?.payment_intent_status);
+        
         if (data?.payment_status === "paid" || data?.payment_intent_status === "succeeded") {
+          console.log("✅ Payment confirmed! Clearing cart...");
           setStatus("paid");
           setMessage(
             "Η πληρωμή επιβεβαιώθηκε — ευχαριστούμε για την παραγγελία!"
           );
           // clear local cart after confirmed payment
           clearCart();
+          console.log("🛒 Cart clear function called");
         } else {
+          console.log("⏳ Payment still pending, not clearing cart");
           setStatus("pending");
           setMessage(
             "Η πληρωμή φαίνεται εκκρεμής. Θα ενημερωθείτε μόλις ολοκληρωθεί."
           );
         }
       } catch (err) {
+        console.error("💥 Error during order confirmation:", err);
         setStatus("error");
         setMessage(err?.message || "Confirmation failed");
       }
