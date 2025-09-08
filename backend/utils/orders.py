@@ -34,6 +34,12 @@ def _addr_to_fields(addr: Optional[Mapping[str, Any]]) -> dict:
         "country":       a.get("country"),
     }
 
+def _shipping_phone(sess: Mapping[str, Any]) -> Optional[str]:
+    ship = sess.get("shipping_details") or {}
+    cust = sess.get("customer_details") or {}
+
+    return (ship.get("phone") or cust.get("phone")) or None
+
 def _pi_id(sess: Mapping[str, Any]) -> Optional[str]:
     pi = sess.get("payment_intent")
     if isinstance(pi, str):
@@ -73,6 +79,9 @@ def create_order_from_checkout_session(
     # If no cart (edge case), create minimal order from Stripe totals
     cart: Optional[Cart] = db.query(Cart).filter(Cart.id == cart_id).first() if cart_id else None
     if not cart:
+        ship_flat = _addr_to_fields(checkout_session.get("shipping_details"))
+        bill_flat = _addr_to_fields(checkout_session.get("customer_details"))
+
         order = Order(
             user_id=user_id,
             guest_session_id=guest_session_id,
@@ -87,17 +96,36 @@ def create_order_from_checkout_session(
             payment_status=PaymentStatus.succeeded if checkout_session.get("payment_status") == "paid" else PaymentStatus.pending,
             stripe_payment_intent_id=_pi_id(checkout_session),
             stripe_checkout_session_id=session_id,
+
+            shipping_name=ship_flat.get("name"),
+            shipping_phone=_shipping_phone(checkout_session),
+            shipping_address_line1=ship_flat.get("address_line1"),
+            shipping_address_line2=ship_flat.get("address_line2"),
+            shipping_city=ship_flat.get("city"),
+            shipping_state=ship_flat.get("state"),
+            shipping_postal_code=ship_flat.get("postal_code"),
+            shipping_country=ship_flat.get("country"),
+
+            billing_name=bill_flat.get("name"),
+            billing_address_line1=bill_flat.get("address_line1"),
+            billing_address_line2=bill_flat.get("address_line2"),
+            billing_city=bill_flat.get("city"),
+            billing_state=bill_flat.get("state"),
+            billing_postal_code=bill_flat.get("postal_code"),
+            billing_country=bill_flat.get("country"),
+
             # Store flattened JSON-safe copies (avoid raw StripeObject)
             customer_details={
                 "email": _get_email_from_session(checkout_session),
-                **_addr_to_fields(checkout_session.get("customer_details"))
+                 **bill_flat,
             },
-            shipping_details=_addr_to_fields(checkout_session.get("shipping_details")),
+            shipping_details=ship_flat,
             extra_metadata=meta,
         )
         db.add(order)
         db.commit()
         db.refresh(order)
+
         return order, True
 
     # Cart exists → authoritative repricing from DB
@@ -153,7 +181,7 @@ def create_order_from_checkout_session(
         stripe_payment_intent_id=_pi_id(checkout_session),
         stripe_checkout_session_id=session_id,
         shipping_name=ship.get("name"),
-        shipping_phone=ship.get("phone"),
+        shipping_phone=_shipping_phone(checkout_session),
         shipping_address_line1=ship.get("address_line1"),
         shipping_address_line2=ship.get("address_line2"),
         shipping_city=ship.get("city"),
