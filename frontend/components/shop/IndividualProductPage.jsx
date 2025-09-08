@@ -26,7 +26,7 @@ function IndividualProductPage({ params, category }) {
   const [showSkeleton, setShowSkeleton] = useState(false);
   const skeletonTimerRef = React.useRef(null);
 
-  const { addToCart } = useCart();
+  const { addToCart, isAddingToCart } = useCart();
   const [adding, setAdding] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
@@ -53,13 +53,13 @@ function IndividualProductPage({ params, category }) {
   const hideTimerRef = React.useRef(null);
 
   const handleAddToCart = async () => {
-    if (!productData) return;
+    if (!productData || isAddingToCart) return;
     setAdding(true);
     setAdded(true);
 
     try {
       await addToCart(productData.id, 1);
-      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
+      hideTimerRef.current = setTimeout(() => setAdded(false), 600);
     } catch (err) {
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
@@ -471,19 +471,24 @@ function IndividualProductPage({ params, category }) {
                 className={`group relative overflow-hidden px-8 py-4 text-base font-medium transition-all duration-300 rounded-xl ${
                   added 
                     ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/25" 
+                    : isAddingToCart
+                    ? "bg-red-500 text-white cursor-not-allowed shadow-lg pointer-events-none"
                     : "bg-white text-black hover:bg-gray-50 shadow-lg shadow-white/10 hover:shadow-white/20"
                 }`}
                 onClick={handleAddToCart}
-                disabled={adding}
+                disabled={adding || isAddingToCart}
+                style={isAddingToCart ? { pointerEvents: 'none' } : {}}
               >
                 <span className="relative z-10">
                   {added
                     ? "✓ " + t("added", "Added!")
                     : adding
                     ? t("adding", "Adding...")
+                    : isAddingToCart
+                    ? t("please_wait", "Please wait...")
                     : t("add_to_cart", "Add to Cart")}
                 </span>
-                {!added && !adding && (
+                {!added && !adding && !isAddingToCart && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 )}
               </button>

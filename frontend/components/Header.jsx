@@ -40,7 +40,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { User, ShoppingBag, Menu, X, Settings, LogOut, Search } from "lucide-react";
+import { User, ShoppingBag, Menu, X, Settings, LogOut, Search, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSwitcher from "./language-switcher";
 import { useCart } from "@/app/cart-context";
@@ -65,8 +65,40 @@ export function Header() {
   const searchInputRef = useRef(null);
 
   // Get cart state
-  const { cart } = useCart();
-  const itemCount = cart?.items?.length || 0;
+  const { cart, isAddingToCart } = useCart();
+  const itemCount = cart?.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+  const [displayCount, setDisplayCount] = useState(0);
+  const [showTick, setShowTick] = useState(false);
+  const previousCountRef = useRef(0);
+
+  // Simple approach: trigger tick when count increases and not already adding to cart
+  useEffect(() => {
+    const previousCount = previousCountRef.current;
+    
+    // Only trigger tick when count actually increases, we're not already showing tick, and we're adding to cart
+    if (itemCount > previousCount && !showTick && isAddingToCart) {
+      console.log('🎯 Count increased:', previousCount, '→', itemCount, '- triggering tick');
+      setShowTick(true);
+      
+      // Hide tick after animation and update display
+      setTimeout(() => {
+        setShowTick(false);
+        setDisplayCount(itemCount);
+        previousCountRef.current = itemCount;
+      }, 800); // Faster tick animation for quicker adding
+    }
+    // Handle count decreases immediately  
+    else if (itemCount < previousCount) {
+      console.log('⬇️ Count decreased:', previousCount, '→', itemCount);
+      setDisplayCount(itemCount);
+      previousCountRef.current = itemCount;
+    }
+    // Handle same count (no change) or when not adding to cart
+    else if ((itemCount === previousCount && displayCount !== itemCount) || !isAddingToCart) {
+      setDisplayCount(itemCount);
+      previousCountRef.current = itemCount;
+    }
+  }, [itemCount, showTick, displayCount, isAddingToCart]);
 
   // Handle mounting
   useEffect(() => {
@@ -376,27 +408,42 @@ export function Header() {
                     variant="ghost"
                     size="icon"
                     className="hover:bg-[#232326] border border-white rounded-full relative"
+                    style={{ pointerEvents: showTick ? 'none' : 'auto' }}
                   >
-                    <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
                     <AnimatePresence mode="wait">
-                      {itemCount > 0 && (
-                        <motion.span
-                          key={itemCount}
-                          initial={{ scale: 0.6, opacity: 0 }}
+                      {showTick ? (
+                        <motion.div
+                          key="tick"
+                          initial={{ scale: 0, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.6, opacity: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 600,
-                            damping: 20,
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ 
+                            type: "spring", 
+                            stiffness: 500, 
+                            damping: 25
                           }}
-                          className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold"
-                          aria-live="polite"
+                          className="bg-green-500 rounded-full p-1.5"
                         >
-                          {itemCount > 99 ? "99+" : itemCount}
-                        </motion.span>
+                          <Check className="w-2.5 h-2.5 text-white" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="cart"
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <ShoppingBag className="w-5 h-5 text-white" />
+                        </motion.div>
                       )}
                     </AnimatePresence>
+                    
+                    {!showTick && displayCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-lg font-semibold">
+                        {displayCount > 99 ? "99+" : displayCount}
+                      </span>
+                    )}
                   </Button>
                 </Link>
               </div>

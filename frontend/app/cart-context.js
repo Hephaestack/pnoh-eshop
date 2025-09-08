@@ -25,6 +25,8 @@ export function useCart() {
 export function CartProvider({ children, token, tokenLoaded = true }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [removingItems, setRemovingItems] = useState(new Set()); // Track specific items being removed
   const [previousToken, setPreviousToken] = useState(token);
   const [skipCartFetch, setSkipCartFetch] = useState(false);
   const [mergedThisLogin, setMergedThisLogin] = useState(false);
@@ -190,40 +192,48 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
   // Add to cart and update local state
   const handleAddToCart = useCallback(
     async (productId, quantity) => {
-      // Optimistic update: update UI immediately so header counter increments instantly
-      const prevCart = cart || { items: [] };
-      const currentCart = JSON.parse(JSON.stringify(prevCart));
-      const existingItemIndex = currentCart.items.findIndex(
-        (item) => item.product_id === productId
-      );
-
-      let optimisticCart;
-      if (existingItemIndex >= 0) {
-        optimisticCart = {
-          ...currentCart,
-          items: currentCart.items.map((item, index) =>
-            index === existingItemIndex
-              ? { ...item, quantity: (item.quantity || 1) + quantity }
-              : item
-          ),
-        };
-      } else {
-        optimisticCart = {
-          ...currentCart,
-          items: [
-            ...currentCart.items,
-            {
-              id: `temp-${Date.now()}`,
-              product_id: productId,
-              quantity,
-              // minimal placeholder product so the cart UI can render immediately
-              product: { id: productId },
-            },
-          ],
-        };
+      // Prevent multiple concurrent additions
+      if (isAddingToCart) {
+        console.log('🚫 Already adding to cart, ignoring request');
+        return;
       }
 
+      setIsAddingToCart(true);
+      
       try {
+        // Optimistic update: update UI immediately so header counter increments instantly
+        const prevCart = cart || { items: [] };
+        const currentCart = JSON.parse(JSON.stringify(prevCart));
+        const existingItemIndex = currentCart.items.findIndex(
+          (item) => item.product_id === productId
+        );
+
+        let optimisticCart;
+        if (existingItemIndex >= 0) {
+          optimisticCart = {
+            ...currentCart,
+            items: currentCart.items.map((item, index) =>
+              index === existingItemIndex
+                ? { ...item, quantity: (item.quantity || 1) + quantity }
+                : item
+            ),
+          };
+        } else {
+          optimisticCart = {
+            ...currentCart,
+            items: [
+              ...currentCart.items,
+              {
+                id: `temp-${Date.now()}`,
+                product_id: productId,
+                quantity,
+                // minimal placeholder product so the cart UI can render immediately
+                product: { id: productId },
+              },
+            ],
+          };
+        }
+
         // Apply optimistic state
         setCart(optimisticCart);
         localStorage.setItem("cart", JSON.stringify(optimisticCart));
@@ -260,72 +270,82 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
         return data;
       } catch (error) {
         // rollback optimistic change
+        const prevCart = cart || { items: [] };
         setCart(prevCart);
         localStorage.setItem("cart", JSON.stringify(prevCart));
         // Error adding to cart:
         throw error;
+      } finally {
+        // Reset loading state quickly for better UX
+        setTimeout(() => {
+          setIsAddingToCart(false);
+        }, 400); // Much faster for quick item adding
       }
     },
-    [token, cart]
+    [token, cart, isAddingToCart]
   );
 
   // Remove from cart
   const handleRemoveFromCart = useCallback(
     async (itemId) => {
-      // Optimistic removal: update UI immediately so user sees instant feedback
-      const prevCart = cart || { items: [] };
-      const currentCart = JSON.parse(JSON.stringify(prevCart));
-      const id = itemId;
-      const idx = currentCart.items.findIndex(
-        (it) => (it.product && String(it.product.id) === String(id)) || String(it.product_id) === String(id) || String(it.id) === String(id)
-      );
-
-      if (idx === -1) {
-        // nothing to remove client-side
+      const id = String(itemId);
+      
+      // Prevent concurrent removal of the same item
+      if (removingItems.has(id)) {
+        console.log('🚫 Already removing this item, ignoring request');
         return false;
       }
 
-      const optimistic = {
-        ...currentCart,
-        items: currentCart.items.filter((_, i) => i !== idx),
-      };
+      // Add this item to the removing set
+      setRemovingItems(prev => new Set([...prev, id]));
 
       try {
-        // Apply optimistic state
-        setCart(optimistic);
-        localStorage.setItem("cart", JSON.stringify(optimistic));
-
-        // Call API to remove
+        // Call API to remove FIRST - no optimistic removal
         const ok = await removeFromCart(itemId, token);
 
         if (!ok) {
-          // treat as failure and rollback
-          setCart(prevCart);
-          try { localStorage.setItem("cart", JSON.stringify(prevCart)); } catch (e) {}
+          console.log('Failed to remove item from server');
           return false;
         }
 
-        // Attempt to resync canonical cart from server; if it fails, keep optimistic state
-        try {
-          const updated = await getCart(token);
-          if (updated) {
-            setCart(updated);
-            localStorage.setItem("cart", JSON.stringify(updated));
-          }
-        } catch (syncErr) {
-          // Failed to fetch server cart after delete, keeping optimistic state
+        // Only update UI after successful server removal
+        const prevCart = cart || { items: [] };
+        const currentCart = JSON.parse(JSON.stringify(prevCart));
+        const idx = currentCart.items.findIndex(
+          (it) => (it.product && String(it.product.id) === String(id)) || String(it.product_id) === String(id) || String(it.id) === String(id)
+        );
+
+        if (idx !== -1) {
+          const updatedCart = {
+            ...currentCart,
+            items: currentCart.items.filter((_, i) => i !== idx),
+          };
+          setCart(updatedCart);
+          localStorage.setItem("cart", JSON.stringify(updatedCart));
         }
 
         return true;
       } catch (error) {
-        // rollback optimistic change
-        setCart(prevCart);
-        try { localStorage.setItem("cart", JSON.stringify(prevCart)); } catch (e) {}
+        console.error('Error removing item from cart:', error);
         return false;
+      } finally {
+        // Remove this item from the removing set after a delay
+        setTimeout(() => {
+          setRemovingItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
+        }, 300); // Small delay to show completion
       }
     },
-    [token, cart]
+    [token, cart, removingItems]
   );
+
+  // Helper function to check if an item is being removed
+  const isItemBeingRemoved = useCallback((itemId) => {
+    return removingItems.has(String(itemId));
+  }, [removingItems]);
 
   // Update cart item
   const handleUpdateCartItem = useCallback(
@@ -398,6 +418,8 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
       value={{
         cart,
         loading,
+        isAddingToCart,
+        isItemBeingRemoved, // Helper to check if specific item is being removed
         addToCart: handleAddToCart,
         removeFromCart: handleRemoveFromCart,
         updateCartItem: handleUpdateCartItem,

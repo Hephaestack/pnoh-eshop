@@ -31,8 +31,7 @@ function CartPageInner() {
   const [mounted, setMounted] = useState(false);
   const [hasRenderedContent, setHasRenderedContent] = useState(false);
 
-  const { cart, removeFromCart, updateCartItem, loading } = useCart();
-  const [removing, setRemoving] = useState(null);
+  const { cart, removeFromCart, updateCartItem, loading, isItemBeingRemoved } = useCart();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Signal page ready for cart page
@@ -222,24 +221,27 @@ function CartPageInner() {
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              // prefer product id (stable across sessions) and fall back to product_id
+                              // Get product id (stable across sessions) and fall back to product_id
                               const id = item.product?.id || item.product_id;
-                              if (!id) return;
-                              setRemoving(id);
+                              if (!id || isItemBeingRemoved(id)) {
+                                return; // Don't allow clicking if already being removed
+                              }
+                              
                               const ok = await removeFromCart(id);
-                              setRemoving(null);
-                              // If backend reports item missing (404) or removal failed,
-                              // treat it silently in the UI (optimistic removal already applied).
-                              // Avoid showing alerts or noisy console.error for expected races.
                               if (!ok) {
-                                // no-op: failure is non-fatal for the user experience
+                                // Show error feedback only if removal actually failed
+                                console.error('Failed to remove item from cart');
                               }
                             }}
-                            disabled={removing === (item.product?.id || item.product_id)}
-                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            disabled={isItemBeingRemoved(item.product?.id || item.product_id)}
+                            className={`p-2 transition-all duration-200 ${
+                              isItemBeingRemoved(item.product?.id || item.product_id)
+                                ? "text-red-300 bg-red-900/30 cursor-not-allowed" 
+                                : "text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            }`}
                             aria-live="polite"
                           >
-                            {removing === (item.product?.id || item.product_id) ? (
+                            {isItemBeingRemoved(item.product?.id || item.product_id) ? (
                               <span className="flex items-center space-x-2 text-sm text-red-300">
                                 <span
                                   className="animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full border-red-400"

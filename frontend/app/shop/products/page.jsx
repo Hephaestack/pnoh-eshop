@@ -34,7 +34,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
     return translated;
   };
   const [imgLoaded, setImgLoaded] = React.useState(false);
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, isAddingToCart } = useCart();
   const [adding, setAdding] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
@@ -43,6 +43,8 @@ const EnhancedProductCard = ({ product, viewMode }) => {
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent link navigation
+    if (isAddingToCart) return;
     setAdding(true);
 
     // Immediately show confirmation to match optimistic cart update
@@ -51,7 +53,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
     try {
       await addToCart(product.id, 1);
       // leave the added state visible for a short moment after success
-      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
+      hideTimerRef.current = setTimeout(() => setAdded(false), 600);
     } catch (err) {
       // rollback UI confirmation on error
       if (hideTimerRef.current) {
@@ -67,6 +69,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
 
   const handleBuyNow = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent link navigation
     setBuyingNow(true);
 
     try {
@@ -146,24 +149,34 @@ const EnhancedProductCard = ({ product, viewMode }) => {
         </p>
         <div className="mt-2 font-bold text-slate-300">${product.price}</div>
         {viewMode === "grid" && (
-          <div className="flex items-center justify-center gap-2 mt-3">
+          <div 
+            className="flex items-center justify-center gap-2 mt-3"
+            onClick={isAddingToCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : undefined}
+          >
             <motion.button
               className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                added ? "bg-green-600 text-white" : ""
+                added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
               }`}
               whileHover={{
-                backgroundColor: added ? "rgb(22 163 74)" : "rgb(203 213 225)",
-                color: added ? "#fff" : "rgb(0 0 0)",
+                backgroundColor: added
+                  ? "rgb(22 163 74)"
+                  : isAddingToCart
+                  ? "rgb(239 68 68)"
+                  : "rgb(203 213 225)",
+                color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
                 transition: { duration: 0.15 },
               }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAddToCart}
-              disabled={adding}
+              disabled={adding || isAddingToCart}
+              style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
             >
               {added
                 ? t("added", "Added!")
                 : adding
                 ? t("adding", "Adding...")
+                : isAddingToCart
+                ? t("please_wait", "Please wait...")
                 : t("add_to_cart")}
             </motion.button>
             <motion.button
@@ -185,24 +198,34 @@ const EnhancedProductCard = ({ product, viewMode }) => {
       {/* Actions column for list view */}
       {viewMode === "list" && (
         <div className="flex items-center justify-end w-full lg:w-auto">
-          <div className="flex w-full gap-2 lg:w-auto">
+          <div 
+            className="flex w-full gap-2 lg:w-auto"
+            onClick={isAddingToCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : undefined}
+          >
             <motion.button
               className={`w-full lg:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                added ? "bg-green-600 text-white" : ""
+                added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
               }`}
               whileHover={{
-                backgroundColor: added ? "rgb(22 163 74)" : "rgb(203 213 225)",
-                color: added ? "#fff" : "rgb(0 0 0)",
+                backgroundColor: added
+                  ? "rgb(22 163 74)"
+                  : isAddingToCart
+                  ? "rgb(239 68 68)"
+                  : "rgb(203 213 225)",
+                color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
                 transition: { duration: 0.12 },
               }}
               whileTap={{ scale: 0.98 }}
               onClick={handleAddToCart}
-              disabled={adding}
+              disabled={adding || isAddingToCart}
+              style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
             >
               {added
                 ? t("added", "Added!")
                 : adding
                 ? t("adding", "Adding...")
+                : isAddingToCart
+                ? t("please_wait", "Please wait...")
                 : t("add_to_cart")}
             </motion.button>
             <motion.button
