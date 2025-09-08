@@ -86,12 +86,12 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       if (lastName) payload.lastName = lastName
 
       try {
-    await signUp.create(payload, { captchaMode: 'always_on' })
+        await signUp.create(payload, { captchaMode: 'always_on' })
       } catch (createErr) {
         // If Clerk responds that first_name/last_name are unknown params, retry without names
         const unknownNameParam = createErr?.errors?.some((e) => e.code === 'form_param_unknown' && (e.meta?.paramName === 'first_name' || e.meta?.paramName === 'last_name'))
         if (unknownNameParam) {
-          console.warn('Clerk rejected name params; retrying sign up without first/last name')
+          // Clerk rejected name params; retrying without them
           await signUp.create({ emailAddress: email, password }, { captchaMode: 'always_on' })
         } else {
           throw createErr
@@ -99,12 +99,11 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       }
 
       // Send email verification
-  await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setPendingVerification(true)
     } catch (err) {
-      // Log full error for easier debugging
-      console.error('Sign up error:', err)
-      try { console.error('Sign up error (stringified):', JSON.stringify(err, null, 2)) } catch (e) {}
+      // Error occurred during sign up (output suppressed)
+      try { /* suppressed sign up error for privacy */ } catch (e) {}
 
       const errorMessages = {}
       if (err?.errors) {
@@ -136,7 +135,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             case 'captcha_invalid':
             case 'captcha_missing_token':
             case 'captcha_not_enabled':
-              errorMessages.general = t('auth.error.captcha') || 'Captcha validation failed — try refreshing the page'
+              errorMessages.general = t('auth.error.captcha') || 'Captcha validation failed  try refreshing the page'
               break
             default:
               errorMessages.general = error.longMessage || error.message || t('auth.error.general') || 'An error occurred'
@@ -187,7 +186,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
                     // Wait a bit before retrying
                     await new Promise(resolve => setTimeout(resolve, 500))
                   } catch (err) {
-                    console.warn(`Token retrieval attempt ${i + 1} failed:`, err)
+                    // token retrieval failed; continue retry loop silently
                   }
                 }
 
@@ -205,19 +204,19 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
                 }).then(async (res) => {
                   if (!res.ok) {
                     const errorText = await res.text()
-                    console.warn(`Name update failed (${res.status}):`, errorText)
+                    // name update failed; suppressed console output
                   } else {
-                    console.log('Names updated successfully')
+                    // names updated successfully (silent)
                   }
-                }).catch((err) => console.warn('Name update request error:', err))
+                }).catch((err) => { /* suppressed name update error */ })
               } catch (err) {
-                console.warn('Failed to get Clerk token for name update:', err)
+                // suppressed token retrieval error for name update
               }
             }, 1000) // Wait 1 second to ensure session is established
           }
 
         } catch (e) {
-          console.warn('Failed to call backend to update names:', e)
+          // suppressed backend name update call error
         }
 
   // Merge cart if user has guest items in localStorage now
@@ -225,19 +224,12 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const localCartNow = localStorage.getItem("cart");
   const hasGuestItemsNow = localCartNow && JSON.parse(localCartNow)?.items?.length > 0;
   if (hasGuestItemsNow && mergeCart && getToken) {
-          console.log('Attempting cart merge after sign up (synchronous)...');
           try {
-            console.debug('[SignUp] requesting token for merge');
             const token = await getToken();
-            console.debug('[SignUp] token fetched', !!token, token ? `len=${token.length}` : '');
-            if (!token) {
-              console.warn('[SignUp] No token available for cart merge after sign up');
-            } else {
-              console.debug('[SignUp] calling mergeCart with token');
+            if (token) {
               const merged = await mergeCart(token);
-              console.debug('[SignUp] mergeCart result', merged);
               if (merged) {
-                console.log('Cart merge after sign up successful');
+                // merge successful (silent)
               }
               try {
                 const { getCart } = await import('@/lib/cart');
@@ -250,21 +242,21 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
                   finalRedirect = '/cart';
                 }
               } catch (fetchErr) {
-                console.error('Failed to fetch latest cart after merge:', fetchErr);
+                // suppressed fetch error for latest cart
               }
             }
           } catch (mergeError) {
-            console.error('Failed to merge cart after sign up:', mergeError);
+            // suppressed merge error
           }
         }
-+
+
         router.push(finalRedirect)
       } else {
-        console.log('Verification incomplete:', result)
+        // verification incomplete (silent)
         setErrors({ code: t('auth.error.verification_failed') || 'Verification failed' })
       }
     } catch (err) {
-      console.error('Verification error:', err)
+      // suppressed verification error
       const errorMessages = {}
       
       if (err.errors) {
@@ -298,7 +290,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         redirectUrlComplete: effectiveRedirectUrl,
       })
     } catch (err) {
-      console.error('Google sign up error:', err)
+      // suppressed google sign up error
       setErrors({ general: t('auth.error.google') || 'Google sign up failed' })
       setIsLoading(false)
     }

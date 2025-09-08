@@ -65,7 +65,6 @@ function IndividualProductPage({ params, category }) {
         hideTimerRef.current = null;
       }
       setAdded(false);
-      console.error("Error adding to cart:", err);
     } finally {
       setAdding(false);
     }
@@ -198,7 +197,7 @@ function IndividualProductPage({ params, category }) {
         }
       } catch (error) {
         if (error.name === "AbortError") return;
-        console.error("Error fetching product:", error);
+        // suppressed product fetch error
       } finally {
         const elapsed = Date.now() - loadingStartRef.current;
         const remaining = Math.max(0, SKELETON_MIN_MS - elapsed);

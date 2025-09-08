@@ -79,64 +79,58 @@ export default function CustomSignIn({ redirectUrl }) {
   const localCart = localStorage.getItem("cart");
   const hasGuestItemsNow = localCart && JSON.parse(localCart)?.items?.length > 0;
 
-  console.log('Login successful, checking cart merge (fresh):', { hasGuestItemsNow, mergeCart });
-
   let finalRedirect = effectiveRedirectUrl;
   // Always attempt merge when there are items in localStorage at merge time.
   if (hasGuestItemsNow && mergeCart && getToken) {
-          console.log('Attempting cart merge after login (synchronous)...');
+          // Attempting cart merge after login (synchronous)
           try {
-            console.debug('[SignIn] requesting token for merge');
+            
             const token = await getToken();
-            console.debug('[SignIn] token fetched', !!token, token ? `len=${token.length}` : '');
             if (!token) {
-              console.warn('[SignIn] No token available for cart merge after login');
+              // no token available for cart merge
             } else {
-              console.debug('[SignIn] calling mergeCart with token');
               const merged = await mergeCart(token);
-              console.debug('[SignIn] mergeCart result', merged);
               if (merged) {
-                console.log('Cart merge after login successful');
+                // merged successfully
               } else {
-                console.log('Cart merge returned null or 204');
+                // merge returned null or 204
               }
         // Fetch canonical cart from backend and persist/update context
-              try {
-                const { getCart } = await import('@/lib/cart');
-                const latestCart = await getCart(token);
-                if (latestCart) {
-                  localStorage.setItem('cart', JSON.stringify(latestCart));
-                  if (typeof window !== 'undefined' && window.__setCart) {
-                    window.__setCart(latestCart);
-                  }
-                  // Write a preloaded cart marker so CartProvider can use it immediately
-                  if (typeof window !== 'undefined') {
-                    try {
-                      window.__preloadedCart = latestCart;
-                      localStorage.setItem('cart_preloaded', JSON.stringify(latestCart));
-                    } catch (e) {
-                      console.warn('Could not set preloaded cart', e);
+                try {
+                  const { getCart } = await import('@/lib/cart');
+                  const latestCart = await getCart(token);
+                  if (latestCart) {
+                    localStorage.setItem('cart', JSON.stringify(latestCart));
+                    if (typeof window !== 'undefined' && window.__setCart) {
+                      window.__setCart(latestCart);
                     }
-                  }
-                  // If guest had items, prefer redirecting to cart page
+                    // Write a preloaded cart marker so CartProvider can use it immediately
+                    if (typeof window !== 'undefined') {
+                      try {
+                        window.__preloadedCart = latestCart;
+                        localStorage.setItem('cart_preloaded', JSON.stringify(latestCart));
+                      } catch (e) {
+                        // ignore
+                      }
+                    }
+                    // If guest had items, prefer redirecting to cart page
           finalRedirect = '/cart';
                 }
               } catch (fetchErr) {
-                console.error('Failed to fetch latest cart after merge:', fetchErr);
+                // ignore fetch error
               }
             }
           } catch (mergeError) {
-            console.error('Failed to merge cart after login:', mergeError);
+            // failed to merge cart after login
           }
         }
 
         router.push(finalRedirect)
       } else {
         // Handle other statuses like needs verification
-        console.log('Additional steps required:', result)
       }
-    } catch (err) {
-      console.error('Sign in error:', err)
+        } catch (err) {
+      // sign in error
       const errorMessages = {}
       
       if (err.errors) {
@@ -177,7 +171,6 @@ export default function CustomSignIn({ redirectUrl }) {
         redirectUrlComplete: effectiveRedirectUrl,
       })
     } catch (err) {
-      console.error('Google sign in error:', err)
       setErrors({ general: t('auth.error.google') || 'Google sign in failed' })
       setIsLoading(false)
     }

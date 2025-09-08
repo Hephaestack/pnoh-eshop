@@ -164,7 +164,7 @@ def get_customer_orders(
     orders = (
         db.query(Order)
         .options(joinedload(Order.items))
-        .filter(Order.user_id == current_user.id)
+        .filter(Order.user_id == current_user["user_id"])
         .all()
     )
 
@@ -181,7 +181,7 @@ def get_customer_order(
         .options(joinedload(Order.items))
         .filter(
             Order.id == order_id,
-            Order.user_id == current_user.id
+            Order.user_id == current_user["user_id"]
         )
         .first()
     )

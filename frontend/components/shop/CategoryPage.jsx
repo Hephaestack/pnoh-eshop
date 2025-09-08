@@ -60,7 +60,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
         hideTimerRef.current = null;
       }
       setAdded(false);
-      console.error("Error adding to cart:", err);
+      // suppressed addToCart error
     } finally {
       setAdding(false);
     }
@@ -254,8 +254,7 @@ function CategoryPageInner({ category }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const currentPath = window.location.pathname;
-      sessionStorage.setItem("previousPath", currentPath);
-      console.log("CategoryPage - Saved current path:", currentPath);
+  sessionStorage.setItem("previousPath", currentPath);
     }
   }, []);
 
@@ -287,8 +286,7 @@ function CategoryPageInner({ category }) {
           ];
           setSubcategories(formattedSubcategories);
         }
-      } catch (error) {
-        console.error("Error fetching subcategories:", error);
+  } catch (error) {
         // Fallback to hardcoded values
         setSubcategories([
           { value: "all", label: t("all_themes", "All Themes") },
@@ -320,7 +318,6 @@ function CategoryPageInner({ category }) {
         if (cachedProducts && cacheTimestamp && 
             (Date.now() - parseInt(cacheTimestamp)) < cacheExpiry) {
           // Use cached data - no loading needed
-          console.log(`Using cached data for category: ${category}`);
           const mappedProducts = JSON.parse(cachedProducts);
           setAllProducts(mappedProducts);
           setContentReady(true);
@@ -355,19 +352,18 @@ function CategoryPageInner({ category }) {
           }
         );
         if (!response.ok) {
-          // Handle 404 as empty category (no products found)
-          if (response.status === 404) {
-            console.log(`No products found for category: ${category}`);
-            setAllProducts([]);
-            setContentReady(true);
-            
-            // Signal to the root layout that this page is ready
-            setTimeout(() => {
-              window.dispatchEvent(new Event("page-ready"));
-            }, 50);
-            return;
-          }
-          throw new Error(`Failed to fetch products: ${response.status}`);
+              // Handle 404 as empty category (no products found)
+              if (response.status === 404) {
+                setAllProducts([]);
+                setContentReady(true);
+
+                // Signal to the root layout that this page is ready
+                setTimeout(() => {
+                  window.dispatchEvent(new Event("page-ready"));
+                }, 50);
+                return;
+              }
+              throw new Error(`Failed to fetch products: ${response.status}`);
         }
 
         const data = await response.json();
@@ -400,7 +396,7 @@ function CategoryPageInner({ category }) {
           window.dispatchEvent(new Event("page-ready"));
         }, 50);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        // suppressed product fetch error
         setError(err.message);
       } finally {
         setLoading(false);

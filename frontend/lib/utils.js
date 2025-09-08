@@ -20,7 +20,6 @@ export async function searchProducts(query) {
     
     return await response.json();
   } catch (error) {
-    console.error('Search error:', error);
     return [];
   }
 }

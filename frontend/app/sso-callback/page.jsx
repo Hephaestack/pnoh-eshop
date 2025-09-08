@@ -23,11 +23,11 @@ export default function SSOCallbackPage() {
 
   if (hasGuestItemsNow && mergeCart && getToken) {
           try {
-            console.debug('[SSO] requesting token for merge');
+            // requesting token for merge (silent)
             const token = await getToken();
-            console.debug('[SSO] token fetched', !!token, token ? `len=${token.length}` : '');
+            // token fetched (silent)
             if (token) {
-              console.debug('[SSO] calling mergeCart with token');
+              // calling mergeCart with token (silent)
               await mergeCart(token);
               try {
                 const { getCart } = await import('@/lib/cart');
@@ -39,17 +39,17 @@ export default function SSOCallbackPage() {
                   }
                 }
               } catch (fetchErr) {
-                console.error('Failed to fetch latest cart after SSO merge:', fetchErr);
+                // suppressed fetch latest cart error
               }
             }
           } catch (mergeError) {
-            console.error('Failed to merge cart after SSO:', mergeError);
+            // suppressed merge error
             // Continue with redirect even if cart merge fails
           }
         }
         // Redirect will be handled by Clerk based on redirectUrlComplete
       } catch (error) {
-        console.error('SSO callback error:', error)
+        // suppressed SSO callback error
         // Redirect to sign-in page on error
         router.push('/auth/sign-in')
       }

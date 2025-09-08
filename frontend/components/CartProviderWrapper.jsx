@@ -15,14 +15,11 @@ export default function CartProviderWrapper({ children }) {
       try {
         if (isSignedIn) {
           const jwt = await getToken();
-          console.log('Token fetched:', jwt ? 'present' : 'null');
           setToken(jwt);
         } else {
-          console.log('User not signed in, setting token to null');
           setToken(null);
         }
       } catch (error) {
-        console.error("Error getting token:", error);
         setToken(null);
       } finally {
         setTokenLoaded(true);

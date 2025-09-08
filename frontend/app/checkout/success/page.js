@@ -50,7 +50,6 @@ export default function SuccessPage() {
           );
         }
       } catch (err) {
-        console.error(err);
         setStatus("error");
         setMessage(err?.message || "Confirmation failed");
       }
