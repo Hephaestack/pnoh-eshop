@@ -70,22 +70,23 @@ export function Header() {
   const [displayCount, setDisplayCount] = useState(0);
   const [showTick, setShowTick] = useState(false);
   const previousCountRef = useRef(0);
+  // Hide tick after animation completes; decoupled from add-to-cart timing
+  const hideTick = (count) => {
+    if (!showTick) return;
+    setShowTick(false);
+    setDisplayCount(count ?? itemCount);
+    previousCountRef.current = count ?? itemCount;
+  };
 
   // Simple approach: trigger tick when count increases and not already adding to cart
   useEffect(() => {
     const previousCount = previousCountRef.current;
     
-    // Only trigger tick when count actually increases, we're not already showing tick, and we're adding to cart
-    if (itemCount > previousCount && !showTick && isAddingToCart) {
+    // Trigger tick when count increases (decoupled from how fast adding occurs)
+    if (itemCount > previousCount && !showTick) {
       console.log('🎯 Count increased:', previousCount, '→', itemCount, '- triggering tick');
       setShowTick(true);
-      
-      // Hide tick after animation and update display
-      setTimeout(() => {
-        setShowTick(false);
-        setDisplayCount(itemCount);
-        previousCountRef.current = itemCount;
-      }, 800); // Faster tick animation for quicker adding
+      // displayCount and previousCount will be updated after the animation completes (hideTick)
     }
     // Handle count decreases immediately  
     else if (itemCount < previousCount) {
@@ -417,11 +418,8 @@ export function Header() {
                           initial={{ scale: 0, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           exit={{ scale: 0, opacity: 0 }}
-                          transition={{ 
-                            type: "spring", 
-                            stiffness: 500, 
-                            damping: 25
-                          }}
+                          transition={{ type: "spring", stiffness: 120, damping: 16 }}
+                          onAnimationComplete={() => hideTick(itemCount)}
                           className="bg-green-500 rounded-full p-1.5"
                         >
                           <Check className="w-2.5 h-2.5 text-white" />
