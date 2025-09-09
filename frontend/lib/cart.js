@@ -86,10 +86,7 @@ export async function mergeCart(token) {
   const guestCartData = localStorage.getItem('cart');
   const guestCart = guestCartData ? JSON.parse(guestCartData) : { items: [] };
   
-  console.log("🔄 mergeCart function called");
-  console.log("📦 Guest cart data from localStorage:", guestCartData);
-  console.log("📦 Parsed guest cart to send to server:", guestCart);
-  console.log("🔑 Token:", token ? "Present" : "Missing");
+  // mergeCart called
   
   try {
     const res = await fetch(`${API_BASE}/merge/cart`, {
@@ -102,7 +99,7 @@ export async function mergeCart(token) {
       credentials: "include",
     });
     
-    console.log("📡 Merge cart API response status:", res.status);
+  // merge cart API response status available
     
     if (!res.ok) {
       const errorText = await res.text().catch(() => '<no-body>');

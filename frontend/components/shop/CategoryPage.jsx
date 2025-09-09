@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { CategoryPageSkeleton } from "@/components/skeletons/CategoryPageSkeleton";
 import {
@@ -407,7 +407,9 @@ function CategoryPageInner({ category }) {
           name: product.name,
           price: product.price,
           category: product.category?.toLowerCase(),
-          theme: product.sub_category
+          theme: product.category?.toLowerCase() === "crosses" 
+            ? "crosses" 
+            : product.sub_category
             ? product.sub_category.toLowerCase().replace(/[_\s]/g, "-")
             : "classic",
           image:
@@ -453,7 +455,10 @@ function CategoryPageInner({ category }) {
     if (selectedTheme === "all") {
       return allProducts;
     }
-    return allProducts.filter((product) => product.theme === selectedTheme);
+    // Apply theme filtering, but crosses should always show up since they don't have subcategories
+    return allProducts.filter((product) => 
+      product.theme === selectedTheme || product.category === "crosses"
+    );
   }, [allProducts, selectedTheme]);
 
   // Get theme from URL params on client side
@@ -646,7 +651,7 @@ function CategoryPageInner({ category }) {
           {categoryInfo.title}
         </h1>
       </div>
-      <p className="text-lg text-[#bcbcbc] mb-12 text-center max-w-2xl mx-auto">
+      <p className="text-lg text-[#bcbcbc] mb-6 text-center max-w-2xl mx-auto">
         {categoryInfo.description}
       </p>
 
@@ -772,44 +777,39 @@ function CategoryPageInner({ category }) {
         style={{ minHeight: "400px" }}
         key={`${selectedTheme}-${currentPage}`}
       >
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
-                : "hidden lg:space-y-4 lg:block"
-            }
-            layout
-          >
-            {currentProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{
-                  duration: 0.35,
-                  ease: "easeOut",
-                  delay: index * 0.03,
-                }}
-              >
-                <Link href={`/shop/${category}/${product.id}`}>
-                  <ProductCard
-                    product={product}
-                    viewMode={viewMode}
-                    categoryTitle={categoryInfo.title}
-                    t={t}
-                  />
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={`${selectedTheme}-${currentPage}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: "easeInOut" }}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
+              : "hidden lg:space-y-4 lg:block"
+          }
+        >
+          {currentProducts.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1, // Beautiful stagger effect
+                ease: "easeOut"
+              }}
+            >
+              <Link href={`/shop/${category}/${product.id}`}>
+                <ProductCard
+                  product={product}
+                  viewMode={viewMode}
+                  categoryTitle={categoryInfo.title}
+                  t={t}
+                />
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
       {/* Enhanced Pagination Controls */}
@@ -858,3 +858,4 @@ function CategoryPageInner({ category }) {
 export default function CategoryPage({ category }) {
   return <CategoryPageInner category={category} />;
 }
+

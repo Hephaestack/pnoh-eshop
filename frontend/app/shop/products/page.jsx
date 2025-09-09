@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
 import SearchBar from "@/components/ui/search-bar";
 import { ProductsPageSkeleton } from "@/components/skeletons/ProductsPageSkeleton";
@@ -52,16 +52,13 @@ const EnhancedProductCard = ({ product, viewMode }) => {
 
     try {
       await addToCart(product.id, 1);
-      // leave the added state visible for a short moment after success
       hideTimerRef.current = setTimeout(() => setAdded(false), 600);
     } catch (err) {
-      // rollback UI confirmation on error
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
       setAdded(false);
-  // error handled silently for user-facing flow; preserve rollback
     } finally {
       setAdding(false);
     }
@@ -76,7 +73,6 @@ const EnhancedProductCard = ({ product, viewMode }) => {
       await addToCart(product.id, 1);
       router.push('/cart');
     } catch (err) {
-      // Error adding to cart, stay on current page
       console.error('Error adding to cart:', err);
     } finally {
       setBuyingNow(false);
@@ -89,157 +85,155 @@ const EnhancedProductCard = ({ product, viewMode }) => {
     };
   }, []);
 
-
-  // When cart updates and we had a pending add for this product, show the added confirmation
-  // No longer using pendingAdd: we show confirmation immediately and rollback on error.
-
   return (
     <motion.div
       className={
         viewMode === "grid"
           ? "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group backdrop-blur-md backdrop-saturate-150 transition-transform"
-          : "hidden lg:flex relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden group flex-row gap-4 items-center p-4 backdrop-blur-md backdrop-saturate-150"
+          : "relative rounded-md border border-[#bcbcbc33] bg-[#232326]/60 shadow-lg overflow-hidden backdrop-blur-md backdrop-saturate-150 transition-transform"
       }
-      whileHover={{
-        y: -4,
-        boxShadow: "0 0 20px 4px rgba(192,192,192,0.25)",
-        transition: { duration: 0.2, ease: "easeOut" },
-      }}
-      initial={{ y: 0 }}
+      whileHover={{ y: -4, boxShadow: "0 0 20px 4px rgba(192,192,192,0.25)" }}
     >
-      <motion.div
-        className={
-          viewMode === "grid"
-            ? "relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden"
-            : "relative w-28 h-28 bg-[#18181b] flex items-center justify-center overflow-hidden flex-shrink-0 rounded-lg"
-        }
-      >
-        {!imgLoaded && (
-          <motion.div
-            className="absolute inset-0 bg-[#232326]/40 z-10"
-            animate={{ opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-        <motion.img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          className={`object-cover w-full h-full ${
-            imgLoaded ? "" : "opacity-0"
-          }`}
-          whileHover={{ scale: 1.03 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          animate={{ opacity: imgLoaded ? 1 : 0 }}
-          onLoad={() => setImgLoaded(true)}
-        />
-      </motion.div>
-      <div
-        className={
-          viewMode === "grid"
-            ? "text-center px-2 pb-2"
-            : "flex-1 min-w-0 px-4 py-2"
-        }
-      >
-        <h3 className="mb-1 text-lg font-semibold truncate text-slate-200">
-          {product.name}
-        </h3>
-        <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif">
-          {formatThemeLabel(product.theme)} • {t(product.category)}
-        </p>
-        <div className="mt-2 font-bold text-slate-300">${product.price}</div>
-        {viewMode === "grid" && (
-          <div 
-            className="flex items-center justify-center gap-2 mt-3"
-            onClick={isAddingToCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : undefined}
-          >
-            <motion.button
-              className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
+      {viewMode === "grid" ? (
+        <>
+          <div className="relative w-full aspect-square bg-[#18181b] mb-4 flex items-center justify-center overflow-hidden">
+            {!imgLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
+            )}
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
+                imgLoaded ? "" : "opacity-0"
               }`}
-              whileHover={{
-                backgroundColor: added
-                  ? "rgb(22 163 74)"
-                  : isAddingToCart
-                  ? "rgb(239 68 68)"
-                  : "rgb(203 213 225)",
-                color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
-                transition: { duration: 0.15 },
-              }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleAddToCart}
-              disabled={adding || isAddingToCart}
-              style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
-            >
-              {added
-                ? t("added", "Added!")
-                : adding
-                ? t("adding", "Adding...")
-                : isAddingToCart
-                ? t("please_wait", "Please wait...")
-                : t("add_to_cart")}
-            </motion.button>
-            <motion.button
-              className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
-              whileHover={{
-                backgroundColor: "rgb(203 213 225)",
-                transition: { duration: 0.15 },
-              }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleBuyNow}
-              disabled={buyingNow}
-            >
-              {buyingNow ? t("buying", "Buying...") : t("buy_now")}
-            </motion.button>
+              onLoad={() => setImgLoaded(true)}
+            />
           </div>
-        )}
-      </div>
-
-      {/* Actions column for list view */}
-      {viewMode === "list" && (
-        <div className="flex items-center justify-end w-full lg:w-auto">
-          <div 
-            className="flex w-full gap-2 lg:w-auto"
-            onClick={isAddingToCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : undefined}
-          >
-            <motion.button
-              className={`w-full lg:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
-              }`}
-              whileHover={{
-                backgroundColor: added
-                  ? "rgb(22 163 74)"
+          <div className="px-2 pb-2 text-center">
+            <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
+              {product.name}
+            </h3>
+            <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif">
+              {formatThemeLabel(product.theme)} • {t(product.category)}
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xl font-bold text-slate-300">
+                ${product.price}
+              </span>
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <motion.button
+                className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
+                }`}
+                whileHover={{
+                  backgroundColor: added
+                    ? "rgb(22 163 74)"
+                    : isAddingToCart
+                    ? "rgb(239 68 68)"
+                    : "rgb(203 213 225)",
+                  color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
+                  transition: { duration: 0.15 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddToCart}
+                disabled={adding || isAddingToCart}
+                style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+              >
+                {added
+                  ? t("added", "Added!")
+                  : adding
+                  ? t("adding", "Adding...")
                   : isAddingToCart
-                  ? "rgb(239 68 68)"
-                  : "rgb(203 213 225)",
-                color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
-                transition: { duration: 0.12 },
-              }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleAddToCart}
-              disabled={adding || isAddingToCart}
-              style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
-            >
-              {added
-                ? t("added", "Added!")
-                : adding
-                ? t("adding", "Adding...")
-                : isAddingToCart
-                ? t("please_wait", "Please wait...")
-                : t("add_to_cart")}
-            </motion.button>
-            <motion.button
-              className="w-full px-3 py-2 font-serif text-sm text-black border rounded-md lg:w-auto border-slate-300 bg-slate-200"
-              whileHover={{
-                backgroundColor: "rgb(203 213 225)",
-                transition: { duration: 0.12 },
-              }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleBuyNow}
-              disabled={buyingNow}
-            >
-              {buyingNow ? t("buying", "Buying...") : t("buy_now")}
-            </motion.button>
+                  ? t("please_wait", "Please wait...")
+                  : t("add_to_cart")}
+              </motion.button>
+              <motion.button
+                className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
+                whileHover={{
+                  backgroundColor: "rgb(203 213 225)",
+                  transition: { duration: 0.15 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
+              >
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
+              </motion.button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
+          <div className="w-full sm:w-28 h-48 sm:h-28 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+            {!imgLoaded && (
+              <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
+            )}
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
+                imgLoaded ? "" : "opacity-0"
+              }`}
+              onLoad={() => setImgLoaded(true)}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold truncate text-slate-200">
+              {product.name}
+            </h3>
+            <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif">
+              {formatThemeLabel(product.theme)} • {t(product.category)}
+            </p>
+            <div className="mt-2 font-bold text-slate-300">
+              ${product.price}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between w-full mt-3 sm:w-auto sm:justify-end sm:mt-0">
+            <div className="flex w-full gap-2 sm:w-auto">
+              <motion.button
+                className={`w-full sm:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
+                }`}
+                whileHover={{
+                  backgroundColor: added
+                    ? "rgb(22 163 74)"
+                    : isAddingToCart
+                    ? "rgb(239 68 68)"
+                    : "rgb(203 213 225)",
+                  color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
+                  transition: { duration: 0.12 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddToCart}
+                disabled={adding || isAddingToCart}
+                style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+              >
+                {added
+                  ? t("added", "Added!")
+                  : adding
+                  ? t("adding", "Adding...")
+                  : isAddingToCart
+                  ? t("please_wait", "Please wait...")
+                  : t("add_to_cart")}
+              </motion.button>
+              <motion.button
+                className="w-full px-3 py-2 font-serif text-sm text-black border rounded-md lg:w-auto border-slate-300 bg-slate-200"
+                whileHover={{
+                  backgroundColor: "rgb(203 213 225)",
+                  transition: { duration: 0.12 },
+                }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
+              >
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
+              </motion.button>
+            </div>
           </div>
         </div>
       )}
@@ -429,7 +423,9 @@ function AllProductsPageInner() {
           name: product.name,
           price: product.price,
           category: product.category?.toLowerCase(),
-          theme: product.sub_category
+          theme: product.category?.toLowerCase() === "crosses" 
+            ? "crosses" 
+            : product.sub_category
             ? product.sub_category.toLowerCase().replace(/[_\s]/g, "-")
             : "classic",
           image:
@@ -492,7 +488,8 @@ function AllProductsPageInner() {
       items = items.filter((p) => p.category === selectedCategory);
     }
     if (selectedTheme !== "all") {
-      items = items.filter((p) => p.theme === selectedTheme);
+      // Apply theme filtering, but crosses should always show up since they don't have subcategories
+      items = items.filter((p) => p.theme === selectedTheme || p.category === "crosses");
     }
     return items;
   }, [allProducts, selectedCategory, selectedTheme, searchQuery]);
@@ -505,6 +502,17 @@ function AllProductsPageInner() {
   const startIndex = (currentPage - 1) * productsPerPage;
   const endIndex = startIndex + productsPerPage;
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Defensive: clamp currentPage to a valid page whenever filteredProducts change.
+  // This prevents the UI from showing "no items" while the count is > 0 because
+  // the user was left on a higher page number after changing filters/search.
+  React.useEffect(() => {
+    const validTotal = Math.max(1, Math.ceil(filteredProducts.length / productsPerPage));
+    if (currentPage > validTotal) {
+      // If current page is out of range, move to the last valid page so items appear.
+      setCurrentPage(validTotal);
+    }
+  }, [filteredProducts.length, productsPerPage, currentPage]);
 
   const hasMorePages = currentPage < totalPages;
 
@@ -523,6 +531,19 @@ function AllProductsPageInner() {
       router.replace("/shop/products", { scroll: false });
     }
   }, [searchQuery, router]);
+
+  // Reset theme to "all" when crosses category is selected since crosses don't have subcategories
+  useEffect(() => {
+    if (selectedCategory === "crosses") {
+      setSelectedTheme("all");
+    }
+  }, [selectedCategory]);
+
+  // Reset pagination when filters or search change so we don't end up on a
+  // page number that has no items (causes count > 0 but no visible items).
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedTheme, searchQuery]);
 
   // Scroll to top when page changes (pagination)
   useEffect(() => {
@@ -615,146 +636,132 @@ function AllProductsPageInner() {
           {t("all_products", "All Products")}
         </h1>
       </div>
-      <p className="text-lg text-[#bcbcbc] mb-8 text-center max-w-2xl mx-auto">
+      <p className="text-lg text-[#bcbcbc] mb-6 text-center max-w-2xl mx-auto">
         {t(
           "all_products_intro",
           "Discover our complete collection of handcrafted jewelry"
         )}
       </p>
       {/* Filters and Controls */}
-      <div className="flex flex-col gap-6 mb-8">
-        {/* Search Input - Centered on mobile only */}
-        <div className="flex justify-center md:justify-start">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-md md:max-w-xs"
-          >
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onClear={() => setSearchQuery("")}
-              placeholder={t("search_products", "Search products...")}
-              variant="default"
-              className="w-full"
-            />
-          </motion.div>
-        </div>
+      <div className="flex flex-col gap-4 mb-6">
+        {/* All Controls in One Row */}
+        <div className="flex flex-col items-center justify-center gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap justify-center gap-4 md:flex-row md:justify-start md:items-center">
+            {/* Category Filter */}
+            <div className="relative">
+              <motion.select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
+                whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
+                transition={{ duration: 0.2 }}
+                disabled={loading}
+              >
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </motion.select>
+              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
+                {/* Custom dropdown SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M7 10l5 5 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </div>
+            {/* Theme Filter - Hide when crosses category is selected since crosses don't have subcategories */}
+            {selectedCategory !== "crosses" && (
+              <div className="relative">
+                <motion.select
+                  value={selectedTheme}
+                  onChange={(e) => setSelectedTheme(e.target.value)}
+                  className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
+                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
+                  whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
+                  transition={{ duration: 0.2 }}
+                  disabled={loading}
+                >
+                  {subcategories.map((theme) => (
+                    <option key={theme.value} value={theme.value}>
+                      {theme.label}
+                    </option>
+                  ))}
+                </motion.select>
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
+                  {/* Custom dropdown SVG */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M7 10l5 5 5-5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+            )}
+          </div>
 
-        {/* Other Filters */}
-        <div className="flex flex-wrap justify-center gap-4 md:flex-row md:justify-start md:items-center">
-          {/* Category Filter */}
-          <div className="relative">
-            <motion.select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
+          {/* View Mode Toggle */}
+          <div className={`items-center hidden gap-2 lg:flex ${selectedCategory === "crosses" ? "ml-auto" : ""}`}>
+            <motion.button
+              onClick={() => setViewMode("grid")}
+              className={`p-2 rounded-lg ${
+                viewMode === "grid"
+                  ? "bg-[#232326] text-[#f8f8f8]"
+                  : "text-[#bcbcbc]"
               }`}
-              whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
-              whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
-              transition={{ duration: 0.2 }}
-              disabled={loading}
+              whileHover={{
+                color: viewMode !== "grid" ? "rgb(248, 248, 248)" : undefined,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 0.95 }}
             >
-              {categories.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </motion.select>
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
-              {/* Custom dropdown SVG */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </div>
-          {/* Theme Filter */}
-          <div className="relative">
-            <motion.select
-              value={selectedTheme}
-              onChange={(e) => setSelectedTheme(e.target.value)}
-              className={`appearance-none bg-[#232326] border border-[#bcbcbc33] text-[#f8f8f8] px-4 py-2 pr-10 rounded-lg focus:outline-none focus:border-[#bcbcbc55] ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
+              <Grid className="w-5 h-5" />
+            </motion.button>
+            <motion.button
+              onClick={() => setViewMode("list")}
+              className={`hidden lg:inline-flex p-2 rounded-lg ${
+                viewMode === "list"
+                  ? "bg-[#232326] text-[#f8f8f8]"
+                  : "text-[#bcbcbc]"
               }`}
-              whileHover={!loading ? { borderColor: "rgba(188, 188, 188, 0.4)" } : {}}
-              whileFocus={!loading ? { borderColor: "rgba(188, 188, 188, 0.6)" } : {}}
-              transition={{ duration: 0.2 }}
-              disabled={loading}
+              whileHover={{
+                color: viewMode !== "list" ? "rgb(248, 248, 248)" : undefined,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 0.95 }}
             >
-              {subcategories.map((theme) => (
-                <option key={theme.value} value={theme.value}>
-                  {theme.label}
-                </option>
-              ))}
-            </motion.select>
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#bcbcbc]">
-              {/* Custom dropdown SVG */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M7 10l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+              <List className="w-5 h-5" />
+            </motion.button>
           </div>
-        </div>
-        {/* View Mode Toggle */}
-        <div className="items-center hidden gap-2 lg:flex">
-          <motion.button
-            onClick={() => setViewMode("grid")}
-            className={`p-2 rounded-lg ${
-              viewMode === "grid"
-                ? "bg-[#232326] text-[#f8f8f8]"
-                : "text-[#bcbcbc]"
-            }`}
-            whileHover={{
-              color: viewMode !== "grid" ? "rgb(248, 248, 248)" : undefined,
-              transition: { duration: 0.2 },
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Grid className="w-5 h-5" />
-          </motion.button>
-          <motion.button
-            onClick={() => setViewMode("list")}
-            className={`hidden lg:inline-flex p-2 rounded-lg ${
-              viewMode === "list"
-                ? "bg-[#232326] text-[#f8f8f8]"
-                : "text-[#bcbcbc]"
-            }`}
-            whileHover={{
-              color: viewMode !== "list" ? "rgb(248, 248, 248)" : undefined,
-              transition: { duration: 0.2 },
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <List className="w-5 h-5" />
-          </motion.button>
         </div>
       </div>
       {/* Results Count */}
@@ -773,38 +780,37 @@ function AllProductsPageInner() {
         className="relative product-grid"
         style={{ minHeight: "400px" }} // Prevent layout shift
       >
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 w-full"
-                : "hidden lg:space-y-4 lg:block w-full"
-            }
-            layout
-          >
-            {currentProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
+        <motion.div
+          key={`${selectedCategory}-${selectedTheme}-${currentPage}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: "easeInOut" }}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 w-full"
+              : "hidden lg:space-y-4 lg:block w-full"
+          }
+        >
+          {currentProducts.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1, // Even more noticeable stagger
+                ease: "easeOut"
+              }}
+            >
+              <Link
+                href={`/shop/${product.category}/${product.id}`}
+                prefetch={false}
               >
-                <Link
-                  href={`/shop/${product.category}/${product.id}`}
-                  prefetch={false}
-                >
-                  <EnhancedProductCard product={product} viewMode={viewMode} />
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+                <EnhancedProductCard product={product} viewMode={viewMode} />
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
       {/* Enhanced Pagination Controls */}
