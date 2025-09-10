@@ -47,6 +47,15 @@ export default function CustomSignIn({ redirectUrl }) {
   };
   const effectiveRedirectUrl = getEffectiveRedirectUrl();
 
+  // Persist the effective redirect for SSO fallback as early as possible.
+  // This ensures that if the browser navigates away for OAuth quickly, the
+  // `/sso-callback` page can still read the intended redirect destination.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+      try { localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl); } catch (e) { /* ignore */ }
+    }
+  }, [effectiveRedirectUrl]);
+
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
     if (user) {

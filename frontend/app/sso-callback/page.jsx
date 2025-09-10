@@ -47,13 +47,19 @@ export default function SSOCallbackPage() {
             // Continue with redirect even if cart merge fails
           }
         }
-        // Redirect will be handled by Clerk based on redirectUrlComplete
-        // but as a fallback, if Clerk doesn't redirect us, we read any saved
-        // redirect URL from localStorage and navigate there.
-        // Also, ensure cart merge has a better chance to run by retrying token retrieval.
+        // Redirect will normally be handled by Clerk (redirectUrlComplete).
+        // As a fallback, prefer an explicit redirect URL present on the
+        // callback (query param), then the stored clerk_redirect_url. If
+        // a guest cart existed at callback time, prefer '/cart'.
         const fallbackRedirect = (() => {
           try {
-            return localStorage.getItem('clerk_redirect_url') || null
+            // If Clerk or other provider included a redirect param on the
+            // callback URL, prefer it first.
+            const params = new URLSearchParams(window.location.search);
+            const cb = params.get('redirect_url') || params.get('redirectUrl') || null;
+            if (cb) return cb;
+            const stored = localStorage.getItem('clerk_redirect_url') || null;
+            return stored;
           } catch (e) {
             return null
           }
@@ -97,9 +103,15 @@ export default function SSOCallbackPage() {
               }
             }
 
-            // If Clerk didn't redirect, use fallback redirect if available, otherwise go to '/'
-            if (fallbackRedirect) {
+            // If Clerk didn't redirect, decide destination:
+            // - if guest items exist now, go to '/cart'
+            // - else prefer fallbackRedirect (from callback or stored)
+            if (hasGuestItemsNow) {
+              router.replace('/cart')
+            } else if (fallbackRedirect) {
               router.replace(fallbackRedirect)
+            } else {
+              router.replace('/')
             }
           } catch (e) {
             // ignore

@@ -11,7 +11,7 @@
     "loading": "Loading..."
   },
   "shipping_notice": "For orders over €150, shipping is free. Orders are shipped within 1-2 business days.",
-  "returns_notice": "Didn't like any of the products you chose? No problem! You have the right to return it within 15 calendar days and request a replacement or a refund. To process the return, the product must be in excellent condition and you must send us a photo or receipt.",
+  "returns_notice": "Didn't like any of the products you chose? No problem! You have the right to return it within 15 calendar days and request a replacement. To process the return, the product must be in excellent condition and you must send us a photo or receipt.",
   "checkout": {
     "modal": {
       "title": "Account Required for Checkout",
@@ -61,6 +61,7 @@
   "next_page": "Next",
   "page": "Page",
   "of": "of",
+  "account.show_more": "Show more",
   "all_categories": "All Categories",
   "all_themes": "All Themes",
   "classic": "Classic",
@@ -76,8 +77,8 @@
   "view_all_products": "View All Products",
   "returns_intro": "Everything you need to know about returns and exchanges.",
   "returns_p1": "Any product return is accepted only if the product is returned within 15 days from the date of receipt, in its original condition, unused, undamaged, unsoiled, and accompanied by any documents sent (receipt, certificate, etc). No return is accepted without prior arrangement.",
-  "returns_p2": "To return products, contact us via the site, informing us about the product you wish to return, the reason for the return, the date of receipt, and your details. We will proceed with the process according to the reason for return. The return shipping cost is borne by you, and you may request a replacement or a refund within 15 days. Shipping or COD fees are not refunded. We recommend returning the product via registered mail to avoid theft, damage, or loss.",
-  "returns_p3": "If the product delivered is incorrect (not the product you ordered), the return will be made at our expense, and you may request a refund (including shipping/COD fees) or the correct product. Refund or replacement will occur after we receive and verify the incorrect product.",
+  "returns_p2": "To return products, contact us via the site, informing us about the product you wish to return, the reason for the return, the date of receipt, and your details. We will proceed with the process according to the reason for return. The return shipping cost is borne by you, and you may request a replacement within 15 days. Shipping or COD fees are not refunded. We recommend returning the product via registered mail to avoid theft, damage, or loss.",
+  "returns_p3": "If the product delivered is incorrect (not the product you ordered), the return will be made at our expense, and you may request the correct product. Replacement will occur after we receive and verify the incorrect product.",
   "returns_p4": "If the product is defective upon receipt, you have 3 days to contact us for a replacement. After three days, no replacement or refund is provided.",
   "terms_intro": "The terms of use of our online store.",
   "terms_section1_title": "General",
@@ -112,6 +113,8 @@
   "shipping_geniki_title": "Geniki Taxydromiki",
   "shipping_geniki_desc": "Orders are shipped via Geniki Taxydromiki courier service within 1-2 business days. Shipping cost is €10.",
   "shipping_free_notice": "For all shipping methods, orders over €150 qualify for free shipping.",
+
+  
   "returns_title": "Returns",
   "back_to_collection": "← Back to collection",
   "back_to_all_products": "← Back to all products",
@@ -216,6 +219,15 @@
   "sunday": "Sunday",
   "closed": "Closed",
   "find_us": "Find us",
+  "sending": "Sending...",
+  "message_sent_success": "Message sent — thank you!",
+  "message_sent_error": "Failed to send message. Try again later.",
+  "contact_modal": {
+    "message_sent": "Message sent",
+    "send_failed": "Send failed",
+    "close": "Close",
+    "close_aria": "close"
+  },
   "footer_company_desc": "Refined jewelry that combines tradition and modern design.",
   "footer_navigation": "NAVIGATION",
   "footer_info": "INFORMATION",
@@ -357,7 +369,6 @@
       "title": "Forgot Password",
       "subtitle": "Enter your email address and we'll send you a link to reset your password",
       "button": "Send Reset Link",
-      "sending": "Sending...",
       "check_email": "Check Your Email",
       "email_sent": "We've sent a password reset link to your email",
       "success_message": "Password reset email sent successfully! Check your inbox and follow the instructions.",
@@ -390,6 +401,11 @@
     "order_history": "Order History",
     "no_orders": "No orders yet. Start shopping to see your order history here!",
     "start_shopping": "Start Shopping",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page_of": "Page {{page}} of {{total}}"
+    },
     "sign_out": "Sign Out",
     "edit_profile_notice": "Profile editing will be available soon",
     "change_password_notice": "Password change will be available soon",
@@ -430,6 +446,11 @@
     
 
   "cart": {
+  "delivery_method": "Delivery method",
+  "delivery_now_desc": "Fast local delivery. Shipping cost: €2",
+  "delivery_genikh_desc": "Standard courier delivery. Shipping cost: €10",
+  "delivery_now_label": "Box Now",
+  "delivery_genikh_label": "Γενική Ταχυδρομική",
     "empty_title": "Your cart is empty",
     "empty_desc": "It looks like you haven't added any products yet. Discover our collection and find something beautiful!",
     "continue_shopping": "Continue shopping",
@@ -446,7 +467,7 @@
     "processing_checkout": "Processing...",
     "secure_payment_note": "Secure payment with SSL",
     "trust_free_shipping": "Free shipping for orders over €150",
-    "trust_return_policy": "15 day money-back guarantee",
+    "trust_return_policy": "15 day return guarantee",
     "trust_handmade": "Handmade high-quality jewelry",
     "qty": "Qty",
     "remove_error": "Failed to remove item from cart",
@@ -454,9 +475,25 @@
     "checkout_failed": "Failed to start checkout",
     "thank_you_quote": "Thank you for supporting handmade — enjoy your treasure!"
   },
+  "checkout_success": {
+    "payment_confirmed_message": "Payment confirmed — thank you for your order! A confirmation email has been sent to your email address.",
+    "payment_pending_message": "Payment appears to be pending. You will be notified once it completes.",
+    "title_paid": "Thank you for your order!",
+    "title_loading": "Processing...",
+    "title_error": "Problem confirming order",
+    "continue_shopping": "Continue shopping",
+    "home": "Home"
+  },
+  "checkout_cancel": {
+    "title": "Payment cancelled",
+    "message": "The payment was not completed. You can try again or contact us.",
+    "return_to_cart": "Return to cart",
+    "continue_shopping": "Continue shopping"
+  },
   "poetic_quote": {
     "line1": "Grace shaped into breath,",
     "line2": "eternity into touch",
     "author": "— Πνοή"
   }
 }
+

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useCart } from "../../cart-context";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -119,7 +119,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
             </p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl font-bold text-slate-300">
-                ${product.price}
+                €{product.price}
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 mt-3">
@@ -189,7 +189,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
               {formatThemeLabel(product.theme)} • {t(product.category)}
             </p>
             <div className="mt-2 font-bold text-slate-300">
-              ${product.price}
+              €{product.price}
             </div>
           </div>
 
@@ -802,10 +802,7 @@ function AllProductsPageInner() {
                 ease: "easeOut"
               }}
             >
-              <Link
-                href={`/shop/${product.category}/${product.id}`}
-                prefetch={false}
-              >
+              <Link href={`/shop/${product.category}/${product.id}`}>
                 <EnhancedProductCard product={product} viewMode={viewMode} />
               </Link>
             </motion.div>
@@ -840,5 +837,9 @@ function AllProductsPageInner() {
 
 export default function AllProductsPage() {
   // You can pass token from auth here if needed
-  return <AllProductsPageInner />;
+  return (
+    <Suspense fallback={<ProductsPageSkeleton />}>
+      <AllProductsPageInner />
+    </Suspense>
+  );
 }

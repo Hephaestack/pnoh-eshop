@@ -213,7 +213,7 @@ export default function CategoryPage({ category, products }) {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
           >
-            <Link href={`/shop/${category}/${product.id}`} prefetch={false}>
+            <Link href={`/shop/${category}/${product.id}`}>
               <div
                 className={
                   viewMode === "grid"

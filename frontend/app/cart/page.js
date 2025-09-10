@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -30,6 +31,10 @@ function CartPageInner() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [hasRenderedContent, setHasRenderedContent] = useState(false);
+  // Delivery selection: 'now' -> +2€, 'genikh' -> +10€
+  // Assumption: default to 'now' as requested (client-only, no backend yet)
+  const [delivery, setDelivery] = useState("now");
+  const DELIVERY_FEES = { now: 2, genikh: 10 };
 
   const { cart, removeFromCart, updateCartItem, loading, isItemBeingRemoved } = useCart();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -58,11 +63,14 @@ function CartPageInner() {
     // Round up the subtotal
     const roundedSubtotal = Math.ceil(subtotal);
     
-    // Free shipping for orders €150 and above
-    const shipping = roundedSubtotal >= 150 ? 0 : 5;
-    
-    // No VAT/tax included - prices are final
-    const total = roundedSubtotal + shipping;
+  // Delivery fee from UI selection (delivery state). Only UI fees apply: 2€ (Box Now) or 10€ (Γενική Ταχυδρομική)
+  const deliveryFee = DELIVERY_FEES[delivery] || 0;
+
+  // Final shipping shown to user is only the selected delivery fee
+  const shipping = deliveryFee;
+
+  // No VAT/tax included - prices are final
+  const total = roundedSubtotal + shipping;
 
     return { itemCount, subtotal: roundedSubtotal, shipping, total };
   };
@@ -180,12 +188,12 @@ function CartPageInner() {
         >
           <div className="flex items-center space-x-4">
             <Link href="/shop/products">
-              <Button
+                <Button
                 variant="ghost"
                 className="text-white hover:text-gray-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Συνέχεια Αγορών
+                {t("cart.continue_shopping")}
               </Button>
             </Link>
           </div>
@@ -213,12 +221,14 @@ function CartPageInner() {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         {item.product?.image_url?.[0] ? (
-                          <img
+                          <Image
                             src={item.product.image_url[0].replace(
                               "dl=0",
                               "raw=1"
                             )}
                             alt={item.product?.name || "Product"}
+                            width={96}
+                            height={96}
                             className="object-cover w-20 h-20 rounded-md sm:w-24 sm:h-24 sm:rounded-lg"
                           />
                         ) : (
@@ -350,6 +360,39 @@ function CartPageInner() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Delivery options (client-only) */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">{t("cart.delivery_method") || "Delivery method"}</label>
+                    <div className="flex items-stretch gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setDelivery("now")}
+                        className={`flex-1 text-left p-3 rounded border flex flex-col justify-between ${delivery === "now" ? "border-blue-500 bg-blue-900/20" : "border-gray-700 bg-transparent"}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-semibold text-white">Box Now</div>
+                            <div className="text-xs text-gray-400">{t("cart.delivery_now_desc") || "Fast local delivery"}</div>
+                          </div>
+                          <div className="text-sm text-gray-200">€2</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDelivery("genikh")}
+                        className={`flex-1 text-left p-3 rounded border flex flex-col justify-between ${delivery === "genikh" ? "border-blue-500 bg-blue-900/20" : "border-gray-700 bg-transparent"}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm font-semibold text-white">Γενική Ταχυδρομική</div>
+                            <div className="text-xs text-gray-400">{t("cart.delivery_genikh_desc") || "Standard courier"}</div>
+                          </div>
+                          <div className="text-sm text-gray-200">€10</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">

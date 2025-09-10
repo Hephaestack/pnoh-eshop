@@ -236,7 +236,8 @@ export function Hero() {
 
   return (
     <motion.div 
-      className="relative w-full min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden"
+      className="relative w-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden"
+      style={{ minHeight: "calc(100vh - var(--total-header-height))" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: showContent ? 1 : 0 }}
       transition={{ 
@@ -294,7 +295,7 @@ export function Hero() {
 
       {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - var(--total-header-height))" }}>
           <div className="p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
             <div className="w-8 h-8 mx-auto mb-4 border-2 border-neutral-500/40 border-t-neutral-400 rounded-full animate-spin"></div>
             <div className="text-lg text-neutral-300">
@@ -306,7 +307,7 @@ export function Hero() {
 
       {/* No Products State - Only show after content is ready to prevent flash */}
       {!loading && showContent && items.length === 0 && (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - var(--total-header-height))" }}>
           <div className="max-w-md p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
             <h2 className="mb-4 text-2xl font-light text-neutral-200">
               {t("hero.no_products")}
@@ -327,8 +328,8 @@ export function Hero() {
       {/* Hero Content - Horizontal Carousel */}
       {!loading && showContent && items.length > 0 && (
         <div
-          className="relative flex items-center min-h-screen p-4 md:p-8 touch-pan-y"
-          style={{ touchAction: "pan-y" }}
+          className="relative flex items-center p-4 md:p-8 touch-pan-y"
+          style={{ touchAction: "pan-y", minHeight: "calc(100vh - var(--total-header-height))" }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -497,7 +498,7 @@ export function Hero() {
                               {item.title}
                             </h1>
                             <p className="mb-6 text-xl md:text-2xl lg:text-3xl font-bold text-neutral-200 drop-shadow-[2px_2px_4px_rgba(0,0,0,0.8)] shadow-black">
-                              ${item.price}
+                              €{item.price}
                             </p>
                             <div className="flex flex-col w-full space-y-3">
                               <button

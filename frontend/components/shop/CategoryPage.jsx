@@ -129,7 +129,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             </p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl font-bold text-slate-300">
-                ${product.price}
+                €{product.price}
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 mt-3">
@@ -199,7 +199,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
             <div className="mt-2 font-bold text-slate-300">
-              ${product.price}
+              €{product.price}
             </div>
           </div>
 

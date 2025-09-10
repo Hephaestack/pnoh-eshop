@@ -20,7 +20,17 @@ export default function ClientLayout({ children }) {
     // Only show loading for routes that actually need it (dynamic product pages)
     const isDynamicRoute = pathname.includes('[') || pathname.includes('/shop/') && pathname.split('/').length > 3;
     const isProductPage = pathname.includes('/shop/') && pathname.split('/').length > 3 && !pathname.includes('/categories');
-    
+    // If we're navigating to a product page, immediately scroll to top so
+    // the skeleton / page appears at the top of the viewport instead of
+    // preserving the previous scroll position.
+    if (typeof window !== 'undefined' && isProductPage) {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (isDynamicRoute && !isProductPage) {
       // Delay showing loading overlay to avoid flash for fast operations
       loadingDelayRef.current = setTimeout(() => {

@@ -34,6 +34,29 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
   const mergedRef = useRef(mergedThisLogin);
   const cartRef = useRef(cart);
 
+  const handleMergeCart = useCallback(async (overrideToken) => {
+    const useToken = overrideToken || token;
+    if (!useToken || typeof useToken !== 'string' || useToken.trim() === '') return null;
+    try {
+      setAwaitingMerge(true);
+      const mergedCart = await mergeCart(useToken);
+      if (mergedCart) {
+        setCart(mergedCart);
+        try { localStorage.setItem('cart', JSON.stringify(mergedCart)); } catch (e) {}
+        skipCartFetchRef.current = true;
+        setMergedThisLogin(true);
+        setAwaitingMerge(false);
+        return mergedCart;
+      }
+      setAwaitingMerge(false);
+      return null;
+    } catch (error) {
+      console.error('Cart merge failed:', error);
+      setAwaitingMerge(false);
+      return null;
+    }
+  }, [token]);
+
   useEffect(() => {
     mergedRef.current = mergedThisLogin;
   }, [mergedThisLogin]);
@@ -43,13 +66,18 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
   }, [cart]);
 
   useEffect(() => {
+    // When user signs out (previousToken existed but token is now falsy)
+    // do NOT immediately clear the cart or localStorage. Clearing here
+    // causes a visible flash of "Your cart is empty" before navigation
+    // completes. Instead preserve the client-side/local cart and let
+    // the normal loader logic (which reads `localStorage`) restore
+    // the guest cart state. We still reset merge-related flags.
     if (previousToken && !token) {
-      setCart({ items: [] });
+      // preserve local cart; mark that we are no longer merged for this session
+      setMergedThisLogin(false);
+      setAwaitingMerge(false);
+      // ensure loading is false so UI doesn't show a loading skeleton unnecessarily
       setLoading(false);
-      try { localStorage.removeItem('cart'); } catch (e) {}
-      try { localStorage.removeItem('cart_preloaded'); } catch (e) {}
-      try { localStorage.removeItem('cart_merged'); } catch (e) {}
-      try { delete window.__preloadedCart; } catch (e) {}
     }
     setPreviousToken(token);
   }, [token, previousToken]);
@@ -173,7 +201,7 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
         window.removeEventListener('cart-preloaded', onPreloaded);
       }
     };
-  }, [token, previousToken, tokenLoaded]);
+  }, [token, previousToken, tokenLoaded, awaitingMerge, handleMergeCart, mergedThisLogin]);
 
   const handleAddToCart = useCallback(async (productId, quantity) => {
     if (isAddingToCart) return;
@@ -283,29 +311,6 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
       return false;
     }
   }, []);
-
-  const handleMergeCart = useCallback(async (overrideToken) => {
-    const useToken = overrideToken || token;
-    if (!useToken || typeof useToken !== 'string' || useToken.trim() === '') return null;
-    try {
-      setAwaitingMerge(true);
-      const mergedCart = await mergeCart(useToken);
-      if (mergedCart) {
-        setCart(mergedCart);
-        try { localStorage.setItem('cart', JSON.stringify(mergedCart)); } catch (e) {}
-        skipCartFetchRef.current = true;
-        setMergedThisLogin(true);
-        setAwaitingMerge(false);
-        return mergedCart;
-      }
-      setAwaitingMerge(false);
-      return null;
-    } catch (error) {
-      console.error('Cart merge failed:', error);
-      setAwaitingMerge(false);
-      return null;
-    }
-  }, [token]);
 
   if (typeof window !== 'undefined') window.__setCart = setCart;
 

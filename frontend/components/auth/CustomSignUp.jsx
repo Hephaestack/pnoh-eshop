@@ -55,6 +55,14 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
     return result;
   }, [redirectUrl]); // Only recompute when redirectUrl prop changes
 
+  // Persist the effective redirect for SSO fallback immediately so /sso-callback
+  // can read it even if Clerk redirects the browser quickly during OAuth.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+      try { localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl); } catch (e) { /* ignore */ }
+    }
+  }, [effectiveRedirectUrl]);
+
   // If user is already signed in, redirect after render to avoid setState-in-render
   // BUT don't redirect if we're in the middle of email verification OR completing signup with cart merge
   useEffect(() => {
