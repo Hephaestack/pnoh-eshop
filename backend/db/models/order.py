@@ -51,6 +51,8 @@ class Order(Base):
     shipping_state = Column(String, nullable=True)
     shipping_postal_code = Column(String, nullable=True)
     shipping_country = Column(String(2), nullable=True)
+    shipping_method = Column(String, nullable=True)
+    shipping_rate_id = Column(String, nullable=True)
 
     billing_name = Column(String, nullable=True)
     billing_address_line1 = Column(String, nullable=True)
