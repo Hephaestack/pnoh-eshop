@@ -52,6 +52,47 @@ def _pi_id(sess: Mapping[str, Any]) -> Optional[str]:
     except Exception:
         return None
 
+def _extract_shipping(sess: Mapping[str, Any]) -> dict:
+    def flat(x: Optional[Mapping[str, Any]]) -> dict:
+        if not x: return {}
+        a = x.get("address") or {}
+        return {
+            "name": x.get("name"),
+            "phone": x.get("phone"),
+            "address_line1": a.get("line1"),
+            "address_line2": a.get("line2"),
+            "city":          a.get("city"),
+            "state":         a.get("state"),
+            "postal_code":   a.get("postal_code"),
+            "country":       a.get("country"),
+        }
+
+    ship = sess.get("shipping_details")
+    if ship:
+        return flat(ship)
+
+    pi = sess.get("payment_intent")
+    if isinstance(pi, Mapping) and pi.get("shipping"):
+        return flat(pi.get("shipping"))
+
+    if isinstance(pi, Mapping):
+        chs = (pi.get("charges") or {}).get("data") or []
+        if chs and isinstance(chs[0], Mapping) and chs[0].get("shipping"):
+            return flat(chs[0].get("shipping"))
+
+    # last resort: only phone from customer_details
+    cd = sess.get("customer_details") or {}
+    return {"name": None, "phone": cd.get("phone"),
+            "address_line1": None, "address_line2": None, "city": None,
+            "state": None, "postal_code": None, "country": None}
+
+def _shipping_rate_info(sess: Mapping[str, Any]) -> tuple[Optional[str], Optional[str]]:
+    sc = sess.get("shipping_cost") or {}
+    rate = sc.get("shipping_rate")
+    if isinstance(rate, Mapping):
+        return rate.get("id"), rate.get("display_name")
+    return None, None
+
 def create_order_from_checkout_session(
     db: Session,
     checkout_session: Mapping[str, Any]
@@ -79,8 +120,10 @@ def create_order_from_checkout_session(
     # If no cart (edge case), create minimal order from Stripe totals
     cart: Optional[Cart] = db.query(Cart).filter(Cart.id == cart_id).first() if cart_id else None
     if not cart:
-        ship_flat = _addr_to_fields(checkout_session.get("shipping_details"))
+        ship_flat = _extract_shipping(checkout_session)
         bill_flat = _addr_to_fields(checkout_session.get("customer_details"))
+
+        rate_id, rate_name = _shipping_rate_info(checkout_session)
 
         order = Order(
             user_id=user_id,
@@ -98,13 +141,15 @@ def create_order_from_checkout_session(
             stripe_checkout_session_id=session_id,
 
             shipping_name=ship_flat.get("name"),
-            shipping_phone=_shipping_phone(checkout_session),
+            shipping_phone=ship_flat.get("phone"),
             shipping_address_line1=ship_flat.get("address_line1"),
             shipping_address_line2=ship_flat.get("address_line2"),
             shipping_city=ship_flat.get("city"),
             shipping_state=ship_flat.get("state"),
             shipping_postal_code=ship_flat.get("postal_code"),
             shipping_country=ship_flat.get("country"),
+            shipping_method=rate_name,
+            shipping_rate_id=rate_id,
 
             billing_name=bill_flat.get("name"),
             billing_address_line1=bill_flat.get("address_line1"),
@@ -120,7 +165,7 @@ def create_order_from_checkout_session(
                  **bill_flat,
             },
             shipping_details=ship_flat,
-            extra_metadata=meta,
+            extra_metadata={**meta, "shipping_method": rate_name, "shipping_rate_id": rate_id}
         )
         db.add(order)
         db.commit()
@@ -163,8 +208,9 @@ def create_order_from_checkout_session(
     status  = OrderStatus.paid if checkout_session.get("payment_status") == "paid" else OrderStatus.pending
     pstatus = PaymentStatus.succeeded if checkout_session.get("payment_status") == "paid" else PaymentStatus.pending
 
-    ship = _addr_to_fields(checkout_session.get("shipping_details"))
+    ship = _extract_shipping(checkout_session) 
     bill = _addr_to_fields(checkout_session.get("customer_details"))
+    rate_id, rate_name = _shipping_rate_info(checkout_session)
 
     order = Order(
         user_id=user_id,
@@ -180,14 +226,18 @@ def create_order_from_checkout_session(
         payment_status=pstatus,
         stripe_payment_intent_id=_pi_id(checkout_session),
         stripe_checkout_session_id=session_id,
+        
         shipping_name=ship.get("name"),
-        shipping_phone=_shipping_phone(checkout_session),
+        shipping_phone=ship.get("phone"),
         shipping_address_line1=ship.get("address_line1"),
         shipping_address_line2=ship.get("address_line2"),
         shipping_city=ship.get("city"),
         shipping_state=ship.get("state"),
         shipping_postal_code=ship.get("postal_code"),
         shipping_country=ship.get("country"),
+        shipping_method=rate_name,
+        shipping_rate_id=rate_id,
+
         billing_name=bill.get("name"),
         billing_address_line1=bill.get("address_line1"),
         billing_address_line2=bill.get("address_line2"),
@@ -195,13 +245,14 @@ def create_order_from_checkout_session(
         billing_state=bill.get("state"),
         billing_postal_code=bill.get("postal_code"),
         billing_country=bill.get("country"),
+        
         # JSON-safe copies:
         customer_details={
             "email": _get_email_from_session(checkout_session),
             **bill
         },
         shipping_details=ship,
-        extra_metadata=meta,
+        extra_metadata={**meta, "shipping_method": rate_name, "shipping_rate_id": rate_id}
     )
     db.add(order)
     db.flush()

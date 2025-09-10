@@ -37,7 +37,6 @@ def _get_cart(
     
     return db.query(Cart).filter(Cart.guest_session_id == guest_session_id).first()
 
-
 def _build_line_items(db: Session, cart_id: UUID) -> List[Dict]:
     rows = (
         db.query(CartItem, Product)
@@ -81,7 +80,6 @@ def _build_line_items(db: Session, cart_id: UUID) -> List[Dict]:
         })
 
     return line_items
-
 
 @router.post("/stripe/create-checkout-session", tags=["Stripe"])
 def create_checkout_session(
@@ -134,7 +132,6 @@ def create_checkout_session(
 
     return {"url": session.url}
 
-
 @router.post("/stripe/webhook", tags=["Stripe"])
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
@@ -161,7 +158,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             session_id,
             expand=[
                 "payment_intent",
-                "total_details",           # taxes/discounts (if used)
+                "payment_intent.charges.data",
+                "shipping_cost.shipping_rate",
                 "customer_details",        # already present on Session but keep it consistent
                 "line_items"               # optional; you currently reprice from Cart
             ],
