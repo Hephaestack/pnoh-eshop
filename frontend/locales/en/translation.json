@@ -29,7 +29,7 @@
   "bracelet_length": "Bracelet length: 20cm",
   "bracelet_element_height": "Element height: 30mm",
   "bracelet_element_length": "Element length: 70mm",
-  "shipping_boxnow": "Box Now: Shipping cost is €2",
+  "shipping_boxnow": "Box Now: Shipping cost is €3",
   "shipping_geniki": "Geniki Taxydromiki: Shipping cost is €10",
   "shipping_free": "For orders over €150, shipping is free.",
   "shipping_time": "Orders are shipped within 1-2 business days.",
@@ -109,7 +109,7 @@
   "shipping_title": "Shipping",
   "shipping_intro": "Everything you need to know about shipping methods and costs.",
   "shipping_boxnow_title": "Box Now",
-  "shipping_boxnow_desc": "Orders are shipped via Box Now courier service within 1-2 business days. Shipping cost is €2.",
+  "shipping_boxnow_desc": "Orders are shipped via Box Now courier service within 1-2 business days. Shipping cost is €3.",
   "shipping_geniki_title": "Geniki Taxydromiki",
   "shipping_geniki_desc": "Orders are shipped via Geniki Taxydromiki courier service within 1-2 business days. Shipping cost is €10.",
   "shipping_free_notice": "For all shipping methods, orders over €150 qualify for free shipping.",
@@ -447,7 +447,7 @@
 
   "cart": {
   "delivery_method": "Delivery method",
-  "delivery_now_desc": "Fast local delivery. Shipping cost: €2",
+  "delivery_now_desc": "Fast local delivery. Shipping cost: €3",
   "delivery_genikh_desc": "Standard courier delivery. Shipping cost: €10",
   "delivery_now_label": "Box Now",
   "delivery_genikh_label": "Γενική Ταχυδρομική",
