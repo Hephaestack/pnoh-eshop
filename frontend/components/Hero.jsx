@@ -48,7 +48,7 @@ export function Hero() {
       setLoading(true);
       
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/all`, {
           headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
