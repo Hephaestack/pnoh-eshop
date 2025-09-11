@@ -116,6 +116,7 @@ def create_order_from_checkout_session(
     cart_id = meta.get("cart_id")
     user_id = meta.get("user_id") or None
     guest_session_id = meta.get("guest_session_id") or None
+    status = OrderStatus.pending
 
     # If no cart (edge case), create minimal order from Stripe totals
     cart: Optional[Cart] = db.query(Cart).filter(Cart.id == cart_id).first() if cart_id else None
@@ -135,7 +136,7 @@ def create_order_from_checkout_session(
             shipping_amount=_as_money((checkout_session.get("shipping_cost") or {}).get("amount_total", 0) / 100),
             tax_amount=_as_money(0),
             total_amount=_as_money((checkout_session.get("amount_total") or 0) / 100),
-            status=OrderStatus.paid if checkout_session.get("payment_status") == "paid" else OrderStatus.pending,
+            status=status,
             payment_status=PaymentStatus.succeeded if checkout_session.get("payment_status") == "paid" else PaymentStatus.pending,
             stripe_payment_intent_id=_pi_id(checkout_session),
             stripe_checkout_session_id=session_id,
@@ -205,7 +206,7 @@ def create_order_from_checkout_session(
     discount   = _as_money(0)
     total      = _as_money(subtotal + ship_total + tax_total - discount)
 
-    status  = OrderStatus.paid if checkout_session.get("payment_status") == "paid" else OrderStatus.pending
+    status  = OrderStatus.pending
     pstatus = PaymentStatus.succeeded if checkout_session.get("payment_status") == "paid" else PaymentStatus.pending
 
     ship = _extract_shipping(checkout_session) 
