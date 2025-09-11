@@ -173,7 +173,7 @@ NAME_MAP = {
     "paid":      OrderStatus.paid,
 }
 
-@router.post("/admin/orders/{order_id}/status", tags=["Admin Orders"])
+@router.put("/admin/orders/{order_id}/status", tags=["Admin Orders"])
 def update_order_status(
     order_id: UUID,
     body: OrderStatusUpdate,

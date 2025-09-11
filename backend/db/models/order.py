@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 class OrderStatus(str, enum.Enum):
     pending = "pending"
     sent = "sent"
-    fulfilled = "fullfilled"
+    fulfilled = "fulfilled"
     cancelled = "cancelled"
     paid = "paid"
 
