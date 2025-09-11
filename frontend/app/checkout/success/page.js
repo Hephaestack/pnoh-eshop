@@ -80,15 +80,7 @@ function SuccessPageContent() {
                   .map((i) => {
                     const name = i.name || i.title || i.description || i.product_name || 'Item';
                     const qty = i.quantity || i.qty || i.count || 1;
-                    // price may be in cents (Stripe) or as number
-                    let price = i.price ?? i.unit_price ?? i.amount ?? (i.price_data && i.price_data.unit_amount) ?? 0;
-                    if (typeof price === 'number' && price > 1000) {
-                      // Heuristic: if it's a large integer maybe cents -> divide by 100
-                      price = price / 100;
-                    }
-                    const priceNum = typeof price === 'number' ? price : parseFloat(String(price)) || 0;
-                    const priceStr = priceNum ? `€${priceNum.toFixed(2)}` : String(price);
-                    return `${qty}× ${name} — ${priceStr}`;
+                    return `${qty}× ${name}`;
                   })
                   .join('<br/>');
               } else if (typeof data?.items_html === 'string' && data.items_html.trim()) {
@@ -99,8 +91,9 @@ function SuccessPageContent() {
                 itemsHtml = 'No items listed';
               }
 
-              // Shipping address fallbacks
+              // Prefer backend computed shipping_address if present
               const shippingAddress =
+                (data?.order && data.order.shipping_address) ||
                 (typeof data?.shipping_address === 'string' && data.shipping_address) ||
                 (data?.shipping && (typeof data.shipping === 'string' ? data.shipping : JSON.stringify(data.shipping))) ||
                 (data?.shipping_details && (data.shipping_details.address || JSON.stringify(data.shipping_details))) ||
