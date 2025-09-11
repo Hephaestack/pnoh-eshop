@@ -66,27 +66,28 @@ function SuccessPageContent() {
               const totalRaw = data?.total || data?.amount_total || data?.order_total || data?.amount || 0;
               const orderTotal = typeof totalRaw === 'number' ? `€${totalRaw.toFixed(2)}` : String(totalRaw);
 
-              // Build itemsHtml from several possible shapes returned by the backend
+              // Build a structured orders array for EmailJS template
               const rawItems =
+                data?.order?.items ||
                 data?.items ||
                 data?.order_items ||
                 (data?.line_items && (Array.isArray(data.line_items) ? data.line_items : data.line_items.data)) ||
-                (data?.order && (data.order.items || data.order.line_items)) ||
                 [];
 
               let itemsHtml = '';
+              let ordersArray = [];
               if (Array.isArray(rawItems) && rawItems.length > 0) {
-                itemsHtml = rawItems
-                  .map((i) => {
-                    const name = i.name || i.title || i.description || i.product_name || 'Item';
-                    const qty = i.quantity || i.qty || i.count || 1;
-                    return `${qty}× ${name}`;
-                  })
-                  .join('<br/>');
-              } else if (typeof data?.items_html === 'string' && data.items_html.trim()) {
-                itemsHtml = data.items_html;
-              } else if (typeof data?.order_items === 'string' && data.order_items.trim()) {
-                itemsHtml = data.order_items;
+                ordersArray = rawItems.map((i) => ({
+                  name: i.product_name || i.name || i.title || i.description || 'Item',
+                  units: i.quantity || i.qty || i.count || 1,
+                  price: i.unit_amount
+                    ? `€${(Number(i.unit_amount) / 100).toFixed(2)}`
+                    : i.price
+                    ? `€${Number(i.price).toFixed(2)}`
+                    : '€0.00',
+                }));
+                // Optionally keep itemsHtml for legacy templates
+                itemsHtml = ordersArray.map(o => `${o.units}× ${o.name}`).join('<br/>');
               } else {
                 itemsHtml = 'No items listed';
               }
@@ -115,9 +116,9 @@ function SuccessPageContent() {
                 order_id: orderId || '',
                 order_date: orderDate || new Date().toLocaleString(),
                 order_total: orderTotal || '',
-                order_items: itemsHtml || 'No items listed',
+                order_items: itemsHtml || 'No items listed', // legacy
+                orders: ordersArray, // structured array for EmailJS template
                 shipping_address: shippingAddress || 'Not provided',
-                payment_method: paymentMethod || 'Not provided',
                 to_email: customerEmail || '',
               };
 
@@ -130,6 +131,12 @@ function SuccessPageContent() {
                 sessionId,
                 rawOrderData: data,
               });
+              // Print each order object for clarity
+              if (templateParams.orders && Array.isArray(templateParams.orders)) {
+                templateParams.orders.forEach((order, idx) => {
+                  console.info(`[EmailJS] order[${idx}]:`, order);
+                });
+              }
 
               if (serviceId && templateId && publicKey) {
                 // send email and capture response for debugging

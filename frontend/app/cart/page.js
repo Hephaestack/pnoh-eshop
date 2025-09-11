@@ -31,10 +31,7 @@ function CartPageInner() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [hasRenderedContent, setHasRenderedContent] = useState(false);
-  // Delivery selection: 'now' -> +2€, 'genikh' -> +10€
-  // Assumption: default to 'now' as requested (client-only, no backend yet)
-  const [delivery, setDelivery] = useState("now");
-  const DELIVERY_FEES = { now: 2, genikh: 10 };
+  // Shipping method selection is now handled on Stripe's page
 
   const { cart, removeFromCart, updateCartItem, loading, isItemBeingRemoved } = useCart();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -63,16 +60,11 @@ function CartPageInner() {
     // Round up the subtotal
     const roundedSubtotal = Math.ceil(subtotal);
     
-  // Delivery fee from UI selection (delivery state). Only UI fees apply: 2€ (Box Now) or 10€ (Γενική Ταχυδρομική)
-  const deliveryFee = DELIVERY_FEES[delivery] || 0;
-
-  // Final shipping shown to user is only the selected delivery fee
-  const shipping = deliveryFee;
-
-  // No VAT/tax included - prices are final
-  const total = roundedSubtotal + shipping;
-
-    return { itemCount, subtotal: roundedSubtotal, shipping, total };
+  // Use backend-provided shipping and free shipping logic
+  // Example: cart.shipping and cart.total should be set by backend
+  const shipping = cart?.shipping ?? 0;
+  const total = cart?.total ?? Math.ceil(subtotal);
+  return { itemCount, subtotal: roundedSubtotal, shipping, total };
   };
 
   const totals = getTotals();
@@ -360,39 +352,7 @@ function CartPageInner() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Delivery options (client-only) */}
-                  <div className="space-y-2">
-                    <label className="text-sm text-gray-300">{t("cart.delivery_method") || "Delivery method"}</label>
-                    <div className="flex items-stretch gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setDelivery("now")}
-                        className={`flex-1 text-left p-3 rounded border flex flex-col justify-between ${delivery === "now" ? "border-blue-500 bg-blue-900/20" : "border-gray-700 bg-transparent"}`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-sm font-semibold text-white">Box Now</div>
-                            <div className="text-xs text-gray-400">{t("cart.delivery_now_desc") || "Fast local delivery"}</div>
-                          </div>
-                          <div className="text-sm text-gray-200">€2</div>
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setDelivery("genikh")}
-                        className={`flex-1 text-left p-3 rounded border flex flex-col justify-between ${delivery === "genikh" ? "border-blue-500 bg-blue-900/20" : "border-gray-700 bg-transparent"}`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-sm font-semibold text-white">Γενική Ταχυδρομική</div>
-                            <div className="text-xs text-gray-400">{t("cart.delivery_genikh_desc") || "Standard courier"}</div>
-                          </div>
-                          <div className="text-sm text-gray-200">€10</div>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
+                  {/* Shipping method selection removed; handled on Stripe page */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">
@@ -417,7 +377,7 @@ function CartPageInner() {
                       <span>
                         {itemsMissingPrice || loading ? (
                           <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
-                        ) : totals.shipping === 0 ? (
+                        ) : (typeof totals.shipping === "number" && totals.shipping <= 0) ? (
                           t("cart.free_shipping_message")
                         ) : (
                           `€${totals.shipping}`
@@ -437,7 +397,7 @@ function CartPageInner() {
                     </div>
                   </div>
 
-                  {totals.shipping === 0 && (
+                  {(typeof totals.shipping === "number" && totals.shipping <= 0) && (
                     <div className="p-3 border border-green-700 rounded-lg bg-green-900/20">
                       <p className="text-sm text-center text-green-400">
                         {t("cart.free_shipping_message")}
@@ -461,6 +421,7 @@ function CartPageInner() {
                           setIsCheckingOut(true);
                           // Get token for authenticated request
                           const token = await getToken();
+                          // No delivery method needed, Stripe handles shipping selection
                           await startCheckout(cart.items, token);
                         } catch (err) {
                           alert(err?.message || t("cart.checkout_failed"));
