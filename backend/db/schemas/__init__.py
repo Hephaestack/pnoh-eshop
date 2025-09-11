@@ -5,3 +5,4 @@ from .admin import AdminLogin
 from .users import UpdateNamesBody
 from .order import OrderBase, OrderOut
 from .order_item import OrderItemBase, OrderItemOut
+from .order_admin import OrderStatusUpdate
