@@ -7,10 +7,12 @@ from sqlalchemy import or_
 import json
 from pydantic import ValidationError
 
+from db.models.order import OrderStatus
+from db.schemas.order_admin import OrderStatusUpdate
 from utils.b2_images import create_and_upload_thumbnail, upload_image_bytes
 from utils.database import get_db
 from db.models.product import Product, Category, SubCategory
-from db.models import Admin, Product
+from db.models import Admin, Product, Order
 from db.schemas.product import ProductCreate, ProductOut, ProductUpdateRequest, ProductSummary
 from db.schemas.admin import AdminLogin
 from utils.admin_auth import create_access_token, verify_password, get_current_admin
@@ -162,3 +164,23 @@ def delete_product(
     db.commit()
     
     return {"detail": "Product deleted successfully"}
+
+@router.post("/admin/orders/{order_id}/status", tags=["Admin Orders"])
+def update_order_status(
+    order_id: UUID,
+    body: OrderStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin)
+):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    try:
+        order.status = OrderStatus(body.status)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid status value")
+    
+    db.commit()
+    db.refresh(order)
+    return order
