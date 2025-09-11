@@ -168,7 +168,7 @@ function SuccessPageContent() {
     }
 
     confirm();
-  }, [sessionId, clearCart]);
+  }, [sessionId, clearCart, t]);
 
   // Signal page ready for smooth loading animation after status is determined
   useEffect(() => {
