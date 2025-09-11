@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 from sqlalchemy.orm import Session
 import os
+from decimal import Decimal
 
 from utils.orders import create_order_from_checkout_session
 from utils.database import get_db
@@ -20,6 +21,44 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 CURRENCY = "eur"
+FREE_THRESHOLD_EUR = Decimal("150.00")
+
+def _cart_subtotal_eur(db: Session, cart_id: UUID) -> Decimal:
+    rows = (
+        db.query(CartItem, Product)
+          .join(Product, CartItem.product_id == Product.id)
+          .filter(CartItem.cart_id == cart_id)
+          .all()
+    )
+    total = Decimal("0.00")
+    for ci, p in rows:
+        qty = getattr(ci, "quantity", 1) or 1
+        total += Decimal(str(p.price or 0)) * qty
+    return total
+
+def _shipping_options_for_subtotal(subtotal_eur: Decimal) -> list[dict]:
+    free = subtotal_eur >= FREE_THRESHOLD_EUR
+    genikh_cents = 0 if free else 1000
+    boxnow_cents = 0 if free else 300
+
+    return [
+        {
+            "shipping_rate_data": {
+                "display_name": "Γενική Ταχυδρομική",
+                "type": "fixed_amount",
+                "fixed_amount": {"amount": genikh_cents, "currency": CURRENCY},
+                "metadata": {"carrier": "genikh", "free_threshold_eur": str(FREE_THRESHOLD_EUR)},
+            }
+        },
+        {
+            "shipping_rate_data": {
+                "display_name": "BoxNow",
+                "type": "fixed_amount",
+                "fixed_amount": {"amount": boxnow_cents, "currency": CURRENCY},
+                "metadata": {"carrier": "boxnow", "free_threshold_eur": str(FREE_THRESHOLD_EUR)},
+            }
+        },
+    ]
 
 def _get_cart(
     *,
@@ -96,15 +135,22 @@ def create_checkout_session(
     if not line_items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
+    subtotal = _cart_subtotal_eur(db, cart.id)
+    shipping_options = _shipping_options_for_subtotal(subtotal)
+
     success_url = f"{FRONTEND_URL}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{FRONTEND_URL}/checkout/cancel"
-    
-    print(f"Success URL: {success_url}")
-    print(f"Cancel URL: {cancel_url}")
-    print(f"Frontend URL: {FRONTEND_URL}")
 
     if not FRONTEND_URL.startswith(("http://", "https://")):
         raise HTTPException(status_code=500, detail="Invalid FRONTEND_URL configuration")
+
+    metadata = {
+        "cart_id": str(cart.id),
+        "user_id": (auth or {}).get("user_id") or "",
+        "guest_session_id": guest_session_id or "",
+        "subtotal_eur": str(subtotal),
+        "free_shipping_threshold_eur": str(FREE_THRESHOLD_EUR),
+    }
 
     session = stripe.checkout.Session.create(
         mode="payment",
@@ -115,19 +161,9 @@ def create_checkout_session(
         phone_number_collection={"enabled": True},
         shipping_address_collection={"allowed_countries": ["GR", "DE", "FR", "IT", "ES", "GB"]},
         allow_promotion_codes=True,
-        metadata={
-            "cart_id": str(cart.id),
-            "user_id": (auth or {}).get("user_id") or "",
-            "guest_session_id": guest_session_id or "",
-        },
-        # idempotency_key=f"checkout_{cart.id}",
-        payment_intent_data={
-            "metadata": {
-                "cart_id": str(cart.id),
-                "user_id": (auth or {}).get("user_id") or "",
-                "guest_session_id": guest_session_id or "",
-            }
-        }
+        shipping_options=shipping_options,
+        metadata=metadata,
+        payment_intent_data={"metadata": metadata},
     )
 
     return {"url": session.url}
