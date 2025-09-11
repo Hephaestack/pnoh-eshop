@@ -1,18 +1,25 @@
+from decimal import Decimal
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Response, status, Cookie
+from fastapi import APIRouter, HTTPException, Depends, Query, Response, status, Cookie
 from sqlalchemy.orm import Session
-from typing import Optional, List
+from typing import Literal, Optional, List
 
+from routes.stripe_checkout import _shipping_options_for_subtotal
 from db.models.product import Product
 from db.models.cart import Cart
 from db.models.cart_item import CartItem
 from db.schemas.product import ProductSummary
-from db.schemas.cart import CartSummary
+from db.schemas.cart import CartSummary, ShippingQuote
 from db.schemas.cart_item import CartItemOut, CartItemProduct
 from utils.database import get_db
 from utils.user_auth import get_current_user_optional, get_or_create_guest_session
 
+FREE_THRESHOLD_EUR = Decimal("150.00")
+
 router = APIRouter()
+
+def _round2(x: Decimal | float) -> float:
+    return float(Decimal(str(x)).quantize(Decimal("0.01")))
 
 @router.post("/cart/{product_id}", response_model=ProductSummary, tags=["Cart"])
 def add_to_cart(
@@ -92,6 +99,7 @@ def get_cart(
     db: Session = Depends(get_db),
     auth: Optional[dict] = Depends(get_current_user_optional),
     guest_session_id: Optional[str] = Cookie(None),
+    selected_method: Optional[Literal["genikh", "boxnow"]] = Query(None),
 ):
     if auth:
         cart = db.query(Cart).filter(Cart.user_id == auth["user_id"]).first()
@@ -116,7 +124,9 @@ def get_cart(
     subtotal = 0.0
 
     for ci, p in rows:
-        line_total = float(p.price or 0)
+        price = float(p.price or 0)
+        qty = getattr(ci, "quantity", 1) or 1
+        line_total = price * qty
         items.append(
             CartItemOut(
                 product=CartItemProduct(
@@ -128,11 +138,43 @@ def get_cart(
                 line_total=line_total,
             )
         )
-        total_items += 1
+        total_items += qty
         subtotal += line_total
 
-    return CartSummary(items=items, total_items=total_items, subtotal=subtotal)
+    subtotal = _round2(subtotal)
 
+    opts = _shipping_options_for_subtotal(subtotal)
+
+    quotes: List[ShippingQuote] = []
+    for o in opts:
+        data = o["shipping_rate_data"]
+        label = data["display_name"]
+        amount_eur = Decimal(data["fixed_amount"]["amount"]) / Decimal(100)
+        method = "genikh" if "γεν" in label.lower() or "gen" in label.lower() else "boxnow"
+        quotes.append(
+            ShippingQuote(
+                method=method,
+                label=label,
+                amount=_round2(amount_eur),
+                free_applied=amount_eur == 0,
+            )
+        )
+
+    selected = selected_method or (quotes[0].method if quotes else None)
+    selected_quote = next((q for q in quotes if q.method == selected), None)
+
+    shipping_amount = selected_quote.amount if selected_quote else 0.0
+    total = _round2(Decimal(str(subtotal)) + Decimal(str(shipping_amount)))
+
+    return CartSummary(
+        items=items,
+        total_items=total_items,
+        subtotal=subtotal,
+        shipping_options=quotes,
+        selected_method=selected,
+        shipping_amount=shipping_amount,
+        total=total,
+    )
 
 @router.post("/merge/cart", status_code=status.HTTP_204_NO_CONTENT)
 async def merge_guest_cart_into_user(
