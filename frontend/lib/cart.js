@@ -1,6 +1,6 @@
 
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export async function addToCart(productId, quantity, token) {
   const res = await fetch(`${API_BASE}/cart/${productId}`, {
