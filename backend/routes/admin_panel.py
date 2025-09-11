@@ -165,6 +165,14 @@ def delete_product(
     
     return {"detail": "Product deleted successfully"}
 
+NAME_MAP = {
+    "pending":   OrderStatus.pending,
+    "sent":      OrderStatus.sent,
+    "fulfilled": OrderStatus.fulfilled,
+    "cancelled": OrderStatus.cancelled,
+    "paid":      OrderStatus.paid,
+}
+
 @router.post("/admin/orders/{order_id}/status", tags=["Admin Orders"])
 def update_order_status(
     order_id: UUID,
@@ -176,10 +184,16 @@ def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
+    raw = (body.status or "").strip()
+
     try:
-        order.status = OrderStatus(body.status)
+        new_status = OrderStatus(raw)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid status value")
+        new_status = NAME_MAP.get(raw.lower())
+        if new_status is None:
+            raise HTTPException(status_code=400, detail="Invalid status value")
+    
+    order.status = new_status
     
     db.commit()
     db.refresh(order)

@@ -8,10 +8,11 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 class OrderStatus(str, enum.Enum):
-    pending = "Εκκρεμής"
-    sent = "Απεσταλμένη"
-    fulfilled = "Ολοκληρωμένη"
-    cancelled = "Ακυρωμένη"
+    pending = "pending"
+    sent = "sent"
+    fulfilled = "fullfilled"
+    cancelled = "cancelled"
+    paid = "paid"
 
 class PaymentStatus(str, enum.Enum):
     pending   = "pending"
