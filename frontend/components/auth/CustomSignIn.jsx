@@ -26,13 +26,19 @@ export default function CustomSignIn({ redirectUrl }) {
 
   // Determine redirect URL: prefer prop, then query params (redirect_url or redirectUrl), then fromCart flag, then '/'
   const getEffectiveRedirectUrl = () => {
-    if (redirectUrl) return redirectUrl;
+    if (redirectUrl) {
+      return redirectUrl;
+    }
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('redirect_url') || params.get('redirectUrl');
-        if (q) return q;
-        if (params.get('fromCart') === 'true') return '/cart';
+        if (q) {
+          return q;
+        }
+        if (params.get('fromCart') === 'true') {
+          return '/cart';
+        }
       } catch (e) {
         // ignore
       }
@@ -40,6 +46,15 @@ export default function CustomSignIn({ redirectUrl }) {
     return '/';
   };
   const effectiveRedirectUrl = getEffectiveRedirectUrl();
+
+  // Persist the effective redirect for SSO fallback as early as possible.
+  // This ensures that if the browser navigates away for OAuth quickly, the
+  // `/sso-callback` page can still read the intended redirect destination.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+      try { localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl); } catch (e) { /* ignore */ }
+    }
+  }, [effectiveRedirectUrl]);
 
   // If user is already signed in, redirect after render to avoid setState-in-render
   useEffect(() => {
@@ -79,7 +94,9 @@ export default function CustomSignIn({ redirectUrl }) {
   const localCart = localStorage.getItem("cart");
   const hasGuestItemsNow = localCart && JSON.parse(localCart)?.items?.length > 0;
 
+
   let finalRedirect = effectiveRedirectUrl;
+  
   // Always attempt merge when there are items in localStorage at merge time.
   if (hasGuestItemsNow && mergeCart && getToken) {
           // Attempting cart merge after login (synchronous)
@@ -164,6 +181,10 @@ export default function CustomSignIn({ redirectUrl }) {
     
     setIsLoading(true)
     try {
+      // Persist redirect for SSO callback fallback (mirror sign-up behaviour)
+      if (effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+        try { localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl); } catch (e) { /* ignore */ }
+      }
       await signIn.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/sso-callback',
@@ -323,7 +344,7 @@ export default function CustomSignIn({ redirectUrl }) {
         <p className="text-sm text-gray-400">
           {t('auth.dont_have_account') || "Don't have an account?"}{' '}
           <Link
-            href="/auth/sign-up"
+            href={`/auth/sign-up${typeof window !== 'undefined' && window.location.search ? window.location.search : ''}`}
             className="font-medium text-white hover:underline"
           >
             {t('auth.sign_up.link') || 'Sign up'}

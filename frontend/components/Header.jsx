@@ -40,72 +40,64 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { User, ShoppingBag, Menu, X, Settings, LogOut, Search } from "lucide-react";
+import { User, ShoppingBag, Menu, X, Settings, LogOut, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSwitcher from "./language-switcher";
 import { useCart } from "@/app/cart-context";
-import SearchBar from "./ui/search-bar";
 
 export function Header() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isSignedIn, user } = useUser();
   const { signOut } = useClerk();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [jewelryOpen, setJewelryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const jewelryRef = useRef(null);
   const headerRef = useRef(null);
   const userMenuRef = useRef(null);
-  const searchRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   // Get cart state
-  const { cart } = useCart();
-  const itemCount = cart?.items?.length || 0;
+  const { cart, isAddingToCart } = useCart();
+  const itemCount = cart?.items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
+  const [displayCount, setDisplayCount] = useState(0);
+  const [showTick, setShowTick] = useState(false);
+  const previousCountRef = useRef(0);
+  // Hide tick after animation completes; decoupled from add-to-cart timing
+  const hideTick = (count) => {
+    if (!showTick) return;
+    setShowTick(false);
+    setDisplayCount(count ?? itemCount);
+    previousCountRef.current = count ?? itemCount;
+  };
+
+  // Simple approach: trigger tick when count increases and not already adding to cart
+  useEffect(() => {
+    const previousCount = previousCountRef.current;
+    
+    // Trigger tick when count increases (decoupled from how fast adding occurs)
+    if (itemCount > previousCount && !showTick) {
+      setShowTick(true);
+      // displayCount and previousCount will be updated after the animation completes (hideTick)
+    }
+    // Handle count decreases immediately  
+    else if (itemCount < previousCount) {
+      setDisplayCount(itemCount);
+      setDisplayCount(itemCount);
+      previousCountRef.current = itemCount;
+    }
+    // Handle same count (no change) or when not adding to cart
+    else if ((itemCount === previousCount && displayCount !== itemCount) || !isAddingToCart) {
+      setDisplayCount(itemCount);
+      previousCountRef.current = itemCount;
+    }
+  }, [itemCount, showTick, displayCount, isAddingToCart]);
 
   // Handle mounting
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Handle search
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (searchQuery.trim() && !isSearching) {
-      setIsSearching(true);
-      setIsSearchOpen(false);
-      router.push(`/shop/products?q=${encodeURIComponent(searchQuery.trim())}`);
-      // Reset searching state after navigation
-      setTimeout(() => setIsSearching(false), 1000);
-    }
-  };
-
-  // Handle search input key press
-  const handleSearchKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch(e);
-    }
-  };
-
-  // Clear search
-  const clearSearch = () => {
-    setSearchQuery("");
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  };
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchOpen]);
 
   // Close dropdown on scroll for better UX
   useEffect(() => {
@@ -138,27 +130,6 @@ export function Header() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [userMenuOpen]);
-
-  // Close search dropdown on outside click
-  useEffect(() => {
-    if (!isSearchOpen) return;
-    function handleClick(e) {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setIsSearchOpen(false);
-      }
-    }
-    function handleKeyDown(e) {
-      if (e.key === "Escape") {
-        setIsSearchOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isSearchOpen]);
 
   // Hide mobile menu if resizing to desktop
   useEffect(() => {
@@ -327,82 +298,49 @@ export function Header() {
             <div className="flex items-center justify-end min-w-0 shrink-0">
               <div className="flex items-center space-x-4">
                 <LanguageSwitcher />
-                <div className="relative" ref={searchRef}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsSearchOpen(!isSearchOpen)}
-                    className="hover:bg-[#232326] border border-white rounded-full"
-                  >
-                    <Search className="w-5 h-5 text-white hover:text-[#f8f8f8] transition-colors" />
-                  </Button>
-                  {/* Search Dropdown */}
-                  <AnimatePresence>
-                    {isSearchOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute right-0 sm:right-0 top-12 w-80 sm:w-96 md:w-80 lg:w-80 xl:w-96 bg-[#18181b] border border-[#232326] rounded-lg shadow-xl z-50 p-4 max-w-[calc(100vw-2rem)] left-0 sm:left-auto transform sm:transform-none -translate-x-1/2 sm:translate-x-0"
-                      >
-                        <SearchBar
-                          value={searchQuery}
-                          onChange={setSearchQuery}
-                          onSubmit={handleSearch}
-                          onClear={clearSearch}
-                          placeholder={t("search_products")}
-                          autoFocus
-                          className="w-full"
-                        />
-                        {searchQuery.trim() && (
-                          <motion.button
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="w-full mt-2 py-2 px-4 bg-[#232326] text-slate-200 rounded-lg hover:bg-[#2a2a2e] transition-colors disabled:opacity-50"
-                            onClick={handleSearch}
-                            disabled={isSearching}
-                          >
-                            {isSearching ? t("searching", "Searching...") : t("search")}
-                          </motion.button>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
                 <Link href="/cart">
                   <Button
                     variant="ghost"
                     size="icon"
                     className="hover:bg-[#232326] border border-white rounded-full relative"
+                    style={{ pointerEvents: showTick ? 'none' : 'auto' }}
                   >
-                    <ShoppingBag className="w-5 h-5 text-white transition-colors hover:text-white" />
                     <AnimatePresence mode="wait">
-                      {itemCount > 0 && (
-                        <motion.span
-                          key={itemCount}
-                          initial={{ scale: 0.6, opacity: 0 }}
+                      {showTick ? (
+                        <motion.div
+                          key="tick"
+                          initial={{ scale: 0, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.6, opacity: 0 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 600,
-                            damping: 20,
-                          }}
-                          className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-[0_0_4px_#bcbcbc99] font-semibold"
-                          aria-live="polite"
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 120, damping: 16 }}
+                          onAnimationComplete={() => hideTick(itemCount)}
+                          className="bg-green-500 rounded-full p-1.5"
                         >
-                          {itemCount > 99 ? "99+" : itemCount}
-                        </motion.span>
+                          <Check className="w-2.5 h-2.5 text-white" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="cart"
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <ShoppingBag className="w-5 h-5 text-white" />
+                        </motion.div>
                       )}
                     </AnimatePresence>
+                    
+                    {!showTick && displayCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full min-w-[1rem] h-4 flex items-center justify-center px-1 border border-white shadow-lg font-semibold">
+                        {displayCount > 99 ? "99+" : displayCount}
+                      </span>
+                    )}
                   </Button>
                 </Link>
-              </div>
               
-              {/* Account Icon - separated with gap */}
-              <div className="relative ml-8" ref={userMenuRef}>
+                {/* Account Icon - now with consistent spacing */}
+                <div className="relative" ref={userMenuRef}>
                 {isSignedIn ? (
                   <div>
                     {/* User Avatar Button */}
@@ -499,38 +437,39 @@ export function Header() {
                     </Button>
                   </Link>
                 )}
-              </div>
+                </div>
               
-              {/* Mobile Menu Button - only visible on mobile */}
-              <div className="ml-4 lg:hidden">
-                <motion.div
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-[#232326] border border-white rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#18181b]"
-                    onClick={() => setMobileMenuOpen((v) => !v)}
-                    aria-label={mobileMenuOpen ? t("close_menu") : t("open_menu")}
+                {/* Mobile Menu Button - now with consistent spacing */}
+                <div className="lg:hidden">
+                  <motion.div
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.1 }}
                   >
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={mobileMenuOpen ? "close" : "open"}
-                        initial={{ rotate: -90, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        exit={{ rotate: 90, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {mobileMenuOpen ? (
-                          <X className="w-6 h-6 text-white" />
-                        ) : (
-                          <Menu className="w-6 h-6 text-white" />
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-                  </Button>
-                </motion.div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-[#232326] border border-white rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#18181b]"
+                      onClick={() => setMobileMenuOpen((v) => !v)}
+                      aria-label={mobileMenuOpen ? t("close_menu") : t("open_menu")}
+                    >
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={mobileMenuOpen ? "close" : "open"}
+                          initial={{ rotate: -90, opacity: 0 }}
+                          animate={{ rotate: 0, opacity: 1 }}
+                          exit={{ rotate: 90, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {mobileMenuOpen ? (
+                            <X className="w-6 h-6 text-white" />
+                          ) : (
+                            <Menu className="w-6 h-6 text-white" />
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </Button>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </div>
@@ -555,10 +494,10 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 260, damping: 30 }}
-              className="fixed top-0 right-0 z-50 h-full w-80 bg-[#18181b] border-l border-white shadow-xl flex flex-col overflow-y-auto pt-20"
+              className="fixed top-0 right-0 z-50 h-full w-80 bg-[#18181b] border-l border-white shadow-xl flex flex-col overflow-y-auto pt-12"
             >
               {/* Header with close button - positioned higher */}
-              <div className="flex items-center justify-between px-6 pt-4 pb-3 border-b border-white/20">
+              <div className="flex items-center justify-between px-6 pt-3 pb-2 border-b border-white/20">
                 <h2 className="text-xl font-medium text-white">Μενού</h2>
                 <Button
                   variant="ghost"
@@ -571,7 +510,7 @@ export function Header() {
                 </Button>
               </div>
 
-              <div className="flex flex-col flex-1 gap-6 p-6">
+              <div className="flex flex-col flex-1 gap-12 p-6">
                 <MobileDropdownNav
                   onLinkClick={() => setMobileMenuOpen(false)}
                 />
@@ -588,14 +527,6 @@ export function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {t("contact")}
-                </Link>
-                <Link
-                  href="/cart"
-                  className="text-lg font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5 flex items-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <ShoppingBag className="w-5 h-5 mr-2" />
-                  Καλάθι {itemCount > 0 && `(${itemCount})`}
                 </Link>
               </div>
             </motion.nav>
@@ -616,7 +547,7 @@ function MobileDropdownNav({ onLinkClick }) {
   };
 
   return (
-    <div className="border-b border-white/20">
+    <div className="">
       <motion.button
         type="button"
         aria-haspopup="menu"
@@ -626,7 +557,15 @@ function MobileDropdownNav({ onLinkClick }) {
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.1 }}
       >
-        <span>{t("jewelry")}</span>
+        <motion.span className="relative">
+          {t("jewelry")}
+          <motion.div
+            className="absolute bottom-0 left-0 h-0.5 bg-white"
+            initial={{ width: 0 }}
+            animate={{ width: open ? "100%" : 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+        </motion.span>
         <motion.svg
           className="w-4 h-4 ml-2"
           fill="none"
@@ -652,7 +591,7 @@ function MobileDropdownNav({ onLinkClick }) {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pb-2 pl-4 space-y-1">
+            <div className="pb-2 space-y-1">
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -660,7 +599,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/products"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("all_jewelry")}
@@ -673,7 +612,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/rings"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("rings")}
@@ -686,7 +625,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/crosses"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("crosses")}
@@ -699,7 +638,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/bracelets"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("bracelets")}
@@ -712,7 +651,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/necklaces"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("necklaces")}
@@ -725,7 +664,7 @@ function MobileDropdownNav({ onLinkClick }) {
               >
                 <Link
                   href="/shop/earrings"
-                  className="block py-3 pl-4 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
+                  className="block py-3 text-base text-white/90 hover:text-white hover:bg-[#232326] rounded-lg transition-all duration-200 active:bg-[#2a2a2e]"
                   onClick={handleLinkClick}
                 >
                   {t("earrings")}

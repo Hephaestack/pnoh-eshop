@@ -25,159 +25,153 @@ export function useCart() {
 export function CartProvider({ children, token, tokenLoaded = true }) {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [removingItems, setRemovingItems] = useState(new Set());
   const [previousToken, setPreviousToken] = useState(token);
-  const [skipCartFetch, setSkipCartFetch] = useState(false);
+  const skipCartFetchRef = useRef(false);
   const [mergedThisLogin, setMergedThisLogin] = useState(false);
   const [awaitingMerge, setAwaitingMerge] = useState(false);
   const mergedRef = useRef(mergedThisLogin);
+  const cartRef = useRef(cart);
 
-  // keep a ref in sync so async wait loops can observe updates (avoids closure
-  // capturing stale `mergedThisLogin` value)
+  const handleMergeCart = useCallback(async (overrideToken) => {
+    const useToken = overrideToken || token;
+    if (!useToken || typeof useToken !== 'string' || useToken.trim() === '') return null;
+    try {
+      setAwaitingMerge(true);
+      const mergedCart = await mergeCart(useToken);
+      if (mergedCart) {
+        setCart(mergedCart);
+        try { localStorage.setItem('cart', JSON.stringify(mergedCart)); } catch (e) {}
+        skipCartFetchRef.current = true;
+        setMergedThisLogin(true);
+        setAwaitingMerge(false);
+        return mergedCart;
+      }
+      setAwaitingMerge(false);
+      return null;
+    } catch (error) {
+      console.error('Cart merge failed:', error);
+      setAwaitingMerge(false);
+      return null;
+    }
+  }, [token]);
+
   useEffect(() => {
     mergedRef.current = mergedThisLogin;
   }, [mergedThisLogin]);
 
-  // Load cart from localStorage and then from API
   useEffect(() => {
-    if (skipCartFetch) {
-      setSkipCartFetch(false);
-      return;
+    cartRef.current = cart;
+  }, [cart]);
+
+  useEffect(() => {
+    // When user signs out (previousToken existed but token is now falsy)
+    // do NOT immediately clear the cart or localStorage. Clearing here
+    // causes a visible flash of "Your cart is empty" before navigation
+    // completes. Instead preserve the client-side/local cart and let
+    // the normal loader logic (which reads `localStorage`) restore
+    // the guest cart state. We still reset merge-related flags.
+    if (previousToken && !token) {
+      // preserve local cart; mark that we are no longer merged for this session
+      setMergedThisLogin(false);
+      setAwaitingMerge(false);
+      // ensure loading is false so UI doesn't show a loading skeleton unnecessarily
+      setLoading(false);
+    }
+    setPreviousToken(token);
+  }, [token, previousToken]);
+
+  useEffect(() => {
+    const onPreloaded = () => { skipCartFetchRef.current = false; };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('cart-preloaded', onPreloaded);
     }
 
-    // Load local cart immediately so UI renders quickly. Prefer a preloaded
-    // cart (set by auth flows) to avoid any visible flash after login.
     let local = null;
     try {
-      // If a recent merge completed in another window, prefer the server cart
-      try {
-        const mergedFlag = typeof window !== 'undefined' && localStorage.getItem('cart_merged');
-        if (mergedFlag) {
-          // clear the flag so we don't repeat this logic
-          try { localStorage.removeItem('cart_merged'); } catch (e) {}
-          // ensure we don't pre-populate from localStorage
-          local = null;
-        }
-      } catch (e) {
-        // ignore localStorage failures
-      }
       const preloaded = typeof window !== 'undefined' && window.__preloadedCart;
-      const preloadedLS = localStorage.getItem('cart_preloaded');
+      const preloadedLS = typeof window !== 'undefined' ? localStorage.getItem('cart_preloaded') : null;
+
       if (preloaded) {
         setCart(preloaded);
         local = JSON.stringify(preloaded);
-        // mark that we've merged/loaded preloaded cart to prevent further fetches
         setMergedThisLogin(true);
-        setSkipCartFetch(true);
+        skipCartFetchRef.current = true;
+        try { delete window.__preloadedCart; } catch (e) {}
       } else if (preloadedLS) {
         const parsed = JSON.parse(preloadedLS);
         setCart(parsed);
         local = JSON.stringify(parsed);
         setMergedThisLogin(true);
-        setSkipCartFetch(true);
-        // clear the ephemeral storage key
+        skipCartFetchRef.current = true;
         try { localStorage.removeItem('cart_preloaded'); } catch(e){}
+        try { delete window.__preloadedCart; } catch (e) {}
       } else {
-        const ls = localStorage.getItem("cart");
+        const ls = typeof window !== 'undefined' ? localStorage.getItem('cart') : null;
         if (ls) {
-          setCart(JSON.parse(ls));
+          const parsed = JSON.parse(ls);
+          setCart(parsed);
           local = ls;
         }
       }
     } catch (e) {
-      // Error reading preloaded/local cart:
+      console.error('Error reading preloaded/local cart:', e);
     }
 
     const loadCartFromApi = async () => {
       try {
-        // Check if we need to merge carts (user just logged in)
         const hadGuestCart = local && JSON.parse(local)?.items?.length > 0;
         const isNewLogin = !previousToken && token;
 
-        // Skip automatic cart merge to prevent 401 errors
         if (isNewLogin && hadGuestCart) {
-          // mark that we're going to wait for merge before doing any GET /cart
           setAwaitingMerge(true);
-          // If token has been resolved, perform an automatic merge here to ensure
-          // we don't miss merging when auth flows didn't trigger it. We guard
-          // with mergedThisLogin to avoid duplicate merges.
           if (tokenLoaded && token && !mergedThisLogin) {
             try {
-              // Auto-merging guest cart in CartProvider...
-              const merged = await handleMergeCart(token);
-              // Refresh canonical cart after merge
+              await handleMergeCart(token);
               try {
                 const data = await getCart(token);
                 if (data) {
                   setCart(data);
-                  localStorage.setItem("cart", JSON.stringify(data));
+                  try { localStorage.setItem('cart', JSON.stringify(data)); } catch (e) {}
                 }
-              } catch (fetchErr) {
-                // Failed to fetch cart after auto-merge:
-              }
+              } catch (fetchErr) {}
               setMergedThisLogin(true);
               setPreviousToken(token);
               setLoading(false);
               setAwaitingMerge(false);
+              skipCartFetchRef.current = true;
               return;
-            } catch (mergeErr) {
-              // Auto-merge failed:
-              // allow fallback to regular fetch below
-            }
-          } else {
-            // New login detected with guest cart, but deferring automatic merge until token is ready
+            } catch (mergeErr) {}
           }
         }
 
-        // If we previously detected a new login with guest cart and did not
-        // complete the merge, wait briefly for the merge to finish (or timeout)
         if (awaitingMerge && !mergedThisLogin) {
-          // wait up to 3s for mergedThisLogin to become true
-          // Use mergedRef to avoid stale closure capture; extend timeout to 5s
-          const waitForMerge = () =>
-            new Promise((resolve) => {
-              const start = Date.now();
-              const interval = setInterval(() => {
-                if (mergedRef.current) {
-                  clearInterval(interval);
-                  resolve(true);
-                } else if (Date.now() - start > 5000) {
-                  clearInterval(interval);
-                  resolve(false);
-                }
-              }, 100);
-            });
-
-          try {
-            const ok = await waitForMerge();
-          } catch (e) {
-            // Error while waiting for merge:
-          }
+          const waitForMerge = () => new Promise((resolve) => {
+            const start = Date.now();
+            const interval = setInterval(() => {
+              if (mergedRef.current) { clearInterval(interval); resolve(true); }
+              else if (Date.now() - start > 5000) { clearInterval(interval); resolve(false); }
+            }, 100);
+          });
+          try { await waitForMerge(); } catch (e) {}
           setAwaitingMerge(false);
         }
 
-        // Only fetch from API once we've resolved token availability
         if (tokenLoaded) {
           if (token) {
             const data = await getCart(token);
-            // Only overwrite local cart if the server returned a valid cart
             if (data && data.items) {
               setCart(data);
-              localStorage.setItem("cart", JSON.stringify(data));
-            } else {
-              // Server returned empty/invalid cart, preserving local cart until canonical cart is available
+              try { localStorage.setItem('cart', JSON.stringify(data)); } catch (e) {}
             }
           } else {
-            // Keep existing local cart to avoid a visible empty flash
             const preserved = local ? JSON.parse(local) : { items: [] };
             setCart(preserved);
           }
           setPreviousToken(token);
-        } else {
-          // Token not yet resolved; keep local cart and wait for tokenLoaded to flip
-          // Token not loaded yet, deferring API cart fetch
         }
       } catch (error) {
-        // Error fetching cart:
         setCart({ items: [] });
       } finally {
         setLoading(false);
@@ -185,226 +179,143 @@ export function CartProvider({ children, token, tokenLoaded = true }) {
     };
 
     loadCartFromApi();
-  }, [token, previousToken, skipCartFetch, tokenLoaded]);
 
-  // Add to cart and update local state
-  const handleAddToCart = useCallback(
-    async (productId, quantity) => {
-      // Optimistic update: update UI immediately so header counter increments instantly
+    try {
+      const preloadedLS = typeof window !== 'undefined' ? localStorage.getItem('cart_preloaded') : null;
+      if (preloadedLS && tokenLoaded && token && !mergedThisLogin) {
+        (async () => {
+          try {
+            await handleMergeCart(token);
+            const data = await getCart(token);
+            if (data) {
+              setCart(data);
+              try { localStorage.setItem('cart', JSON.stringify(data)); } catch (e) {}
+            }
+          } catch (e) {}
+        })();
+      }
+    } catch (e) {}
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('cart-preloaded', onPreloaded);
+      }
+    };
+  }, [token, previousToken, tokenLoaded, awaitingMerge, handleMergeCart, mergedThisLogin]);
+
+  const handleAddToCart = useCallback(async (productId, quantity) => {
+    if (isAddingToCart) return;
+    setIsAddingToCart(true);
+    try {
       const prevCart = cart || { items: [] };
       const currentCart = JSON.parse(JSON.stringify(prevCart));
-      const existingItemIndex = currentCart.items.findIndex(
-        (item) => item.product_id === productId
-      );
+      const existingItemIndex = currentCart.items.findIndex((item) => item.product_id === productId);
 
       let optimisticCart;
       if (existingItemIndex >= 0) {
         optimisticCart = {
           ...currentCart,
-          items: currentCart.items.map((item, index) =>
-            index === existingItemIndex
-              ? { ...item, quantity: (item.quantity || 1) + quantity }
-              : item
-          ),
+          items: currentCart.items.map((item, index) => index === existingItemIndex ? { ...item, quantity: (item.quantity || 1) + quantity } : item),
         };
       } else {
         optimisticCart = {
           ...currentCart,
           items: [
             ...currentCart.items,
-            {
-              id: `temp-${Date.now()}`,
-              product_id: productId,
-              quantity,
-              // minimal placeholder product so the cart UI can render immediately
-              product: { id: productId },
-            },
+            { id: `temp-${Date.now()}`, product_id: productId, quantity, product: { id: productId } },
           ],
         };
       }
 
+      setCart(optimisticCart);
+      try { localStorage.setItem('cart', JSON.stringify(optimisticCart)); } catch (e) {}
+
+      const data = await addToCart(productId, quantity, token);
+
       try {
-        // Apply optimistic state
-        setCart(optimisticCart);
-        localStorage.setItem("cart", JSON.stringify(optimisticCart));
-
-        // Call API to add to cart
-        const data = await addToCart(productId, quantity, token);
-
-        // Try to resync canonical cart from server. If that fails, keep optimistic state.
-        try {
-          const serverCart = await getCart(token);
-          if (serverCart) {
-            setCart(serverCart);
-            localStorage.setItem("cart", JSON.stringify(serverCart));
-          }
-        } catch (syncErr) {
-          // If we can't fetch server cart, attempt to merge returned product data into optimistic entry
-          try {
-            const merged = JSON.parse(JSON.stringify(optimisticCart));
-            // find the temp item we added and attach returned product data if available
-            const tempIdx = merged.items.findIndex(
-              (it) =>
-                it.product_id === productId && String(it.id).startsWith("temp-")
-            );
-            if (tempIdx >= 0 && data) {
-              merged.items[tempIdx].product = data;
-            }
-            setCart(merged);
-            localStorage.setItem("cart", JSON.stringify(merged));
-          } catch (mergeErr) {
-            // ignore merge errors
-          }
+        const serverCart = await getCart(token);
+        if (serverCart) {
+          setCart(serverCart);
+          try { localStorage.setItem('cart', JSON.stringify(serverCart)); } catch (e) {}
         }
-
-        return data;
-      } catch (error) {
-        // rollback optimistic change
-        setCart(prevCart);
-        localStorage.setItem("cart", JSON.stringify(prevCart));
-        // Error adding to cart:
-        throw error;
+      } catch (syncErr) {
+        try {
+          const merged = JSON.parse(JSON.stringify(optimisticCart));
+          const tempIdx = merged.items.findIndex((it) => it.product_id === productId && String(it.id).startsWith('temp-'));
+          if (tempIdx >= 0 && data) merged.items[tempIdx].product = data;
+          try { localStorage.setItem('cart', JSON.stringify(merged)); } catch (e) {}
+        } catch (e) {}
       }
-    },
-    [token, cart]
-  );
 
-  // Remove from cart
-  const handleRemoveFromCart = useCallback(
-    async (itemId) => {
-      // Optimistic removal: update UI immediately so user sees instant feedback
+      return data;
+    } catch (error) {
       const prevCart = cart || { items: [] };
+      setCart(prevCart);
+      try { localStorage.setItem('cart', JSON.stringify(prevCart)); } catch (e) {}
+      throw error;
+    } finally {
+      setTimeout(() => setIsAddingToCart(false), 400);
+    }
+  }, [token, cart, isAddingToCart]);
+
+  const handleRemoveFromCart = useCallback(async (itemId) => {
+    const id = String(itemId);
+    if (removingItems.has(id)) return false;
+    setRemovingItems(prev => new Set([...prev, id]));
+    try {
+      const ok = await removeFromCart(itemId, token);
+      if (!ok) return false;
+      const prevCart = cartRef.current || { items: [] };
       const currentCart = JSON.parse(JSON.stringify(prevCart));
-      const id = itemId;
-      const idx = currentCart.items.findIndex(
-        (it) => (it.product && String(it.product.id) === String(id)) || String(it.product_id) === String(id) || String(it.id) === String(id)
-      );
-
-      if (idx === -1) {
-        // nothing to remove client-side
-        return false;
+      const idx = currentCart.items.findIndex((it) => (it.product && String(it.product.id) === String(id)) || String(it.product_id) === String(id) || String(it.id) === String(id));
+      if (idx !== -1) {
+        const updatedCart = { ...currentCart, items: currentCart.items.filter((_, i) => i !== idx) };
+        setCart(updatedCart);
+        try { localStorage.setItem('cart', JSON.stringify(updatedCart)); } catch (e) {}
       }
+      return true;
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      return false;
+    } finally {
+      setTimeout(() => setRemovingItems(prev => { const newSet = new Set(prev); newSet.delete(id); return newSet; }), 300);
+    }
+  }, [token, removingItems]);
 
-      const optimistic = {
-        ...currentCart,
-        items: currentCart.items.filter((_, i) => i !== idx),
-      };
+  const isItemBeingRemoved = useCallback((itemId) => removingItems.has(String(itemId)), [removingItems]);
 
-      try {
-        // Apply optimistic state
-        setCart(optimistic);
-        localStorage.setItem("cart", JSON.stringify(optimistic));
-
-        // Call API to remove
-        const ok = await removeFromCart(itemId, token);
-
-        if (!ok) {
-          // treat as failure and rollback
-          setCart(prevCart);
-          try { localStorage.setItem("cart", JSON.stringify(prevCart)); } catch (e) {}
-          return false;
-        }
-
-        // Attempt to resync canonical cart from server; if it fails, keep optimistic state
-        try {
-          const updated = await getCart(token);
-          if (updated) {
-            setCart(updated);
-            localStorage.setItem("cart", JSON.stringify(updated));
-          }
-        } catch (syncErr) {
-          // Failed to fetch server cart after delete, keeping optimistic state
-        }
-
-        return true;
-      } catch (error) {
-        // rollback optimistic change
-        setCart(prevCart);
-        try { localStorage.setItem("cart", JSON.stringify(prevCart)); } catch (e) {}
-        return false;
-      }
-    },
-    [token, cart]
-  );
-
-  // Update cart item
-  const handleUpdateCartItem = useCallback(
-    async (itemId, quantity) => {
-      try {
-        await updateCartItem(itemId, quantity, token);
-        const updated = await getCart(token);
+  const handleUpdateCartItem = useCallback(async (itemId, quantity) => {
+    try {
+      await updateCartItem(itemId, quantity, token);
+      const updated = await getCart(token);
+      if (updated) {
         setCart(updated);
-        localStorage.setItem("cart", JSON.stringify(updated));
-        return true;
-      } catch (error) {
-        // Error updating cart item:
-        return false;
+        try { localStorage.setItem('cart', JSON.stringify(updated)); } catch (e) {}
       }
-    },
-    [token]
-  );
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }, [token]);
 
-  // Clear cart (local) — used after successful order fulfillment
   const clearCart = useCallback(() => {
     try {
       const empty = { items: [] };
       setCart(empty);
-      localStorage.removeItem("cart");
-      localStorage.setItem("cart", JSON.stringify(empty));
+      try { localStorage.removeItem('cart'); } catch (e) {}
+      try { localStorage.setItem('cart', JSON.stringify(empty)); } catch (e) {}
+      try { localStorage.removeItem('cart_merged'); } catch (e) {}
       return true;
     } catch (e) {
-      // Error clearing cart:
+      console.error('Error clearing cart:', e);
       return false;
     }
   }, []);
 
-  // Merge guest cart with user cart after login
-  const handleMergeCart = useCallback(async (overrideToken) => {
-    const useToken = overrideToken || token;
-    if (!useToken || typeof useToken !== 'string' || useToken.trim() === '') {
-      return null;
-    }
-    // mark that a merge is in-flight so the loading effect can wait for it
-    try {
-      setAwaitingMerge(true);
-      try {
-      const mergedCart = await mergeCart(useToken);
-      setCart(mergedCart);
-      localStorage.setItem("cart", JSON.stringify(mergedCart));
-        setSkipCartFetch(true); // Prevent next effect from overwriting merged cart
-        // mark merged so waiting loops proceed
-        setMergedThisLogin(true);
-        setAwaitingMerge(false);
-        return mergedCart;
-    } catch (error) {
-      // Check if it's an auth error
-      // Don't throw - let the calling code handle the error gracefully
-        setAwaitingMerge(false);
-        return null;
-    }
-    } catch (e) {
-      // fallback - ensure awaiting flag cleared
-      setAwaitingMerge(false);
-      throw e;
-    }
-  }, [token]);
+  if (typeof window !== 'undefined') window.__setCart = setCart;
 
-  // Expose setCart globally for post-login merge/fetch flows
-  if (typeof window !== 'undefined') {
-    window.__setCart = setCart;
-  }
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        loading,
-        addToCart: handleAddToCart,
-        removeFromCart: handleRemoveFromCart,
-        updateCartItem: handleUpdateCartItem,
-        clearCart,
-        mergeCart: handleMergeCart,
-      }}
-    >
+    <CartContext.Provider value={{ cart, loading, isAddingToCart, isItemBeingRemoved, addToCart: handleAddToCart, removeFromCart: handleRemoveFromCart, updateCartItem: handleUpdateCartItem, clearCart, mergeCart: handleMergeCart }}>
       {children}
     </CartContext.Provider>
   );

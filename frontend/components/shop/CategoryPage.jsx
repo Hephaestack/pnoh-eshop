@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { CategoryPageSkeleton } from "@/components/skeletons/CategoryPageSkeleton";
 import {
@@ -38,14 +39,18 @@ const formatThemeLabel = (t, theme) => {
 // Product Card Component with image optimization
 const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, isAddingToCart } = useCart();
   const [adding, setAdding] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
+  const router = useRouter();
 
   const hideTimerRef = React.useRef(null);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent link navigation
+    if (isAddingToCart) return;
     setAdding(true);
 
     // Immediately show confirmation to match optimistic cart update
@@ -53,7 +58,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
 
     try {
       await addToCart(product.id, 1);
-      hideTimerRef.current = setTimeout(() => setAdded(false), 1200);
+      hideTimerRef.current = setTimeout(() => setAdded(false), 600);
     } catch (err) {
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
@@ -63,6 +68,22 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
       // suppressed addToCart error
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent link navigation
+    setBuyingNow(true);
+
+    try {
+      await addToCart(product.id, 1);
+      router.push('/cart');
+    } catch (err) {
+      // Error adding to cart, stay on current page
+      console.error('Error adding to cart:', err);
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -108,29 +129,34 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             </p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl font-bold text-slate-300">
-                ${product.price}
+                €{product.price}
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 mt-3">
               <motion.button
                 className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                  added ? "bg-green-600 text-white" : ""
+                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
                   backgroundColor: added
                     ? "rgb(22 163 74)"
+                    : isAddingToCart
+                    ? "rgb(239 68 68)"
                     : "rgb(203 213 225)",
-                  color: added ? "#fff" : "rgb(0 0 0)",
+                  color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
                   transition: { duration: 0.15 },
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
-                disabled={adding}
+                disabled={adding || isAddingToCart}
+                style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
               >
                 {added
                   ? t("added", "Added!")
                   : adding
                   ? t("adding", "Adding...")
+                  : isAddingToCart
+                  ? t("please_wait", "Please wait...")
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
@@ -140,8 +166,10 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   transition: { duration: 0.15 },
                 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
               >
-                {t("buy_now")}
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
               </motion.button>
             </div>
           </div>
@@ -171,7 +199,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
             <div className="mt-2 font-bold text-slate-300">
-              ${product.price}
+              €{product.price}
             </div>
           </div>
 
@@ -179,23 +207,28 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             <div className="flex w-full gap-2 sm:w-auto">
               <motion.button
                 className={`w-full sm:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
-                  added ? "bg-green-600 text-white" : ""
+                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
                   backgroundColor: added
                     ? "rgb(22 163 74)"
+                    : isAddingToCart
+                    ? "rgb(239 68 68)"
                     : "rgb(203 213 225)",
-                  color: added ? "#fff" : "rgb(0 0 0)",
+                  color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
                   transition: { duration: 0.12 },
                 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
-                disabled={adding}
+                disabled={adding || isAddingToCart}
+                style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
               >
                 {added
                   ? t("added", "Added!")
                   : adding
                   ? t("adding", "Adding...")
+                  : isAddingToCart
+                  ? t("please_wait", "Please wait...")
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
@@ -205,8 +238,10 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   transition: { duration: 0.12 },
                 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handleBuyNow}
+                disabled={buyingNow}
               >
-                {t("buy_now")}
+                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
               </motion.button>
             </div>
           </div>
@@ -372,7 +407,9 @@ function CategoryPageInner({ category }) {
           name: product.name,
           price: product.price,
           category: product.category?.toLowerCase(),
-          theme: product.sub_category
+          theme: product.category?.toLowerCase() === "crosses" 
+            ? "crosses" 
+            : product.sub_category
             ? product.sub_category.toLowerCase().replace(/[_\s]/g, "-")
             : "classic",
           image:
@@ -418,7 +455,10 @@ function CategoryPageInner({ category }) {
     if (selectedTheme === "all") {
       return allProducts;
     }
-    return allProducts.filter((product) => product.theme === selectedTheme);
+    // Apply theme filtering, but crosses should always show up since they don't have subcategories
+    return allProducts.filter((product) => 
+      product.theme === selectedTheme || product.category === "crosses"
+    );
   }, [allProducts, selectedTheme]);
 
   // Get theme from URL params on client side
@@ -611,7 +651,7 @@ function CategoryPageInner({ category }) {
           {categoryInfo.title}
         </h1>
       </div>
-      <p className="text-lg text-[#bcbcbc] mb-12 text-center max-w-2xl mx-auto">
+      <p className="text-lg text-[#bcbcbc] mb-6 text-center max-w-2xl mx-auto">
         {categoryInfo.description}
       </p>
 
@@ -737,44 +777,39 @@ function CategoryPageInner({ category }) {
         style={{ minHeight: "400px" }}
         key={`${selectedTheme}-${currentPage}`}
       >
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
-                : "hidden lg:space-y-4 lg:block"
-            }
-            layout
-          >
-            {currentProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{
-                  duration: 0.35,
-                  ease: "easeOut",
-                  delay: index * 0.03,
-                }}
-              >
-                <Link href={`/shop/${category}/${product.id}`}>
-                  <ProductCard
-                    product={product}
-                    viewMode={viewMode}
-                    categoryTitle={categoryInfo.title}
-                    t={t}
-                  />
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={`${selectedTheme}-${currentPage}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: "easeInOut" }}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
+              : "hidden lg:space-y-4 lg:block"
+          }
+        >
+          {currentProducts.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1, // Beautiful stagger effect
+                ease: "easeOut"
+              }}
+            >
+              <Link href={`/shop/${category}/${product.id}`}>
+                <ProductCard
+                  product={product}
+                  viewMode={viewMode}
+                  categoryTitle={categoryInfo.title}
+                  t={t}
+                />
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
       {/* Enhanced Pagination Controls */}
@@ -823,3 +858,4 @@ function CategoryPageInner({ category }) {
 export default function CategoryPage({ category }) {
   return <CategoryPageInner category={category} />;
 }
+

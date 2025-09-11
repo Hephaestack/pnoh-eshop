@@ -4,15 +4,62 @@ import { ClerkProvider } from "@clerk/nextjs";
 import CartProviderWrapper from "@/components/CartProviderWrapper";
 
 export const metadata = {
-  title: "Πνοή - Jewelry E-Shop",
-  description: "Εργαστήρι Χειροποίητου Κοσμήματος",
+  metadataBase: new URL("http://localhost:3000"),
+  title: {
+    default: "Pnoh - Handmade Jewelry & Accessories",
+    template: "%s | Pnoh - Handmade Jewelry",
+  },
+  description:
+    "Pnoh - Handmade, artisanal jewelry crafted with care. Unique necklaces, rings, bracelets and earrings. Shop handmade jewelry in Greek and English.",
+  keywords: [
+    "handmade jewelry",
+    "artisan jewelry",
+    "χειροποίητα κοσμήματα",
+    "necklaces",
+    "rings",
+    "earrings",
+    "bracelets",
+    "handmade",
+  ].join(", "),
+  applicationName: "Pnoh E-Shop",
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/en",
+      el: "/",
+    },
+  },
+  openGraph: {
+    title: "Pnoh - Handmade Jewelry & Accessories",
+    description:
+      "Unique, handmade jewelry. Necklaces, rings, bracelets and earrings crafted in Greece.",
+    url: "/",
+    siteName: "Pnoh",
+    images: [
+      {
+        url: "/logo.webp",
+        width: 1200,
+        height: 630,
+        alt: "Pnoh - Handmade Jewelry",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pnoh - Handmade Jewelry",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
+      signInFallbackRedirectUrl={undefined}
+      signUpFallbackRedirectUrl={undefined}
       signInForceRedirectUrl={undefined}
       signUpForceRedirectUrl={undefined}
     >

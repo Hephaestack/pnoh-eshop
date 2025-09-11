@@ -147,13 +147,18 @@ def confirm_order(
 
     order = db.query(Order).filter(Order.stripe_checkout_session_id == session_id).first()
 
+    order_out = None
+    if order:
+        order_out = OrderOut.model_validate(order, from_attributes=True)
+
     return {
         "payment_status": status,
         "amount_total": (amount_total or 0) / 100.0 if amount_total is not None else None,
         "currency": currency,
         "email": email,
         "payment_intent_status": (pi or {}).get("status"),
-        "order_id": getattr(order, "id", None) if order else None
+        "order_id": getattr(order, "id", None) if order else None,
+        "order": order_out,
     }
 
 @router.get("/customer/orders", response_model=List[OrderOut], tags=["Orders"])

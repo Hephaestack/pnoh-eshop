@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSignUp, useUser, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -27,28 +27,53 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
   const [errors, setErrors] = useState({})
   const [pendingVerification, setPendingVerification] = useState(false)
   const [code, setCode] = useState('')
+  const [completingSignUp, setCompletingSignUp] = useState(false) // Prevent redirect during cart merge
 
-  // Compute effective redirect URL: prefer prop, then query params, then '/'
-  const getEffectiveRedirectUrl = () => {
-    if (redirectUrl) return redirectUrl;
-    if (typeof window !== 'undefined') {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const q = params.get('redirect_url') || params.get('redirectUrl');
-        if (q) return q;
-      } catch (e) {}
+  // Compute effective redirect URL: prefer prop, then query params, then fromCart flag, then '/'
+  const effectiveRedirectUrl = useMemo(() => {
+    const getEffectiveRedirectUrl = () => {
+      if (redirectUrl) {
+        return redirectUrl;
+      }
+      if (typeof window !== 'undefined') {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const q = params.get('redirect_url') || params.get('redirectUrl');
+          if (q) {
+            return q;
+          }
+          if (params.get('fromCart') === 'true') {
+            return '/cart';
+          }
+        } catch (e) {}
+      }
+  // No redirect specified; default '/'
+      return '/';
+    };
+    const result = getEffectiveRedirectUrl();
+  // effectiveRedirectUrl computed
+    return result;
+  }, [redirectUrl]); // Only recompute when redirectUrl prop changes
+
+  // Persist the effective redirect for SSO fallback immediately so /sso-callback
+  // can read it even if Clerk redirects the browser quickly during OAuth.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+      try { localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl); } catch (e) { /* ignore */ }
     }
-    return '/';
-  };
-  const effectiveRedirectUrl = getEffectiveRedirectUrl();
+  }, [effectiveRedirectUrl]);
 
   // If user is already signed in, redirect after render to avoid setState-in-render
+  // BUT don't redirect if we're in the middle of email verification OR completing signup with cart merge
   useEffect(() => {
-    if (user) {
+    if (user && !pendingVerification && !completingSignUp) {
+  // User exists and will be redirected
       // use a router push inside an effect to avoid updating Router during render
       router.push(effectiveRedirectUrl)
+    } else if (user && (pendingVerification || completingSignUp)) {
+  // User remains on page due to verification or completing signup
     }
-  }, [user, router, effectiveRedirectUrl])
+  }, [user, router, effectiveRedirectUrl, pendingVerification, completingSignUp])
 
   // Signal page ready for smooth loading animation
   useEffect(() => {
@@ -164,11 +189,29 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       })
 
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId })
+  // Email verification complete; proceeding with completing signup flow
         
-        // Check if user has items in guest cart before merging
+        // Set completing state immediately and clear any loading state
+        setIsLoading(false);
+        setCompletingSignUp(true); // Prevent useEffect redirect during cart merge
+
+        // Check if user has items in guest cart before merging and PRELOAD them
+        // into localStorage/window so CartProvider can render immediately.
         const localCart = localStorage.getItem("cart");
         const hasGuestItems = localCart && JSON.parse(localCart)?.items?.length > 0;
+        try {
+          if (hasGuestItems) {
+            const parsedLocal = JSON.parse(localCart);
+            try { window.__preloadedCart = parsedLocal; } catch (e) { /* ignore */ }
+            try { localStorage.setItem('cart_preloaded', JSON.stringify(parsedLocal)); } catch (e) { /* ignore */ }
+            try { window.dispatchEvent(new Event('cart-preloaded')); } catch (e) { /* ignore */ }
+            // Immediately preloaded guest cart before setActive and dispatched cart-preloaded
+          }
+        } catch (e) {
+          // ignore
+        }
+
+        await setActive({ session: result.createdSessionId })
         
         // If user provided names locally, attempt to update Clerk via backend to preserve them
         try {
@@ -220,37 +263,84 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         }
 
   // Merge cart if user has guest items in localStorage now
-  let finalRedirect = redirectUrl || '/';
-  const localCartNow = localStorage.getItem("cart");
-  const hasGuestItemsNow = localCartNow && JSON.parse(localCartNow)?.items?.length > 0;
-  if (hasGuestItemsNow && mergeCart && getToken) {
-          try {
-            const token = await getToken();
-            if (token) {
-              const merged = await mergeCart(token);
-              if (merged) {
-                // merge successful (silent)
-              }
-              try {
-                const { getCart } = await import('@/lib/cart');
-                const latestCart = await getCart(token);
-                if (latestCart) {
-                  localStorage.setItem('cart', JSON.stringify(latestCart));
-                  if (typeof window !== 'undefined' && window.__setCart) {
-                    window.__setCart(latestCart);
-                  }
-                  finalRedirect = '/cart';
-                }
-              } catch (fetchErr) {
-                // suppressed fetch error for latest cart
-              }
-            }
-          } catch (mergeError) {
-            // suppressed merge error
-          }
-        }
+  let finalRedirect = effectiveRedirectUrl;
+  // initial finalRedirect
 
-        router.push(finalRedirect)
+  // Create an async task that will attempt to merge the guest cart and fetch the canonical cart.
+  // The promise resolves when the merge/fetch work completes (or if there's nothing to do).
+  const mergeAndFetch = async () => {
+    try {
+      const localCartNow = localStorage.getItem("cart");
+      const hasGuestItemsNow = localCartNow && JSON.parse(localCartNow)?.items?.length > 0;
+  // inspected local cart and merge helpers
+
+      if (hasGuestItemsNow && mergeCart && getToken) {
+  // attempting cart merge
+        try {
+          const token = await getToken();
+          // token retrieved for merge
+          if (!token) {
+            // no token available for cart merge
+            return
+          }
+
+          const merged = await mergeCart(token);
+          if (merged) {
+            // merge successful
+          } else {
+            // merge returned null or 204
+          }
+
+          // Fetch canonical cart from backend and persist/update context (same as sign-in)
+          try {
+            const { getCart } = await import('@/lib/cart');
+            const latestCart = await getCart(token);
+            if (latestCart) {
+              localStorage.setItem('cart', JSON.stringify(latestCart));
+              if (typeof window !== 'undefined' && window.__setCart) {
+                window.__setCart(latestCart);
+              }
+              // Write a preloaded cart marker so CartProvider can use it immediately
+              if (typeof window !== 'undefined') {
+                try {
+                  window.__preloadedCart = latestCart;
+                  localStorage.setItem('cart_preloaded', JSON.stringify(latestCart));
+                } catch (e) {
+                  // ignore
+                }
+              }
+              // If guest had items, prefer redirecting to cart page
+              finalRedirect = '/cart';
+              // updated finalRedirect to /cart due to merged cart
+            }
+          } catch (fetchErr) {
+            // error fetching cart after merge
+            // ignore fetch error
+          }
+        } catch (mergeError) {
+          // error during cart merge
+          // failed to merge cart after sign up
+        }
+      }
+    } catch (e) {
+      // unexpected error during merge/fetch
+    }
+  }
+
+  // Start merge/fetch but don't block UI; we'll wait up to 2000ms for it to finish.
+  const mergePromise = mergeAndFetch()
+
+  // Waiting up to 2000ms for cart to be ready (or until merge completes)
+  // Wait for either the merge/fetch to complete or a 2 second timeout, whichever comes first.
+  await Promise.race([
+    mergePromise,
+    new Promise((resolve) => setTimeout(resolve, 2000)),
+  ])
+
+  // Wait finished, finalRedirect determined
+  // Allow redirect now and navigate
+  setCompletingSignUp(false);
+  router.push(finalRedirect);
       } else {
         // verification incomplete (silent)
         setErrors({ code: t('auth.error.verification_failed') || 'Verification failed' })
@@ -275,7 +365,10 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
       
       setErrors(errorMessages)
     } finally {
-      setIsLoading(false)
+      // Only clear loading if we're not completing signup
+      if (!completingSignUp) {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -284,6 +377,11 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
     
     setIsLoading(true)
     try {
+      // Store redirect URL in localStorage for SSO callback
+      if (effectiveRedirectUrl && effectiveRedirectUrl !== '/') {
+        localStorage.setItem('clerk_redirect_url', effectiveRedirectUrl);
+      }
+      
       await signUp.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: '/sso-callback',
@@ -322,48 +420,52 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
           </div>
         )}
 
-  {/* Only render verification form, no CAPTCHA here */}
-  <form onSubmit={handleVerification} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="code" className="text-sm font-medium text-white">
-              {t('auth.verification_code') || 'Verification Code'}
-            </label>
-            <Input
-              id="code"
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder={t('auth.code_placeholder') || 'Enter verification code'}
-              className="bg-[#232326] border-[#404040] text-white placeholder:text-gray-400 focus:border-white text-center text-lg tracking-widest"
-              disabled={isLoading}
-              required
-            />
+        {/* Verification form — show loader only on the button while completingSignUp */}
+        <>
+          {/* Only render verification form, no CAPTCHA here */}
+          <form onSubmit={handleVerification} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="code" className="text-sm font-medium text-white">
+                {t('auth.verification_code') || 'Verification Code'}
+              </label>
+              <Input
+                id="code"
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder={t('auth.code_placeholder') || 'Enter verification code'}
+                className="bg-[#232326] border-[#404040] text-white placeholder:text-gray-400 focus:border-white text-center text-lg tracking-widest"
+                disabled={isLoading || completingSignUp}
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full font-medium text-black bg-white hover:bg-gray-200"
+              disabled={isLoading || completingSignUp || !code}
+            >
+              {(isLoading || completingSignUp) ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('auth.verifying') || 'Verifying...'}
+                </>
+              ) : (
+                t('auth.verify_email.button') || 'Verify Email'
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <button
+              onClick={() => setPendingVerification(false)}
+              className="text-sm text-gray-400 transition-colors hover:text-white"
+              disabled={isLoading || completingSignUp}
+            >
+              {t('auth.back_to_signup') || 'Back to sign up'}
+            </button>
           </div>
-
-          <Button
-            type="submit"
-            className="w-full font-medium text-black bg-white hover:bg-gray-200"
-            disabled={isLoading || !code}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {t('auth.verifying') || 'Verifying...'}
-              </>
-            ) : (
-              t('auth.verify_email.button') || 'Verify Email'
-            )}
-          </Button>
-        </form>
-
-        <div className="text-center">
-          <button
-            onClick={() => setPendingVerification(false)}
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            {t('auth.back_to_signup') || 'Back to sign up'}
-          </button>
-        </div>
+        </>
       </div>
     )
   }
@@ -487,7 +589,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               {t('auth.creating_account') || 'Creating account...'}
-            </>
+            </> 
           ) : (
             t('auth.sign_up.button') || 'Create Account'
           )}
@@ -542,7 +644,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         <p className="text-sm text-gray-400">
           {t('auth.already_have_account') || 'Already have an account?'}{' '}
           <Link
-            href="/auth/sign-in"
+            href={`/auth/sign-in${typeof window !== 'undefined' && window.location.search ? window.location.search : ''}`}
             className="font-medium text-white hover:underline"
           >
             {t('auth.sign_in.link') || 'Sign in'}

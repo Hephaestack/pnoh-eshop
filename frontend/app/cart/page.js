@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -30,14 +31,17 @@ function CartPageInner() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [hasRenderedContent, setHasRenderedContent] = useState(false);
+  // Shipping method selection is now handled on Stripe's page
 
-  const { cart, removeFromCart, updateCartItem, loading } = useCart();
-  const [removing, setRemoving] = useState(null);
+  const { cart, removeFromCart, updateCartItem, loading, isItemBeingRemoved } = useCart();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Signal page ready for cart page
   useEffect(() => {
     if (mounted && !loading) {
+      // Reset scroll position to top when cart page loads
+      window.scrollTo(0, 0);
       window.dispatchEvent(new Event("page-ready"));
     }
   }, [mounted, loading]);
@@ -45,7 +49,7 @@ function CartPageInner() {
   // Calculate totals from cart data
   const getTotals = () => {
     if (!cart?.items)
-      return { itemCount: 0, subtotal: 0, shipping: 0, tax: 0, total: 0 };
+      return { itemCount: 0, subtotal: 0, shipping: 0, total: 0 };
 
     // No quantity support for now: each item counts as 1
     const itemCount = cart.items.length;
@@ -53,11 +57,13 @@ function CartPageInner() {
       (sum, item) => sum + (item.product?.price || 0),
       0
     );
-    const shipping = subtotal >= 50 ? 0 : 5; // Free shipping over €50
-    const tax = subtotal * 0.24; // 24% VAT
-    const total = subtotal + shipping + tax;
-
-    return { itemCount, subtotal, shipping, tax, total };
+    // Round up the subtotal
+    const roundedSubtotal = Math.ceil(subtotal);
+    
+  // Shipping is selected on the next page (Stripe checkout)
+  const shipping = null;
+  const total = Math.ceil(subtotal);
+  return { itemCount, subtotal: roundedSubtotal, shipping, total };
   };
 
   const totals = getTotals();
@@ -96,6 +102,43 @@ function CartPageInner() {
   // 2. We're loading AND we haven't rendered any content yet
   // This prevents flickering between skeleton and empty state
   
+  const isShowingSkeleton = loading && !hasRenderedContent;
+
+  if (isShowingSkeleton) {
+    return (
+      <div className="min-h-screen bg-[#18181b] pt-8">
+        <div className="container px-4 mx-auto">
+          <div className="py-8">
+            <div className="space-y-6">
+              <div className="h-8 w-1/3 bg-gray-700 rounded animate-pulse" />
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-4">
+                  {[1,2,3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 bg-[#232326] rounded border border-gray-700 animate-pulse">
+                      <div className="w-24 h-24 bg-gray-700 rounded" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-3/4 bg-gray-700 rounded" />
+                        <div className="h-4 w-1/2 bg-gray-700 rounded" />
+                      </div>
+                      <div className="w-20 h-6 bg-gray-700 rounded" />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="lg:col-span-1 space-y-4">
+                  <div className="p-4 bg-[#232326] rounded border border-gray-700 animate-pulse">
+                    <div className="h-4 w-1/2 bg-gray-700 rounded mb-4" />
+                    <div className="h-4 w-full bg-gray-700 rounded mb-2" />
+                    <div className="h-4 w-3/4 bg-gray-700 rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!cart?.items || cart.items.length === 0) {
     return (
@@ -136,12 +179,12 @@ function CartPageInner() {
         >
           <div className="flex items-center space-x-4">
             <Link href="/shop/products">
-              <Button
+                <Button
                 variant="ghost"
                 className="text-white hover:text-gray-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Συνέχεια Αγορών
+                {t("cart.continue_shopping")}
               </Button>
             </Link>
           </div>
@@ -169,12 +212,14 @@ function CartPageInner() {
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         {item.product?.image_url?.[0] ? (
-                          <img
+                          <Image
                             src={item.product.image_url[0].replace(
                               "dl=0",
                               "raw=1"
                             )}
                             alt={item.product?.name || "Product"}
+                            width={96}
+                            height={96}
                             className="object-cover w-20 h-20 rounded-md sm:w-24 sm:h-24 sm:rounded-lg"
                           />
                         ) : (
@@ -222,24 +267,27 @@ function CartPageInner() {
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              // prefer product id (stable across sessions) and fall back to product_id
+                              // Get product id (stable across sessions) and fall back to product_id
                               const id = item.product?.id || item.product_id;
-                              if (!id) return;
-                              setRemoving(id);
+                              if (!id || isItemBeingRemoved(id)) {
+                                return; // Don't allow clicking if already being removed
+                              }
+                              
                               const ok = await removeFromCart(id);
-                              setRemoving(null);
-                              // If backend reports item missing (404) or removal failed,
-                              // treat it silently in the UI (optimistic removal already applied).
-                              // Avoid showing alerts or noisy console.error for expected races.
                               if (!ok) {
-                                // no-op: failure is non-fatal for the user experience
+                                // Show error feedback only if removal actually failed
+                                console.error('Failed to remove item from cart');
                               }
                             }}
-                            disabled={removing === (item.product?.id || item.product_id)}
-                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            disabled={isItemBeingRemoved(item.product?.id || item.product_id)}
+                            className={`p-2 transition-all duration-200 ${
+                              isItemBeingRemoved(item.product?.id || item.product_id)
+                                ? "text-red-300 bg-red-900/30 cursor-not-allowed" 
+                                : "text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            }`}
                             aria-live="polite"
                           >
-                            {removing === (item.product?.id || item.product_id) ? (
+                            {isItemBeingRemoved(item.product?.id || item.product_id) ? (
                               <span className="flex items-center space-x-2 text-sm text-red-300">
                                 <span
                                   className="animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full border-red-400"
@@ -303,10 +351,11 @@ function CartPageInner() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Shipping method selection removed; handled on Stripe page */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">
-                        <span>{t("cart.subtotal")} ({totals.itemCount} προϊόντα)</span>
+                        <span>{t("cart.subtotal")} ({totals.itemCount} {totals.itemCount === 1 ? t("cart.product") : t("cart.products")})</span>
                         {(itemsMissingPrice || loading) && <SmallSpinner size={2} />}
                       </span>
                       <span>
@@ -320,28 +369,9 @@ function CartPageInner() {
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">
                         <span>{t("cart.shipping")}</span>
-                        {(itemsMissingPrice || loading) && (
-                          <SmallSpinner size={2} />
-                        )}
                       </span>
                       <span>
-                        {itemsMissingPrice || loading ? (
-                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
-                        ) : totals.shipping === 0 ? (
-                          t("cart.free_shipping_message")
-                        ) : (
-                          `€${totals.shipping}`
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>{t("cart.tax")}</span>
-                      <span>
-                        {itemsMissingPrice ? (
-                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
-                        ) : (
-                          `€${totals.tax}`
-                        )}
+                        {t("cart.shipping_next_page")}
                       </span>
                     </div>
                     <hr className="border-gray-600" />
@@ -357,18 +387,17 @@ function CartPageInner() {
                     </div>
                   </div>
 
-                  {totals.shipping === 0 && (
-                    <div className="p-3 border border-green-700 rounded-lg bg-green-900/20">
-                      <p className="text-sm text-center text-green-400">
-                        {t("cart.free_shipping_message")}
-                      </p>
-                    </div>
-                  )}
+                  {/* Message about shipping selection on next page */}
+                  <div className="p-3 border border-blue-700 rounded-lg bg-blue-900/20">
+                    <p className="text-sm text-center text-blue-300">
+                      {t("cart.shipping_next_page_info")}
+                    </p>
+                  </div>
 
                   <div className="space-y-3">
                     <Button
-                      className="w-full font-semibold text-black bg-white hover:bg-gray-100"
-                      disabled={loading}
+                      className="w-full font-semibold text-black bg-white hover:bg-gray-100 disabled:opacity-50"
+                      disabled={loading || isCheckingOut}
                       onClick={async () => {
                         // Check if user is authenticated before proceeding to checkout
                         if (!isSignedIn || !user) {
@@ -378,16 +407,29 @@ function CartPageInner() {
                         }
 
                         try {
+                          setIsCheckingOut(true);
                           // Get token for authenticated request
                           const token = await getToken();
+                          // No delivery method needed, Stripe handles shipping selection
                           await startCheckout(cart.items, token);
                         } catch (err) {
                           alert(err?.message || t("cart.checkout_failed"));
+                        } finally {
+                          setIsCheckingOut(false);
                         }
                       }}
                     >
-                      <Lock className="w-4 h-4 mr-2" />
-                      {t("cart.secure_checkout")}
+                      {isCheckingOut ? (
+                        <>
+                          <SmallSpinner size={1} />
+                          <span className="ml-2">{t("cart.processing_checkout")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          {t("cart.secure_checkout")}
+                        </>
+                      )}
                     </Button>
 
                     <div className="flex items-center justify-center mt-4 space-x-2 text-xs text-gray-400">

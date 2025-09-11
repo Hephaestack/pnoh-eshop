@@ -19,7 +19,7 @@ export function getStripe() {
  *  - quantity
  *  - optional product.name and product.price (number, euros)
  */
-export async function startCheckout(cartItems, token) {
+export async function startCheckout(cartItems, token, options = {}) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   // Ensure we're in browser environment
@@ -63,6 +63,7 @@ export async function startCheckout(cartItems, token) {
       items,
       success_url: successUrl,
       cancel_url: cancelUrl,
+  ...(options?.delivery_method ? { delivery_method: options.delivery_method } : {}),
     }),
   });
 
