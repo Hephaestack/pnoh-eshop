@@ -60,10 +60,9 @@ function CartPageInner() {
     // Round up the subtotal
     const roundedSubtotal = Math.ceil(subtotal);
     
-  // Use backend-provided shipping and free shipping logic
-  // Example: cart.shipping and cart.total should be set by backend
-  const shipping = cart?.shipping ?? 0;
-  const total = cart?.total ?? Math.ceil(subtotal);
+  // Shipping is selected on the next page (Stripe checkout)
+  const shipping = null;
+  const total = Math.ceil(subtotal);
   return { itemCount, subtotal: roundedSubtotal, shipping, total };
   };
 
@@ -370,18 +369,9 @@ function CartPageInner() {
                     <div className="flex justify-between text-gray-300 items-center">
                       <span className="flex items-center space-x-2">
                         <span>{t("cart.shipping")}</span>
-                        {(itemsMissingPrice || loading) && (
-                          <SmallSpinner size={2} />
-                        )}
                       </span>
                       <span>
-                        {itemsMissingPrice || loading ? (
-                          <span className="inline-block w-12 h-5 bg-gray-700 rounded" />
-                        ) : (typeof totals.shipping === "number" && totals.shipping <= 0) ? (
-                          t("cart.free_shipping_message")
-                        ) : (
-                          `€${totals.shipping}`
-                        )}
+                        {t("cart.shipping_next_page")}
                       </span>
                     </div>
                     <hr className="border-gray-600" />
@@ -397,13 +387,12 @@ function CartPageInner() {
                     </div>
                   </div>
 
-                  {(typeof totals.shipping === "number" && totals.shipping <= 0) && (
-                    <div className="p-3 border border-green-700 rounded-lg bg-green-900/20">
-                      <p className="text-sm text-center text-green-400">
-                        {t("cart.free_shipping_message")}
-                      </p>
-                    </div>
-                  )}
+                  {/* Message about shipping selection on next page */}
+                  <div className="p-3 border border-blue-700 rounded-lg bg-blue-900/20">
+                    <p className="text-sm text-center text-blue-300">
+                      {t("cart.shipping_next_page_info")}
+                    </p>
+                  </div>
 
                   <div className="space-y-3">
                     <Button

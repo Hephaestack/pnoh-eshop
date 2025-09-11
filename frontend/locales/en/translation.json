@@ -474,6 +474,8 @@
     "deleting": "Deleting...",
     "checkout_failed": "Failed to start checkout",
     "thank_you_quote": "Thank you for supporting handmade — enjoy your treasure!"
+  ,"shipping_next_page": "Selected at checkout"
+  ,"shipping_next_page_info": "You will choose your shipping method and see the shipping cost on the next page (checkout)."
   },
   "checkout_success": {
     "payment_confirmed_message": "Payment confirmed — thank you for your order! A confirmation email has been sent to your email address.",
