@@ -12,6 +12,7 @@ export default function TopHeader() {
           <div className="flex items-center space-x-2 text-sm text-white">
             <Phone className="w-4 h-4" />
             <span className="font-medium"> +30 210 8813356</span>
+            <span className="font-medium"> +30 6974625666</span>
           </div>
 
           {/* Social Icons */}

@@ -121,20 +121,20 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             />
           </div>
           <div className="px-2 pb-2 text-center">
-            <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
+            <h3 className="text-slate-200 text-lg font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
               {product.name}
             </h3>
-            <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif">
+            <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif font-normal">
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
             <div className="flex items-center justify-center gap-2">
-              <span className="text-xl font-bold text-slate-300">
+              <span className="text-xl font-normal text-slate-300">
                 €{product.price}
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 mt-3">
               <motion.button
-                className={`px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                className={`px-4 py-2 font-serif font-normal bg-transparent border rounded-md border-slate-300 text-slate-200 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -160,7 +160,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="px-4 py-2 font-serif text-black border rounded-md border-slate-300 bg-slate-200"
+                className="px-4 py-2 font-serif font-normal text-black border rounded-md border-slate-300 bg-slate-200"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.15 },
@@ -192,13 +192,13 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold truncate text-slate-200">
+            <h3 className="text-lg font-normal truncate text-slate-200">
               {product.name}
             </h3>
-            <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif">
+            <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif font-normal">
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
-            <div className="mt-2 font-bold text-slate-300">
+            <div className="mt-2 font-normal text-slate-300">
               €{product.price}
             </div>
           </div>
@@ -206,7 +206,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
           <div className="flex items-center justify-between w-full mt-3 sm:w-auto sm:justify-end sm:mt-0">
             <div className="flex w-full gap-2 sm:w-auto">
               <motion.button
-                className={`w-full sm:w-auto px-3 py-2 text-sm font-serif bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                className={`w-full sm:w-auto px-3 py-2 text-sm font-serif font-normal bg-transparent border rounded-md border-slate-300 text-slate-200 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -232,7 +232,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="w-full px-3 py-2 font-serif text-sm text-black border rounded-md sm:w-auto border-slate-300 bg-slate-200"
+                className="w-full px-3 py-2 font-serif font-normal text-sm text-black border rounded-md sm:w-auto border-slate-300 bg-slate-200"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.12 },
@@ -625,7 +625,7 @@ function CategoryPageInner({ category }) {
           <div className="text-sm text-[#bcbcbc] mb-4">{error}</div>
           <motion.button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 font-serif bg-transparent border rounded-md border-slate-300 text-slate-200"
+            className="px-4 py-2 font-serif font-normal bg-transparent border rounded-md border-slate-300 text-slate-200"
             whileHover={{
               backgroundColor: "rgb(203 213 225)",
               color: "rgb(0 0 0)",
@@ -647,7 +647,7 @@ function CategoryPageInner({ category }) {
     >
       {/* Header */}
       <div className="flex items-center justify-center mb-8">
-        <h1 className="text-3xl md:text-5xl font-bold text-[#bcbcbc] tracking-tight text-center w-full">
+  <h1 className="text-3xl md:text-5xl font-normal text-[#bcbcbc] tracking-tight text-center w-full">
           {categoryInfo.title}
         </h1>
       </div>
@@ -839,7 +839,7 @@ function CategoryPageInner({ category }) {
       <div className="flex justify-center mt-12">
         <Link href="/shop/products">
           <motion.div
-            className="px-8 py-3 rounded-full bg-[#232326] text-[#bcbcbc] border border-[#bcbcbc] font-medium cursor-pointer"
+            className="px-8 py-3 rounded-full bg-[#232326] text-[#bcbcbc] border border-[#bcbcbc] font-normal cursor-pointer"
             whileHover={{
               backgroundColor: "rgb(24, 24, 27)",
               color: "rgb(248, 248, 248)",

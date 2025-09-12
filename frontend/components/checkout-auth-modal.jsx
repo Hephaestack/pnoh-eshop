@@ -50,7 +50,7 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
           onClick={onClose}
           variant="ghost"
           size="sm"
-          className="absolute text-gray-400 top-4 right-4 hover:text-white"
+          className="absolute text-gray-400 top-4 right-4 hover:text-white cursor-pointer"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -90,7 +90,7 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
             <Button
               onClick={handleSignIn}
               disabled={isLoading}
-              className="w-full h-12 text-sm font-semibold text-black transition-all duration-200 bg-white hover:bg-gray-100 sm:h-14 sm:text-base"
+              className="w-full h-12 text-sm font-semibold text-black transition-all duration-200 bg-white hover:bg.gray-100 sm:h-14 sm:text-base cursor-pointer"
             >
               <LogIn className="w-4 h-4 mr-2 sm:w-5 sm:h-5" />
               {t("auth.sign_in.button", "Σύνδεση")}
@@ -102,7 +102,7 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
               onClick={handleSignUp}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-12 text-sm font-semibold text-white transition-all duration-200 border-gray-600 hover:bg-gray-800 sm:h-14 sm:text-base"
+              className="w-full h-12 text-sm font-semibold text-white transition-all duration-200 border-gray-600 hover:bg-gray-800 sm:h-14 sm:text-base cursor-pointer"
             >
               <UserPlus className="w-4 h-4 mr-2 sm:w-5 sm:h-5" />
               {t("auth.sign_up.button", "Δημιουργία Λογαριασμού")}
@@ -139,7 +139,7 @@ export default function CheckoutAuthModal({ isOpen, onClose, cartTotal }) {
            
             <button 
               onClick={handleSignUp}
-              className="transition-colors hover:text-white"
+              className="transition-colors hover:text-white cursor-pointer"
             >
               {t("checkout.modal.new_here", "New here? Create account")}
             </button>

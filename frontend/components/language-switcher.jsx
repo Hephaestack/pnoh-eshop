@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <motion.button
         onClick={swapLanguage}
-        className="flex items-center justify-center p-2 text-white transition-all duration-200 border border-white rounded-full bg-gray hover:border-white focus:outline-none focus:ring-2 focus:border-transparent"
+        className="flex items-center justify-center p-2 text-white transition-all duration-200 border border-white rounded-full bg-gray hover:border-white focus:outline-none focus:ring-2 focus:border-transparent cursor-pointer"
         title={t('Change language')}
         whileTap={{ scale: 0.95 }}
       >
