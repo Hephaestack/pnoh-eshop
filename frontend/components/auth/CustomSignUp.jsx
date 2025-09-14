@@ -215,7 +215,7 @@ export default function CustomSignUp({ redirectUrl = '/' }) {
         
         // If user provided names locally, attempt to update Clerk via backend to preserve them
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL
           if (firstName || lastName) {
             // fire-and-forget; add delay to ensure session is properly established
             setTimeout(async () => {

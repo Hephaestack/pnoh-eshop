@@ -3,7 +3,7 @@ import CheckoutClient from './CheckoutClient'
 
 async function fetchCurrentUser() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
     const res = await fetch(`${apiUrl}/auth/me`, { cache: 'no-store', credentials: 'include' })
     if (!res.ok) return null
     return await res.json()

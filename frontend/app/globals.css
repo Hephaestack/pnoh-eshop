@@ -71,3 +71,69 @@ html {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
+
+/* Ensure clickable header icons show pointer cursor even if other rules interfere */
+.main-header .size-9,
+.main-header button,
+.main-header a,
+.main-header [data-slot="button"] {
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure mega menu thumbnails are rendered sharp by default */
+.main-header .rounded-2xl img,
+.main-header .rounded-2xl img[decoding],
+.main-header .rounded-2xl img[loading] {
+  filter: none !important;
+  -webkit-filter: none !important;
+  image-rendering: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Stronger rendering hints to avoid soft/blurred thumbnails due to compositing */
+.main-header .rounded-2xl,
+.main-header .rounded-2xl img {
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform, filter !important;
+}
+
+/* Completely disable any blur/backdrop-filter inside the header dropdown menu */
+.main-header [role="menu"] *,
+.main-header [role="menu"] img,
+.main-header [role="menu"] div {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Ensure all buttons show pointer cursor by default unless explicitly disabled */
+button,
+button[type],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  cursor: pointer;
+}
+
+/* Ensure anchor links and elements with role=link or explicit .clickable show pointer */
+a,
+a[href],
+[role="link"],
+.clickable {
+  cursor: pointer;
+}
+
+/* Keep not-allowed when intentionally disabled */
+.cursor-not-allowed,
+.disabled,
+[disabled] {
+  cursor: not-allowed !important;
+}

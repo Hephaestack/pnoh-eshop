@@ -20,7 +20,7 @@ export function getStripe() {
  *  - optional product.name and product.price (number, euros)
  */
 export async function startCheckout(cartItems, token, options = {}) {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
   // Ensure we're in browser environment
   if (typeof window === 'undefined') {

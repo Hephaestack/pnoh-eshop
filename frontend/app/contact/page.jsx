@@ -107,7 +107,7 @@ export default function ContactPage() {
 
         <form ref={formRef} onSubmit={handleSubmit} className="w-full max-w-xl space-y-6">
           {/* Hidden recipient for EmailJS template (ensure your template uses {{to_email}} in the To field) */}
-          <input type="hidden" name="to_email" value="pnoikosmima@gmail.com" />
+          <input type="hidden" name="to_email" value="pnoi3@yahoo.gr" />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="text-center md:text-left">
                     <label htmlFor="firstName" className="block text-sm font-medium text-[#e5e7eb] mb-2">
@@ -194,7 +194,7 @@ export default function ContactPage() {
 
         
 
-                <div className="flex justify-center items-center gap-4 md:justify-start">
+                <div className="flex items-center justify-center gap-4 md:justify-start">
                   <Button
                     type="submit"
                     size="lg"
@@ -229,7 +229,7 @@ export default function ContactPage() {
               </div>
 
               <div className="grid justify-center w-full grid-cols-1 gap-6 sm:grid-cols-2">
-                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a]">
+                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a] cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center space-y-2 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
                       <div className="flex-shrink-0">
@@ -249,7 +249,7 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a]">
+                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a] cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center space-y-2 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
                       <div className="flex-shrink-0">
@@ -267,7 +267,7 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a]">
+                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a] cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center space-y-2 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
                       <div className="flex-shrink-0">
@@ -277,15 +277,13 @@ export default function ContactPage() {
                         <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('email')}</h3>
                         <p className="text-[#bfc1c6] font-light">
                           {t('email1')}
-                          <br />
-                          {t('email2')}
                         </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a]">
+                <Card className="border-0 shadow-sm hover:shadow-[0_0_16px_#bfc1c6] transition-shadow duration-300 bg-[#23232a] cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center space-y-2 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
                       <div className="flex-shrink-0">
@@ -294,9 +292,9 @@ export default function ContactPage() {
                       <div className="text-center sm:text-left">
                         <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('opening_hours')}</h3>
                         <div className="text-[#bfc1c6] font-light space-y-1">
-                          <p>{t('monday_friday')}: 10:00 - 20:00</p>
-                          <p>{t('saturday')}: 10:00 - 18:00</p>
-                          <p>{t('sunday')}: {t('closed')}</p>
+                          <p>{t('opening_hours_lines.line1')}</p>
+                          <p>{t('opening_hours_lines.line2')}</p>
+                          <p>{t('opening_hours_lines.line3')}</p>
                         </div>
                       </div>
                     </div>

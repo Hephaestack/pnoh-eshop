@@ -26,7 +26,7 @@ function SuccessPageContent() {
       try {
   // confirming order with session id
         const API_BASE =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+          process.env.NEXT_PUBLIC_API_URL;
         const res = await fetch(
           `${API_BASE}/orders/confirm?session_id=${encodeURIComponent(
             sessionId
@@ -77,15 +77,31 @@ function SuccessPageContent() {
               let itemsHtml = '';
               let ordersArray = [];
               if (Array.isArray(rawItems) && rawItems.length > 0) {
-                ordersArray = rawItems.map((i) => ({
-                  name: i.product_name || i.name || i.title || i.description || 'Item',
-                  units: i.quantity || i.qty || i.count || 1,
-                  price: i.unit_amount
-                    ? `€${(Number(i.unit_amount) / 100).toFixed(2)}`
-                    : i.price
-                    ? `€${Number(i.price).toFixed(2)}`
-                    : '€0.00',
-                }));
+                // Heuristic: decide if unit_amount is in cents (needs /100) or already in euros
+                const qtySum = rawItems.reduce((s, it) => s + (Number(it.quantity || it.qty || it.count || 1)), 0);
+                const totalFromBackend = (typeof data?.amount_total === 'number')
+                  ? Number(data.amount_total)
+                  : (typeof data?.order?.total_amount === 'number' ? Number(data.order.total_amount) : NaN);
+
+                // Sum as-is and sum/100 to compare with order total
+                const sumAsIs = rawItems.reduce((s, it) => s + (Number(it.unit_amount || it.price || 0) * (it.quantity || it.qty || it.count || 1)), 0);
+                const sumDiv100 = rawItems.reduce((s, it) => s + ((Number(it.unit_amount || it.price || 0) / 100) * (it.quantity || it.qty || it.count || 1)), 0);
+
+                // Choose the scale that is closer to backend total (if available), else fall back to as-is
+                let useDivide = false;
+                if (!isNaN(totalFromBackend)) {
+                  useDivide = Math.abs(sumDiv100 - totalFromBackend) < Math.abs(sumAsIs - totalFromBackend);
+                }
+
+                ordersArray = rawItems.map((i) => {
+                  const rawAmt = Number(i.unit_amount ?? i.price ?? 0);
+                  const priceNumber = useDivide ? rawAmt / 100 : rawAmt;
+                  return {
+                    name: i.product_name || i.name || i.title || i.description || 'Item',
+                    units: i.quantity || i.qty || i.count || 1,
+                    price: `€${Number(priceNumber).toFixed(2)}`,
+                  };
+                });
                 // Optionally keep itemsHtml for legacy templates
                 itemsHtml = ordersArray.map(o => `${o.units}× ${o.name}`).join('<br/>');
               } else {
@@ -168,7 +184,7 @@ function SuccessPageContent() {
     }
 
     confirm();
-  }, [sessionId, clearCart]);
+  }, [sessionId, clearCart, t]);
 
   // Signal page ready for smooth loading animation after status is determined
   useEffect(() => {

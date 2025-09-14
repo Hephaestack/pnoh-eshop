@@ -77,7 +77,7 @@ export default function CategoriesPage() {
           <motion.div
             key={category.name}
             whileHover={{ scale: 1.02 }}
-            className="rounded-xl shadow-xl p-6 bg-[#232326]/60 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 hover:border-[#bcbcbc55] transition-all"
+            className="rounded-xl shadow-xl p-6 bg-[#232326]/60 border border-[#bcbcbc33] backdrop-blur-md backdrop-saturate-150 hover:border-[#bcbcbc55] transition-all cursor-pointer"
             style={{boxShadow:'0 8px 32px 0 #23232a55'}}
           >
             <Link href={category.href}>
@@ -85,7 +85,7 @@ export default function CategoriesPage() {
                 <img 
                   src={category.image} 
                   alt={t(category.name)} 
-                  className="object-cover w-full h-full hover:scale-110 transition-transform" 
+                  className="object-cover w-full h-full hover:scale-110 transition-transform cursor-pointer" 
                 />
               </div>
               <h2 className="text-2xl font-medium text-[#f8f8f8] mb-2">{t(category.name)}</h2>
@@ -118,7 +118,7 @@ export default function CategoriesPage() {
       <div className="text-center">
         <Link 
           href="/shop/products"
-          className="inline-block px-8 py-3 rounded-full bg-[#232326] text-[#f8f8f8] hover:bg-[#18181b] transition-colors border border-[#bcbcbc] font-medium"
+          className="inline-block px-8 py-3 rounded-full bg-[#232326] text-[#f8f8f8] hover:bg-[#18181b] transition-colors border border-[#bcbcbc] font-medium cursor-pointer"
         >
           {t('view_all_products', 'View All Products')}
         </Link>

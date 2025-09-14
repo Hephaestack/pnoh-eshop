@@ -123,17 +123,15 @@ export default function CategoryPage({ category, products }) {
               </option>
             ))}
           </select>
+          </div>
 
           <button
             onClick={() => setFilterOpen(!filterOpen)}
-            className="hidden sm:flex items-center gap-2 px-6 py-3 rounded-full bg-[#232326] text-[#bcbcbc] hover:bg-[#18181b] hover:text-[#f8f8f8] transition-colors border border-[#bcbcbc33]"
+            className="hidden sm:flex items-center gap-2 px-6 py-3 rounded-full bg-[#232326] text-[#bcbcbc] hover:bg-[#18181b] hover:text-[#f8f8f8] transition-colors border border-[#bcbcbc33] cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4" />
             {t("filters", "Filters")}
           </button>
-        </div>
-
-        {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode("grid")}
@@ -141,7 +139,7 @@ export default function CategoryPage({ category, products }) {
               viewMode === "grid"
                 ? "bg-[#232326] text-[#f8f8f8]"
                 : "text-[#bcbcbc] hover:text-[#f8f8f8]"
-            }`}
+            } cursor-pointer`}
           >
             <Grid className="w-5 h-5" />
           </button>
@@ -151,7 +149,7 @@ export default function CategoryPage({ category, products }) {
               viewMode === "list"
                 ? "bg-[#232326] text-[#f8f8f8]"
                 : "text-[#bcbcbc] hover:text-[#f8f8f8]"
-            }`}
+            } cursor-pointer`}
           >
             <List className="w-5 h-5" />
           </button>
@@ -213,7 +211,7 @@ export default function CategoryPage({ category, products }) {
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
           >
-            <Link href={`/shop/${category}/${product.id}`}>
+            <Link href={`/shop/${category}/${product.id}`} className="cursor-pointer">
               <div
                 className={
                   viewMode === "grid"
@@ -268,7 +266,7 @@ export default function CategoryPage({ category, products }) {
       <div className="flex justify-center mt-12">
         <Link
           href="/products"
-          className="px-8 py-3 rounded-full bg-[#232326] text-[#bcbcbc] hover:bg-[#18181b] hover:text-[#f8f8f8] transition-colors border border-[#bcbcbc] font-medium"
+          className="px-8 py-3 rounded-full bg-[#232326] text-[#bcbcbc] hover:bg-[#18181b] hover:text-[#f8f8f8] transition-colors border border-[#bcbcbc] font-medium cursor-pointer"
         >
           {t("view_all_products", "View All Products")}
         </Link>

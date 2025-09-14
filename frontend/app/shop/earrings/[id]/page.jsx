@@ -2,7 +2,7 @@ import IndividualProductPage from "../../../../components/shop/IndividualProduct
 
 async function fetchProduct(id) {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const res = await fetch(`${apiUrl}/products/${id}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     return res.json();
