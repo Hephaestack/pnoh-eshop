@@ -369,7 +369,7 @@ export function Hero() {
           {/* Navigation Arrows - Hidden on Mobile */}
           <button
             onClick={handlePrev}
-            className="absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center"
+            className="absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Previous product"
           >
             <svg
@@ -389,7 +389,7 @@ export function Hero() {
 
           <button
             onClick={handleNext}
-            className="absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center"
+            className="absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Next product"
           >
             <svg
@@ -506,7 +506,7 @@ export function Hero() {
                                   e.stopPropagation();
                                   handleImageClick();
                                 }}
-                                className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-200 transition-all duration-300 bg-neutral-800/40 backdrop-blur-sm border border-neutral-600/40 rounded-full hover:bg-neutral-700/50 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]"
+                                className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-200 transition-all duration-300 bg-neutral-800/40 backdrop-blur-sm border border-neutral-600/40 rounded-full hover:bg-neutral-700/50 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)] cursor-pointer"
                               >
                                 {t("hero.view_product")}
                               </button>
@@ -515,7 +515,7 @@ export function Hero() {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                   }}
-                                  className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-300 transition-all duration-300 bg-transparent border border-neutral-600/50 rounded-full hover:bg-neutral-800/30 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)]"
+                                  className="w-full px-6 py-3 text-sm md:text-base font-semibold text-neutral-300 transition-all duration-300 bg-transparent border border-neutral-600/50 rounded-full hover:bg-neutral-800/30 hover:scale-105 shadow-lg drop-shadow-[1px_1px_2px_rgba(0,0,0,0.6)] cursor-pointer"
                                 >
                                   {t("hero.shop_all")}
                                 </button>
@@ -548,8 +548,8 @@ export function Hero() {
                   }}
                   className={`transition-all duration-300 rounded-full ${
                     index === currentIndex
-                      ? "w-8 h-2 bg-neutral-400 shadow-lg shadow-neutral-500/20"
-                      : "w-2 h-2 bg-neutral-600 hover:bg-neutral-500 hover:scale-110"
+                      ? "w-8 h-2 bg-neutral-400 shadow-lg shadow-neutral-500/20 cursor-pointer"
+                      : "w-2 h-2 bg-neutral-600 hover:bg-neutral-500 hover:scale-110 cursor-pointer"
                   }`}
                   aria-label={`Go to product ${index + 1}`}
                 />

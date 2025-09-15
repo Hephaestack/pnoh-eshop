@@ -7,31 +7,29 @@ function MegaMenuItem({ href, img, label, onClick }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center w-full max-w-[130px] xl:max-w-[180px] group text-white no-underline justify-self-center"
+      className="flex flex-col items-center w-full max-w-[130px] xl:max-w-[180px] group text-white no-underline justify-self-center cursor-pointer"
       style={{ textDecoration: "none" }}
       onClick={onClick}
     >
-      <motion.div
-        className="w-full aspect-square bg-gradient-to-br from-[#232326] to-[#18181b] rounded-xl overflow-hidden flex items-center justify-center mb-4 border border-[#232326] shadow-[0_2px_12px_0_rgba(30,30,30,0.18)] group-hover:shadow-[0_4px_24px_0_rgba(80,80,80,0.22)] transition-all duration-300"
-        whileHover={{ scale: 1.05, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ duration: 0.2 }}
+      <div
+        className="w-full aspect-square bg-gradient-to-br from-[#232326] to-[#18181b] rounded-xl overflow-hidden flex items-center justify-center mb-4 border border-[#232326] shadow-[0_2px_12px_0_rgba(30,30,30,0.18)] transition-all duration-300 cursor-pointer"
+        style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', perspective: '1000px' }}
       >
-        <motion.img
+        <img
           src={img}
           alt={label}
-          className="w-full h-full object-cover drop-shadow-[0_2px_8px_#00000033]"
-          transition={{ duration: 0.2 }}
+          className="object-cover w-full h-full filter-none cursor-pointer"
+          style={{ filter: 'none', WebkitFilter: 'none', imageRendering: 'auto', willChange: 'transform, filter' }}
+          decoding="async"
+          loading="eager"
+          fetchPriority="high"
         />
-      </motion.div>
-      <motion.span
-        className="block text-sm sm:text-base font-medium px-4 py-2 rounded-lg bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center group-hover:bg-[#232326] group-hover:text-[#f8f8f8] transition-all duration-300"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ duration: 0.2 }}
+      </div>
+      <span
+        className="block text-sm sm:text-base font-normal px-4 py-2 rounded-lg bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center transition-all duration-300 group-hover:underline underline-offset-2 cursor-pointer"
       >
         {label}
-      </motion.span>
+      </span>
     </Link>
   );
 }
@@ -179,8 +177,8 @@ export function Header() {
             {/* Centered Menu (hidden placeholder on mobile to keep grid layout) */}
             <nav className="relative items-center justify-center hidden min-w-0 mx-auto space-x-8 lg:flex shrink-0">
               <Link
-                href="/about"
-                className="text-md font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
+                  href="/about"
+                  className="text-md font-normal text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5 cursor-pointer"
                 onClick={() => setJewelryOpen(false)}
               >
                 {t("about_us")}
@@ -212,7 +210,7 @@ export function Header() {
                       setJewelryOpen(false);
                     }
                   }}
-                  className={`text-md font-light transition-colors pb-0.5 flex items-center gap-1 focus:outline-none text-white hover:text-white`}
+                  className={`text-md font-normal transition-colors pb-0.5 flex items-center gap-1 focus:outline-none text-white hover:text-white cursor-pointer`}
                 >
                   {t("jewelry")}
                   <motion.svg
@@ -239,7 +237,9 @@ export function Header() {
                   } origin-top`}
                   style={{ 
                     boxShadow: "0 8px 32px 0 #23232a99",
-                    width: 'max-content'
+                    width: 'max-content',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none'
                   }}
                   role="menu"
                   tabIndex={-1}
@@ -286,7 +286,7 @@ export function Header() {
               </div>
               <Link
                 href="/contact"
-                className="text-md font-light text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
+                className="text-md font-normal text-white hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
                 onClick={() => setJewelryOpen(false)}
               >
                 {t("contact")}
@@ -302,7 +302,7 @@ export function Header() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-[#232326] border border-white rounded-full relative"
+                      className="hover:bg-[#232326] border border-white rounded-full relative cursor-pointer"
                     style={{ pointerEvents: showTick ? 'none' : 'auto' }}
                   >
                     <AnimatePresence mode="wait">
@@ -348,16 +348,16 @@ export function Header() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="size-9 border-2 border-white rounded-full hover:border-[#f8f8f8] transition-colors flex items-center justify-center p-0 overflow-hidden"
+                      className="size-9 border-2 border-white rounded-full hover:border-[#f8f8f8] transition-colors flex items-center justify-center p-0 overflow-hidden cursor-pointer"
                     >
                       {user?.imageUrl ? (
                         <img
                           src={user.imageUrl}
                           alt={user.firstName || 'User'}
-                          className="object-cover w-full h-full"
+                          className="object-cover w-full h-full cursor-pointer"
                         />
                       ) : (
-                        <div className="flex items-center justify-center w-full h-full font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div className="flex items-center justify-center w-full h-full font-semibold text-white cursor-pointer bg-gradient-to-br from-blue-500 to-purple-600">
                           {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                         </div>
                       )}
@@ -381,10 +381,10 @@ export function Header() {
                                   <img
                                     src={user.imageUrl}
                                     alt={user.firstName || 'User'}
-                                    className="object-cover w-full h-full"
+                                    className="object-cover w-full h-full cursor-pointer"
                                   />
                                 ) : (
-                                  <div className="flex items-center justify-center w-full h-full font-semibold text-white bg-gradient-to-br from-blue-500 to-purple-600">
+                                  <div className="flex items-center justify-center w-full h-full font-semibold text-white cursor-pointer bg-gradient-to-br from-blue-500 to-purple-600">
                                     {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0) || 'U'}
                                   </div>
                                 )}
@@ -498,7 +498,7 @@ export function Header() {
             >
               {/* Header with close button - positioned higher */}
               <div className="flex items-center justify-between px-6 pt-3 pb-2 border-b border-white/20">
-                <h2 className="text-xl font-medium text-white">Μενού</h2>
+                <h2 className="text-xl font-normal text-white">Μενού</h2>
                 <Button
                   variant="ghost"
                   size="icon"

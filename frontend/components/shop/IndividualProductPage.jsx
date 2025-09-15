@@ -400,7 +400,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
       <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8">
         <Link
           href="/shop/products"
-          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block cursor-pointer"
         >
           {t("back_to_collection")}
         </Link>
@@ -421,7 +421,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
       <main className="container max-w-4xl min-h-screen px-4 py-6 mx-auto md:py-8">
         <Link
           href="/shop/products"
-          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block"
+          className="text-[#bcbcbc] hover:text-[#f8f8f8] text-sm mb-6 md:mb-8 inline-block cursor-pointer"
         >
           {t("back_to_collection")}
         </Link>
@@ -453,10 +453,10 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
         />
       )}
       {/* Back navigation with enhanced styling */}
-      <div className="mb-8 md:mb-12">
+          <div className="mb-8 md:mb-12">
         <Link
           href={backUrl}
-          className="inline-flex items-center gap-3 text-[#bcbcbc] hover:text-[#f8f8f8] text-sm font-medium group transition-all duration-300 hover:gap-4"
+          className="inline-flex items-center gap-3 text-[#bcbcbc] hover:text-[#f8f8f8] text-sm font-normal group transition-all duration-300 hover:gap-4 cursor-pointer"
         >
           <div className="flex items-center justify-center w-8 h-8 transition-all duration-300 border rounded-full bg-white/5 border-white/10 backdrop-blur-sm group-hover:bg-white/10">
             <svg 
@@ -481,7 +481,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           {/* Main image with enhanced container */}
           <div className="relative group">
             <div 
-              className="relative max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in ring-1 ring-black/5 lg:max-w-none lg:mx-0"
+              className="relative max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in hover:cursor-pointer ring-1 ring-black/5 lg:max-w-none lg:mx-0"
               onClick={() => openEnlarged(currentImageIndex)}
             >
               <img
@@ -498,7 +498,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                       e.stopPropagation();
                       handleImageNavigation('prev');
                     }}
-                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 left-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 left-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110 cursor-pointer"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -509,7 +509,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                       e.stopPropagation();
                       handleImageNavigation('next');
                     }}
-                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 right-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 right-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110 cursor-pointer"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -520,7 +520,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               
               {/* Enhanced image counter */}
               {productData.images.length > 1 && (
-                <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-sm font-normal">
                   {currentImageIndex + 1} / {productData.images.length}
                 </div>
               )}
@@ -534,7 +534,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`flex-shrink-0 w-16 h-16 md:w-18 md:h-18 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
+                  className={`flex-shrink-0 w-16 h-16 md:w-18 md:h-18 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 cursor-pointer ${
                     index === currentImageIndex 
                       ? 'border-white shadow-lg ring-2 ring-white/20' 
                       : 'border-white/20 hover:border-white/40'
@@ -549,11 +549,11 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               ))}
             </div>
           )}
-          {/* Shipping info moved closer to images with a smooth separator */}
+      {/* Shipping info moved closer to images with a smooth separator */}
           <div className="mt-8 lg:mt-10">
             <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6" />
             <div className="rounded-xl p-6 md:p-8 text-[#bcbcbc]">
-              <h3 className="text-sm font-medium text-[#f8f8f8] uppercase tracking-widest mb-3">{t("shipping_title", "Shipping Information")}</h3>
+              <h3 className="text-sm font-normal text-[#f8f8f8] uppercase tracking-widest mb-3">{t("shipping_title", "Shipping Information")}</h3>
               <ul className="space-y-3 text-sm leading-relaxed">
                 <li className="flex items-start gap-3 text-left"><span className="w-1.5 h-1.5 bg-[#bcbcbc] rounded-full mt-2.5 flex-shrink-0"></span><span>{t("shipping_boxnow", "BoxNow delivery available")}</span></li>
                 <li className="flex items-start gap-3 text-left"><span className="w-1.5 h-1.5 bg-[#bcbcbc] rounded-full mt-2.5 flex-shrink-0"></span><span>{t("shipping_geniki", "Geniki Taxydromiki delivery")}</span></li>
@@ -568,17 +568,17 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
   <div className="px-3 space-y-10 text-center lg:col-span-2 lg:text-left lg:px-0">
           {/* Product header with refined typography */}
           <div className="space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#f8f8f8] tracking-tight leading-tight">
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal text-[#f8f8f8] tracking-tight leading-tight">
                 {productData.name}
               </h1>
-              <p className="text-[#bcbcbc] text-lg font-light tracking-wide uppercase">
+          <p className="text-[#bcbcbc] text-lg font-normal tracking-wide uppercase">
                 {productData.category}
               </p>
             </div>
             
             <div className="flex items-center justify-center gap-6 lg:justify-start">
-              <div className="text-3xl md:text-4xl font-light text-[#f8f8f8] tracking-tight">
+              <div className="text-3xl md:text-4xl font-normal text-[#f8f8f8] tracking-tight">
                 €{productData.price}
               </div>
             
@@ -590,8 +590,8 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           <div className="space-y-6">
             <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
             <div>
-              <h3 className="text-sm font-medium text-[#bcbcbc] uppercase tracking-widest mb-3">{t("description", "Description")}</h3>
-              <p className="text-[#e5e5e5] leading-relaxed text-base md:text-lg font-light whitespace-pre-line">
+              <h3 className="text-sm font-normal text-[#bcbcbc] uppercase tracking-widest mb-3">{t("description", "Description")}</h3>
+              <p className="text-[#e5e5e5] leading-relaxed text-base md:text-lg font-normal whitespace-pre-line">
                 {productData.description}
               </p>
             </div>
@@ -601,13 +601,13 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           {/* Enhanced add to cart section */}
           <div className="pt-6 space-y-6">
             <div className="flex flex-col max-w-md gap-6 mx-auto sm:flex-row lg:max-w-none lg:mx-0">
-              <button
-                className={`group relative overflow-hidden px-8 py-4 text-base font-medium transition-all duration-300 rounded-xl ${
+      <button
+                className={`group relative overflow-hidden px-8 py-4 text-base font-normal transition-all duration-300 rounded-xl ${
                   added 
                     ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/25" 
                     : isAddingToCart
                     ? "bg-red-500 text-white cursor-not-allowed shadow-lg pointer-events-none"
-                    : "bg-white text-black hover:bg-gray-50 shadow-lg shadow-white/10 hover:shadow-white/20"
+        : "bg-white text-black hover:bg-gray-50 shadow-lg shadow-white/10 hover:shadow-white/20 cursor-pointer"
                 }`}
                 onClick={handleAddToCart}
                 disabled={adding || isAddingToCart}
@@ -628,7 +628,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               </button>
 
               <button 
-                className="relative px-8 py-4 overflow-hidden text-base font-medium text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm"
+                className="relative px-8 py-4 overflow-hidden text-base font-normal text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm cursor-pointer"
                 onClick={handleBuyNow}
                 disabled={buyingNow}
               >
@@ -645,7 +645,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
       {/* Additional information sections */}
       <div className="max-w-2xl px-2 mx-auto space-y-8 md:space-y-8 md:max-w-none md:px-0">
         <section className="space-y-4 text-center md:space-y-4 md:text-left">
-          <h2 className="text-xl md:text-xl font-semibold text-[#f8f8f8]">
+          <h2 className="text-xl md:text-xl font-normal text-[#f8f8f8]">
             {t("returns_title", "Returns & Exchange")}
           </h2>
           <p className="text-[#e5e5e5] text-sm md:text-sm">
@@ -678,7 +678,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               {productData.images.length > 1 && (
                 <button
                   onClick={() => handleEnlargedImageNavigation('prev')}
-                  className="hidden sm:flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 flex items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70"
+                  className="hidden sm:flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70 cursor-pointer"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -737,7 +737,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               {productData.images.length > 1 && (
                 <button
                   onClick={() => handleEnlargedImageNavigation('next')}
-                  className="hidden sm:flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 flex items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70"
+                  className="hidden sm:flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70 cursor-pointer"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

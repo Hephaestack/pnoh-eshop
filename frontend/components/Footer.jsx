@@ -14,16 +14,18 @@ function Footer() {
         >
           {/* Company Info */}
           <div className="flex flex-col items-center w-full space-y-6 text-center md:items-start md:text-left">
-            <Image
-              src="/logo.webp"
-              alt={t('logo_alt')}
-              width={150}
-              height={150}
-            />
+            <Link href="/" className="inline-block">
+              <Image
+                src="/logo.webp"
+                alt={t('logo_alt')}
+                width={150}
+                height={150}
+              />
+            </Link>
             <p className="mb-4 text-sm font-light leading-relaxed text-[#bfc1c6]">
               {t('footer_company_desc')}
             </p>
-            <p className="text-sm font-light text-[#bfc1c6]">pnoi@yahoo.gr</p>
+            <p className="text-sm font-light text-[#bfc1c6]">pnoi3@yahoo.gr</p>
           </div>
 
           {/* Navigation */}
@@ -32,19 +34,19 @@ function Footer() {
             <div className="space-y-3">
               <Link
                 href="/shop/products"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('jewelry')}
               </Link>
               <Link
                 href="/about"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('about_us')}
               </Link>
               <Link
                 href="contact"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('contact')}
               </Link>
@@ -57,38 +59,39 @@ function Footer() {
             <div className="space-y-3">
               <Link
                 href="/privacy-policy"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('privacy_policy')}
               </Link>
               <Link
                 href="/terms-conditions"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('terms_conditions')}
               </Link>
               <Link
                 href="/returns"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('returns_policy')}
               </Link>
               <Link
                 href="/shipping"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('shipping_methods')}
               </Link>
               <Link
                 href="/payments"
-                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white"
+                className="block text-sm font-light text-[#bfc1c6] transition-colors hover:text-white cursor-pointer"
               >
                 {t('payment_methods')}
               </Link>
               <div className="pt-4 space-y-2">
                 <p className="text-sm font-light text-[#bfc1c6]">
                   <strong>{t('phone')}:</strong>
-                  <br />+30 210 123 4567
+                  <br />+30 210 8813356
+                  <br />+30 6974625666
                 </p>
                 <p className="text-sm font-light text-[#bfc1c6]">
                   <strong>{t('address')}:</strong>

@@ -64,21 +64,21 @@ export default function PaymentPage() {
               <div className="mb-12 text-center md:text-left">
                 <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('payments_security_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
-                <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title">{t('payments_title', 'Payments')}</h1>
+                <h1 className="text-4xl md:text-5xl font-light tracking-wide text-[#e5e7eb] mb-4 goth-title"></h1>
               
                 <p className="text-[#bfc1c6] font-light leading-relaxed">
                   {t('payments_security_desc')}
                 </p>
               </div>
 
-              {/* PayPal */}
-              <div className="mb-12 text-center md:text-left">
+              
+              {/* <div className="mb-12 text-center md:text-left">
                 <h2 className="text-2xl font-light tracking-wide text-[#e5e7eb] mb-6">{t('payments_paypal_title')}</h2>
                 <div className="w-12 h-px bg-[#bfc1c6] mb-6 mx-auto md:mx-0"></div>
                 <p className="text-[#bfc1c6] font-light leading-relaxed">
                   {t('payments_paypal_desc')}
                 </p>
-              </div>
+              </div> */}
 
               {/* Bank Transfer */}
               <div className="mb-12 text-center md:text-left">
