@@ -121,10 +121,10 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             />
           </div>
           <div className="px-2 pb-2 text-center">
-            <h3 className="text-slate-200 text-lg font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
+            <h3 className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
               {product.name}
             </h3>
-            <p className="text-[#bcbcbc] text-sm mb-2 capitalize font-serif font-normal">
+            <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
             <div className="flex items-center justify-center gap-2">
@@ -134,7 +134,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             </div>
             <div className="flex items-center justify-center gap-2 mt-3">
               <motion.button
-                className={`px-4 py-2 font-serif font-normal bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                className={`px-4 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -160,7 +160,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="px-4 py-2 font-serif font-normal text-black border rounded-md border-slate-300 bg-slate-200"
+                className="px-4 py-2 text-black text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.15 },
@@ -195,7 +195,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             <h3 className="text-lg font-normal truncate text-slate-200">
               {product.name}
             </h3>
-            <p className="text-[#bcbcbc] text-sm mt-1 truncate font-serif font-normal">
+            <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 truncate">
               {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
             </p>
             <div className="mt-2 font-normal text-slate-300">
@@ -206,7 +206,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
           <div className="flex items-center justify-between w-full mt-3 sm:w-auto sm:justify-end sm:mt-0">
             <div className="flex w-full gap-2 sm:w-auto">
               <motion.button
-                className={`w-full sm:w-auto px-3 py-2 text-sm font-serif font-normal bg-transparent border rounded-md border-slate-300 text-slate-200 ${
+                className={`w-full sm:w-auto px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -232,7 +232,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="w-full px-3 py-2 font-serif font-normal text-sm text-black border rounded-md sm:w-auto border-slate-300 bg-slate-200"
+                className="w-full px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] sm:w-auto rounded-md border-slate-300 bg-slate-200 border"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.12 },

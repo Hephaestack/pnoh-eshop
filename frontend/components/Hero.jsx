@@ -367,9 +367,17 @@ export function Hero() {
           </div>
 
           {/* Navigation Arrows - Hidden on Mobile */}
+          <style jsx>{`
+            @media (pointer: fine) {
+              .hero-arrow-btn { display: flex !important; }
+            }
+            @media (pointer: coarse) {
+              .hero-arrow-btn { display: none !important; }
+            }
+          `}</style>
           <button
             onClick={handlePrev}
-            className="absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="hero-arrow-btn absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Previous product"
           >
             <svg
@@ -389,7 +397,7 @@ export function Hero() {
 
           <button
             onClick={handleNext}
-            className="absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="hero-arrow-btn absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Next product"
           >
             <svg
@@ -414,38 +422,62 @@ export function Hero() {
                 const isActive = index === currentIndex;
                 const isPrev = index === (currentIndex - 1 + items.length) % items.length;
                 const isNext = index === (currentIndex + 1) % items.length;
-                const isVisible = isActive || isPrev || isNext;
+
+                let isVisible = false;
+                if (typeof window !== 'undefined') {
+                  const width = window.innerWidth;
+                  if (width >= 1280) {
+                    // Desktop/Large screens: show 3 cards
+                    isVisible = isActive || isPrev || isNext;
+                  } else if (width >= 768) {
+                    // Tablets/Small laptops (up to iPad Pro): show 2 cards
+                    isVisible = isActive || isNext;
+                  } else {
+                    // Mobile: show only active
+                    isVisible = isActive;
+                  }
+                } else {
+                  // SSR fallback: show only active
+                  isVisible = isActive;
+                }
 
                 if (!isVisible) return null;
+
+                // Add gap between cards (only next and prev)
+                let cardGap = '';
+                if (isPrev) cardGap = 'mr-16';
+                if (isNext) cardGap = 'ml-16';
 
                 return (
                   <motion.div
                     key={item.id}
-                    className={`relative transition-all duration-700 ease-out ${
+                    className={`relative ${cardGap} transition-all duration-900 ease-in-out ${
                       isActive
                         ? "scale-100 z-20 cursor-pointer flex justify-center"
-                        : "scale-75 md:scale-85 z-10 hover:scale-80 md:hover:scale-90 hidden md:block md:cursor-pointer"
+                        : "scale-75 md:scale-85 z-10 hover:scale-80 md:hover:scale-90 block md:block md:cursor-pointer"
                     }`}
                     onClick={() => {
                       if (isActive) {
                         handleImageClick();
                       } else {
-                        // Only allow navigation on desktop (this will only execute on desktop due to hidden class on mobile)
                         setCurrentIndex(index);
                         startAutoplay();
                       }
                     }}
                     initial={false}
                     animate={{
-                      filter: isActive ? "blur(0px)" : "blur(2px)",
-                      opacity: isActive ? 1 : 0.6,
-                      y: isActive ? 0 : 20,
+                      // small, fast fade + pop effect
+                      filter: isActive ? "blur(0px)" : "blur(1px)",
+                      opacity: isActive ? 1 : 0.75,
+                      y: isActive ? 0 : 6,
+                      // slight pop on active, subtle shrink on inactive
+                      scale: isActive ? 1.02 : 0.95,
                     }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
                   >
                     {/* Glass Card Container with Silver Accents */}
                     <div
-                      className={`relative backdrop-blur-lg border rounded-3xl overflow-hidden shadow-2xl transition-all duration-700 ${
+                      className={`relative backdrop-blur-lg border rounded-3xl overflow-hidden shadow-2xl transition-all duration-900 ${
                         isActive 
                           ? "bg-gradient-to-br from-neutral-900/30 via-neutral-800/20 to-neutral-900/30 border-silver-400/30 shadow-silver-500/20" 
                           : "bg-gradient-to-br from-neutral-900/20 via-neutral-800/15 to-neutral-900/20 border-neutral-700/30 shadow-black/30"
@@ -485,13 +517,13 @@ export function Hero() {
                       </div>
 
                       {/* Product Info - Only show on active item */}
-                      <AnimatePresence>
+                      <AnimatePresence mode="wait">
                         {isActive && (
                           <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.22 }}
                             className="absolute bottom-0 left-0 right-0 p-6 md:p-8"
                           >
                             <h1 className="mb-3 text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-100 leading-tight drop-shadow-[2px_2px_4px_rgba(0,0,0,0.8)] shadow-black">

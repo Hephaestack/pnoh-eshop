@@ -258,9 +258,9 @@ export default function ContactPage() {
                       <div className="text-center sm:text-left">
                         <h3 className="text-lg font-medium text-[#e5e7eb] mb-2">{t('phone')}</h3>
                         <p className="text-[#bfc1c6] font-light">
-                          {t('phone1')}
+                          +30 210 8813356
                           <br />
-                          {t('phone2')}
+                        +30 6974625666
                         </p>
                       </div>
                     </div>
