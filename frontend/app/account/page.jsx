@@ -282,54 +282,34 @@ export default function AccountPage() {
                   >
                     {((isMobile ? orders.slice(0, mobileVisibleCount) : orders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE))).map((order) => {
                       return (
-                        <motion.div key={order.id} layout className="group bg-[#1a1a1d] border border-[#353538] rounded-xl p-6 space-y-4 overflow-hidden hover:border-[#555558] hover:bg-[#1e1e21] transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                          <div className="flex items-center gap-4">
+                        <motion.div key={order.id} layout className="group bg-[#1a1a1d] border border-[#353538] rounded-xl p-6 space-y-4 overflow-visible hover:border-[#555558] hover:bg-[#1e1e21] transition-all duration-300 flex flex-col justify-between">
+                          <div className="flex items-center gap-4 mb-6">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#404040] to-[#303030] rounded-lg flex items-center justify-center">
                               <Package className="w-6 h-6 text-white" />
                             </div>
                             <div>
-          <h4 className="text-white font-semibold text-lg">#{order.id.slice(-8).toUpperCase()}</h4>
-                              <p className="text-gray-400 text-sm">{new Date(order.created_at).toLocaleDateString('el-GR', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                              <h4 className="text-white font-bold text-base">#{order.id.slice(-8).toUpperCase()}</h4>
+                              <p className="text-gray-400 text-base">{new Date(order.created_at).toLocaleDateString('el-GR', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                             </div>
                           </div>
 
-                          <div className="flex justify-start sm:justify-end">
-                            <span className={`px-4 py-2 rounded-full text-sm font-medium inline-flex items-center gap-2 ${
-                              order.status === 'completed' || order.status === 'fulfilled' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                              order.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                              order.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                              'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                            }`}>
-                              <div className={`w-2 h-2 rounded-full ${
-                                order.status === 'completed' || order.status === 'fulfilled' ? 'bg-emerald-400' :
-                                order.status === 'pending' ? 'bg-amber-400' :
-                                order.status === 'cancelled' ? 'bg-red-400' :
-                                'bg-gray-400'
-                              }`} />
-                              {t(`account.orders.status.${order.status}`, order.status)}
-                            </span>
-                          </div>
-                        </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 items-center">
-                          <div className="text-center md:text-left">
-                            <p className="text-gray-400 text-sm mb-1">{t('account.orders.products', 'Προϊόντα')}</p>
-              <p className="text-white text-base font-medium">{order.items?.length || 0}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-gray-400 text-sm mb-1">{t('account.orders.order_time', 'Ώρα παραγγελίας')}</p>
-                            <p className="text-white text-base font-medium">{new Date(order.created_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 items-center">
+                            <div className="text-center ">
+                              <p className="text-gray-400 text-base font-bold mb-1">{t('account.orders.products', 'Προϊόντα')}</p>
+                              <p className="text-white text-base">{order.items?.length || 0}</p>
+                            </div>
+                            <div className="text-center">
+                          
                           </div>
                           <div className="text-center md:text-right">
-                            <p className="text-gray-400 text-sm mb-1">{t('account.orders.total', 'Σύνολο')}</p>
-                            <p className="text-white text-2xl font-semibold">€{Number(order.total_amount).toFixed(2)}</p>
+                            <p className="text-gray-400 text-base font-bold mb-1">{t('account.orders.total', 'Σύνολο')}</p>
+                            <p className="text-white text-base">€{Number(order.total_amount).toFixed(2)}</p>
                           </div>
                         </div>
 
                         {order.items && order.items.length > 0 && (
                           <div className="bg-[#252528] rounded-lg p-4 mb-6">
-                            <p className="text-gray-400 text-sm mb-3">{t('account.orders.order_products', 'Προϊόντα παραγγελίας:')}</p>
+                            <p className="text-gray-400 text-base font-bold mb-3">{t('account.orders.order_products', 'Προϊόντα παραγγελίας:')}</p>
                             <div className="space-y-3">
                               {order.items.slice(0, 3).map((item, index) => (
                                 <div key={index} className="flex items-center justify-between gap-4 py-2 border-b border-[#333336] last:border-0">
@@ -360,6 +340,22 @@ export default function AccountPage() {
                           <Button className="w-full bg-gradient-to-r from-white to-gray-100 text-black hover:from-gray-100 hover:to-gray-200 px-4 py-3 text-base font-medium transition-all duration-300 group-hover:shadow-lg" onClick={() => showOrderDetails(order)}>
                             <Eye className="w-4 h-4 mr-2" />{t('account.orders.view_details', 'Προβολή Λεπτομερειών')}
                           </Button>
+                        </div>
+                        <div className="flex justify-center mt-3">
+                          <span className={`px-4 py-2 rounded-full text-base font-bold inline-flex items-center gap-2 whitespace-nowrap ${
+                            order.status === 'completed' || order.status === 'fulfilled' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                            order.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                            order.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                            'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                          }`}>
+                            <div className={`w-2 h-2 rounded-full ${
+                              order.status === 'completed' || order.status === 'fulfilled' ? 'bg-emerald-400' :
+                              order.status === 'pending' ? 'bg-amber-400' :
+                              order.status === 'cancelled' ? 'bg-red-400' :
+                              'bg-gray-400'
+                            }`} />
+                            {t(`account.orders.status.${order.status}`, order.status)}
+                          </span>
                         </div>
                         </motion.div>
                       )
