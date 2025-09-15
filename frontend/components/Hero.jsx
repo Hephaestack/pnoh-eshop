@@ -32,6 +32,9 @@ export function Hero() {
   const intervalRef = useRef();
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
+  const touchStartY = useRef(null);
+  const touchEndY = useRef(null);
+  const carouselRef = useRef(null);
 
   // Fetch products for hero carousel with caching
   useEffect(() => {
@@ -180,8 +183,11 @@ export function Hero() {
 
   const handleTouchStart = (e) => {
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     touchStartX.current = touchX;
     touchEndX.current = touchX;
+    touchStartY.current = touchY;
+    touchEndY.current = touchY;
     // Pause autoplay during touch interaction
     clearInterval(intervalRef.current);
   };
@@ -193,9 +199,38 @@ export function Hero() {
     }
   };
 
-  const handleTouchEnd = () => {
-    if (touchStartX.current !== null && touchEndX.current !== null) {
-      const diff = touchStartX.current - touchEndX.current;
+  const handleTouchEnd = (e) => {
+    // Get end touch coords from event if available
+    let endX = touchEndX.current;
+    let endY = touchEndY.current;
+    if (e && e.changedTouches && e.changedTouches[0]) {
+      endX = e.changedTouches[0].clientX;
+      endY = e.changedTouches[0].clientY;
+    }
+
+    // If there's an element under the finger, focus that slide
+    try {
+      const el = document.elementFromPoint(endX, endY);
+      const slide = el && el.closest && el.closest('[data-index]');
+      if (slide && slide.dataset && typeof slide.dataset.index !== 'undefined') {
+        const idx = parseInt(slide.dataset.index, 10);
+        if (!isNaN(idx)) {
+          setCurrentIndex(idx);
+          startAutoplay();
+          touchStartX.current = null;
+          touchEndX.current = null;
+          touchStartY.current = null;
+          touchEndY.current = null;
+          return;
+        }
+      }
+    } catch (err) {
+      // ignore DOM errors and fallback to diff logic
+    }
+
+    // Fallback to directional swipe if no element found
+    if (touchStartX.current !== null && endX !== null) {
+      const diff = touchStartX.current - endX;
       const minSwipeDistance = 50;
 
       if (Math.abs(diff) > minSwipeDistance) {
@@ -209,8 +244,11 @@ export function Hero() {
         startAutoplay();
       }
     }
+
     touchStartX.current = null;
     touchEndX.current = null;
+    touchStartY.current = null;
+    touchEndY.current = null;
   };
 
   const startAutoplay = useCallback(() => {
@@ -431,7 +469,8 @@ export function Hero() {
                     isVisible = isActive || isPrev || isNext;
                   } else if (width >= 768) {
                     // Tablets/Small laptops (up to iPad Pro): show 2 cards
-                    isVisible = isActive || isNext;
+                    // Show previous + active so the active card sits on the right — fixes focus on swipe
+                    isVisible = isActive || isPrev;
                   } else {
                     // Mobile: show only active
                     isVisible = isActive;
@@ -451,6 +490,7 @@ export function Hero() {
                 return (
                   <motion.div
                     key={item.id}
+                    data-index={index}
                     className={`relative ${cardGap} transition-all duration-900 ease-in-out ${
                       isActive
                         ? "scale-100 z-20 cursor-pointer flex justify-center"

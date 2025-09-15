@@ -122,9 +122,9 @@ const EnhancedProductCard = ({ product, viewMode }) => {
                 €{product.price}
               </span>
             </div>
-            <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="flex flex-col md:flex-row items-stretch justify-center gap-2 mt-3 w-full">
               <motion.button
-                className={`px-4 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
+                className={`w-full md:flex-1 min-w-0 text-center flex items-center justify-center px-4 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -150,7 +150,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="px-4 py-2 text-black text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] border rounded-md border-slate-300 bg-slate-200"
+                className="w-full md:flex-1 min-w-0 text-center flex items-center justify-center px-4 py-2 text-black text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] border rounded-md border-slate-300 bg-slate-200"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.15 },
@@ -165,7 +165,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
           </div>
         </>
       ) : (
-        <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
+          <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
           <div className="w-full sm:w-28 h-48 sm:h-28 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             {!imgLoaded && (
               <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
@@ -193,10 +193,10 @@ const EnhancedProductCard = ({ product, viewMode }) => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between w-full mt-3 sm:w-auto sm:justify-end sm:mt-0">
-            <div className="flex w-full gap-2 sm:w-auto">
+          <div className="flex items-center justify-between w-full mt-3 md:justify-end md:mt-0">
+            <div className="flex flex-col md:flex-row items-center gap-2 w-full">
               <motion.button
-                className={`w-full sm:w-auto px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
+                className={`w-full md:flex-1 px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
                   added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
                 }`}
                 whileHover={{
@@ -222,7 +222,7 @@ const EnhancedProductCard = ({ product, viewMode }) => {
                   : t("add_to_cart")}
                 </motion.button>
                 <motion.button
-                  className="w-full px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md sm:w-auto border-slate-300 bg-slate-200 border"
+                  className="w-full md:flex-1 px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border text-center"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.12 },

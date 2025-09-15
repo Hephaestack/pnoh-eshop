@@ -15,6 +15,9 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
   const [enlargedImageIndex, setEnlargedImageIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
+  const { addToCart, cart, isAddingToCart } = useCart();
+
   // Normalize initialProduct (server may return different field names like image_url / big_image_url)
   const normalizeProduct = (p) => {
     if (!p) return null;
@@ -50,32 +53,45 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
     };
   };
 
+  // Product state (may be provided via initialProduct from server)
   const [productData, setProductData] = useState(() => normalizeProduct(initialProduct));
+
+  // Skeleton / loading helpers
+  const [showSkeleton, setShowSkeleton] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [backUrl, setBackUrl] = useState(`/shop/${category}`);
-  const requestIdRef = React.useRef(0);
-  const loadingStartRef = React.useRef(0);
-  const imageLoadedRef = React.useRef(false);
-  const SKELETON_MIN_MS = 300;
-  const SKELETON_SHOW_DELAY_MS = 80;
-  const [showSkeleton, setShowSkeleton] = useState(false);
-  const skeletonTimerRef = React.useRef(null);
 
-  const { addToCart, isAddingToCart } = useCart();
+  // UI interaction state
   const [adding, setAdding] = useState(false);
-  const [buyingNow, setBuyingNow] = useState(false);
   const [added, setAdded] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
 
-  const { t } = useTranslation();
+  // Refs and timers used during fetch/skeleton handling
+  const requestIdRef = useRef(0);
+  const skeletonTimerRef = useRef(null);
+  const imageLoadedRef = useRef(false);
+  const loadingStartRef = useRef(0);
+
+  // Skeleton timing constants
+  const SKELETON_SHOW_DELAY_MS = 220;
+  const SKELETON_MIN_MS = 400;
 
   const checkHideSkeleton = () => {
-    const elapsed = Date.now() - loadingStartRef.current;
-    if (imageLoadedRef.current && elapsed >= SKELETON_MIN_MS) {
+    try {
+      if (skeletonTimerRef.current) {
+        clearTimeout(skeletonTimerRef.current);
+        skeletonTimerRef.current = null;
+      }
+    } catch (e) {}
+
+    if (imageLoadedRef.current || Date.now() - loadingStartRef.current >= SKELETON_MIN_MS) {
+      setShowSkeleton(false);
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
+
+  React.useEffect(() => {
     if (!isLoading) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -382,6 +398,28 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
     touchEndXRef.current = null;
   };
 
+  // Pointer-based handlers (preferred) that wrap touch logic and avoid mixing mouse/touch which can cause focus/interaction bugs
+  const handlePointerDown = (e) => {
+    // Only handle primary button for mice
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    touchEndXRef.current = null;
+    touchStartXRef.current = e.clientX;
+    // Prevent text/image selection while dragging
+    try { e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  };
+
+  const handlePointerMove = (e) => {
+    if (touchStartXRef.current == null) return;
+    touchEndXRef.current = e.clientX;
+  };
+
+  const handlePointerUp = (e) => {
+    // release pointer capture if set
+    try { e.currentTarget.releasePointerCapture && e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+    handleTouchEnd();
+  };
+
   // Skeleton loader
   if (isLoading) {
     if (!showSkeleton) {
@@ -498,7 +536,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                       e.stopPropagation();
                       handleImageNavigation('prev');
                     }}
-                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 left-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110 cursor-pointer"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 cursor-pointer left-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -509,7 +547,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                       e.stopPropagation();
                       handleImageNavigation('next');
                     }}
-                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 right-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110 cursor-pointer"
+                    className="absolute flex items-center justify-center text-white transition-all duration-300 -translate-y-1/2 rounded-full opacity-0 cursor-pointer right-2 top-1/2 w-11 h-11 bg-black/30 hover:bg-black/50 backdrop-blur-sm group-hover:opacity-100 hover:scale-110"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -551,7 +589,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           )}
       {/* Shipping info moved closer to images with a smooth separator */}
           <div className="mt-8 lg:mt-10">
-            <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6" />
+            <div className="h-px mb-6 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             <div className="rounded-xl p-6 md:p-8 text-[#bcbcbc]">
               <h3 className="text-sm font-normal text-[#f8f8f8] uppercase tracking-widest mb-3">{t("shipping_title", "Shipping Information")}</h3>
               <ul className="space-y-3 text-sm leading-relaxed">
@@ -599,43 +637,35 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           </div>
 
           {/* Enhanced add to cart section */}
-          <div className="pt-6 space-y-6">
-            <div className="flex flex-col max-w-md gap-6 mx-auto sm:flex-row lg:max-w-none lg:mx-0">
-      <button
-                className={`group relative overflow-hidden px-8 py-4 text-base font-normal transition-all duration-300 rounded-xl ${
-                  added 
-                    ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/25" 
+          <div className="pt-6">
+            <div className="flex flex-col items-stretch w-full gap-4 md:flex-row">
+              <button
+                className={`w-full md:flex-1 min-w-0 text-center flex items-center justify-center px-6 py-3 text-base font-normal rounded-lg transition-all duration-200 ${
+                  added
+                    ? "bg-emerald-600 text-white"
                     : isAddingToCart
-                    ? "bg-red-500 text-white cursor-not-allowed shadow-lg pointer-events-none"
-        : "bg-white text-black hover:bg-gray-50 shadow-lg shadow-white/10 hover:shadow-white/20 cursor-pointer"
+                    ? "bg-red-500 text-white cursor-not-allowed"
+                    : "bg-white text-black"
                 }`}
                 onClick={handleAddToCart}
                 disabled={adding || isAddingToCart}
                 style={isAddingToCart ? { pointerEvents: 'none' } : {}}
               >
-                <span className="relative z-10">
-                  {added
-                    ? "✓ " + t("added", "Added!")
-                    : adding
-                    ? t("adding", "Adding...")
-                    : isAddingToCart
-                    ? t("please_wait", "Please wait...")
-                    : t("add_to_cart", "Add to Cart")}
-                </span>
-                {!added && !adding && !isAddingToCart && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                )}
+                {added
+                  ? "✓ " + t("added", "Added!")
+                  : adding
+                  ? t("adding", "Adding...")
+                  : isAddingToCart
+                  ? t("please_wait", "Please wait...")
+                  : t("add_to_cart", "Add to Cart")}
               </button>
 
-              <button 
-                className="relative px-8 py-4 overflow-hidden text-base font-normal text-white transition-all duration-300 bg-transparent border-2 group border-white/20 hover:border-white/40 hover:bg-white/5 rounded-xl backdrop-blur-sm cursor-pointer"
+              <button
+                className="flex items-center justify-center w-full min-w-0 px-6 py-3 text-base font-normal text-center text-white bg-transparent border rounded-lg md:flex-1 border-white/20"
                 onClick={handleBuyNow}
                 disabled={buyingNow}
               >
-                <span className="relative z-10">
-                  {buyingNow ? t("buying", "Buying...") : t("buy_now", "Buy Now")}
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                {buyingNow ? t("buying", "Buying...") : t("buy_now", "Buy Now")}
               </button>
             </div>
           </div>
@@ -667,7 +697,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
             onClick={() => setEnlarged(false)}
           >
             <motion.div
-              className="relative w-full h-full p-6 md:p-8 flex items-center justify-center"
+              className="relative flex items-center justify-center w-full h-full p-6 md:p-8"
               initial={{ scale: 0.98 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.98 }}
@@ -677,8 +707,9 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               {/* Left control */}
               {productData.images.length > 1 && (
                 <button
-                  onClick={() => handleEnlargedImageNavigation('prev')}
-                  className="hidden sm:flex absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70 cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); handleEnlargedImageNavigation('prev'); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="absolute z-30 items-center justify-center hidden w-12 h-12 text-white -translate-y-1/2 rounded-full cursor-pointer sm:flex left-2 sm:left-6 top-1/2 bg-black/50 hover:bg-black/70"
                   aria-label="Previous image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -690,12 +721,11 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               {/* Animated image container */}
               <div
                 className="relative max-w-[80vw] max-h-[80vh] md:max-w-[70vw] lg:max-w-[60vw] w-full flex items-center justify-center"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onMouseDown={handleTouchStart}
-                onMouseMove={handleTouchMove}
-                onMouseUp={handleTouchEnd}
+                style={{ touchAction: 'pan-y pinch-zoom' }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
               >
                 <AnimatePresence mode="wait">
                   <motion.img
@@ -713,11 +743,12 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
 
                 {/* Close button outside the image but visually near it */}
                 <button
-                  className="absolute z-30 -top-12 right-0 w-10 h-10 text-white transition-colors hover:text-gray-300"
+                  className="absolute right-0 z-30 w-10 h-10 text-white transition-colors -top-12 hover:text-gray-300"
                   onClick={(e) => {
                     e.stopPropagation();
                     setEnlarged(false);
                   }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   aria-label={t("close")}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -736,8 +767,9 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
               {/* Right control */}
               {productData.images.length > 1 && (
                 <button
-                  onClick={() => handleEnlargedImageNavigation('next')}
-                  className="hidden sm:flex absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 items-center justify-center text-white rounded-full bg-black/50 hover:bg-black/70 cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); handleEnlargedImageNavigation('next'); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="absolute z-30 items-center justify-center hidden w-12 h-12 text-white -translate-y-1/2 rounded-full cursor-pointer sm:flex right-2 sm:right-6 top-1/2 bg-black/50 hover:bg-black/70"
                   aria-label="Next image"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
