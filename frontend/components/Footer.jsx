@@ -116,7 +116,6 @@ function Footer() {
                 <img src="/payment-icons/mastercard.svg" alt="Mastercard" className="h-12" />
                 <img src="/payment-icons/maestro.svg" alt="Maestro" className="h-12" />
                 <img src="/payment-icons/dinersclub.svg" alt="Diners Club" className="h-12" />
-                <img src="/payment-icons/discover.svg" alt="Discover" className="h-12" />
                 <img src="/payment-icons/paypal.svg" alt="PayPal" className="h-12" />
               </div>
             </div>

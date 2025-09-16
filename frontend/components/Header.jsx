@@ -26,9 +26,10 @@ function MegaMenuItem({ href, img, label, onClick }) {
         />
       </div>
       <span
-        className="block text-sm sm:text-base font-normal px-4 py-2 rounded-lg bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center transition-all duration-300 group-hover:underline underline-offset-2 cursor-pointer"
+        className="block text-sm sm:text-base font-normal px-4 py-2 rounded-lg bg-[#18181b] border border-[#232326] shadow-[0_1px_6px_#23232633] text-white text-center transition-all duration-300 cursor-pointer mega-underline"
+        aria-hidden={false}
       >
-        {label}
+        <span className="mega-underline-text">{label}</span>
       </span>
     </Link>
   );

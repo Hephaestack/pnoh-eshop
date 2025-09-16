@@ -30,8 +30,13 @@ export function Hero() {
   });
   const [showContent, setShowContent] = useState(false);
   const intervalRef = useRef();
+  // true: active on right, false: active on left
+  const [tabletActiveRight, setTabletActiveRight] = useState(true);
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
+  const touchStartY = useRef(null);
+  const touchEndY = useRef(null);
+  const carouselRef = useRef(null);
 
   // Fetch products for hero carousel with caching
   useEffect(() => {
@@ -157,14 +162,31 @@ export function Hero() {
   }, [loading, items.length]);
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
+    // On manual prev, flip the active side and advance index if needed
+    setTabletActiveRight((prev) => !prev);
+    // If flipping to right, advance index
+    setCurrentIndex((prevIndex) => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        return tabletActiveRight ? (prevIndex - 1 + items.length) % items.length : prevIndex;
+      }
+      return (prevIndex - 1 + items.length) % items.length;
+    });
     startAutoplay();
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % items.length);
+    // On manual next, flip the active side and advance index if needed
+    setTabletActiveRight((prev) => !prev);
+    setCurrentIndex((prevIndex) => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        return tabletActiveRight ? prevIndex : (prevIndex + 1) % items.length;
+      }
+      return (prevIndex + 1) % items.length;
+    });
     startAutoplay();
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   const handleImageClick = () => {
     const currentItem = items[currentIndex];
@@ -180,8 +202,11 @@ export function Hero() {
 
   const handleTouchStart = (e) => {
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     touchStartX.current = touchX;
     touchEndX.current = touchX;
+    touchStartY.current = touchY;
+    touchEndY.current = touchY;
     // Pause autoplay during touch interaction
     clearInterval(intervalRef.current);
   };
@@ -193,9 +218,40 @@ export function Hero() {
     }
   };
 
-  const handleTouchEnd = () => {
-    if (touchStartX.current !== null && touchEndX.current !== null) {
-      const diff = touchStartX.current - touchEndX.current;
+  const handleTouchEnd = (e) => {
+    // Get end touch coords from event if available
+    let endX = touchEndX.current;
+    let endY = touchEndY.current;
+    if (e && e.changedTouches && e.changedTouches[0]) {
+      endX = e.changedTouches[0].clientX;
+      endY = e.changedTouches[0].clientY;
+    }
+
+    // If there's an element under the finger, focus that slide
+    try {
+      const el = document.elementFromPoint(endX, endY);
+      const slide = el && el.closest && el.closest('[data-index]');
+      if (slide && slide.dataset && typeof slide.dataset.index !== 'undefined') {
+        const idx = parseInt(slide.dataset.index, 10);
+        if (!isNaN(idx)) {
+          // When a slide is chosen via touch, make it the active-right on tablet by default
+          setTabletActiveRight(true);
+          setCurrentIndex(idx);
+          startAutoplay();
+          touchStartX.current = null;
+          touchEndX.current = null;
+          touchStartY.current = null;
+          touchEndY.current = null;
+          return;
+        }
+      }
+    } catch (err) {
+      // ignore DOM errors and fallback to diff logic
+    }
+
+    // Fallback to directional swipe if no element found
+    if (touchStartX.current !== null && endX !== null) {
+      const diff = touchStartX.current - endX;
       const minSwipeDistance = 50;
 
       if (Math.abs(diff) > minSwipeDistance) {
@@ -209,16 +265,29 @@ export function Hero() {
         startAutoplay();
       }
     }
+
     touchStartX.current = null;
     touchEndX.current = null;
+    touchStartY.current = null;
+    touchEndY.current = null;
   };
 
   const startAutoplay = useCallback(() => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        setTabletActiveRight((prev) => !prev);
+        setCurrentIndex((prevIndex) => {
+          // If flipping to right, advance index
+          return tabletActiveRight ? (prevIndex + 1) % items.length : prevIndex;
+        });
+      } else {
+        setTabletActiveRight(true);
+        setCurrentIndex((prev) => (prev + 1) % items.length);
+      }
     }, 3500);
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   useEffect(() => {
     startAutoplay();
@@ -367,9 +436,17 @@ export function Hero() {
           </div>
 
           {/* Navigation Arrows - Hidden on Mobile */}
+          <style jsx>{`
+            @media (pointer: fine) {
+              .hero-arrow-btn { display: flex !important; }
+            }
+            @media (pointer: coarse) {
+              .hero-arrow-btn { display: none !important; }
+            }
+          `}</style>
           <button
             onClick={handlePrev}
-            className="absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="hero-arrow-btn absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Previous product"
           >
             <svg
@@ -389,7 +466,7 @@ export function Hero() {
 
           <button
             onClick={handleNext}
-            className="absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="hero-arrow-btn absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
             aria-label="Next product"
           >
             <svg
@@ -411,41 +488,78 @@ export function Hero() {
           <div className="relative w-full max-w-7xl mx-auto px-4 md:px-0">
             <div className="flex items-center justify-center md:space-x-8">
               {items.map((item, index) => {
-                const isActive = index === currentIndex;
-                const isPrev = index === (currentIndex - 1 + items.length) % items.length;
-                const isNext = index === (currentIndex + 1) % items.length;
-                const isVisible = isActive || isPrev || isNext;
+                // Determine the active index to display. On tablet (2-card) view we may want
+                // the active card to be the left or right one depending on `tabletActiveRight`.
+                let displayActiveIndex = currentIndex;
+                let width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+                const isTabletTwoUp = width >= 768 && width < 1280 && items.length >= 2;
+                if (isTabletTwoUp) {
+                  if (tabletActiveRight) {
+                    // active sits on the right (default): displayActiveIndex = currentIndex
+                    displayActiveIndex = currentIndex;
+                  } else {
+                    // active sits on the left: make the left card the active one
+                    displayActiveIndex = (currentIndex - 1 + items.length) % items.length;
+                  }
+                }
+
+                const isActive = index === displayActiveIndex;
+                const isPrev = index === (displayActiveIndex - 1 + items.length) % items.length;
+                const isNext = index === (displayActiveIndex + 1) % items.length;
+
+                // Visibility rules depend on breakpoints:
+                // - Desktop (>=1280): show prev + active + next
+                // - Tablet (>=768 && <1280): show the pair containing the active (either prev+active or active+next)
+                // - Mobile: show only active
+                let isVisible = false;
+                if (isTabletTwoUp) {
+                  // If active is on the right, show prev + active. If active is on the left, show active + next.
+                  isVisible = tabletActiveRight ? (isActive || isPrev) : (isActive || isNext);
+                } else if (width >= 1280) {
+                  isVisible = isActive || isPrev || isNext;
+                } else if (width >= 0) {
+                  isVisible = isActive;
+                }
 
                 if (!isVisible) return null;
+
+                // Add gap between cards (only next and prev)
+                let cardGap = '';
+                if (isPrev) cardGap = 'mr-16';
+                if (isNext) cardGap = 'ml-16';
 
                 return (
                   <motion.div
                     key={item.id}
-                    className={`relative transition-all duration-700 ease-out ${
+                    data-index={index}
+                    className={`relative ${cardGap} transition-all duration-900 ease-in-out ${
                       isActive
                         ? "scale-100 z-20 cursor-pointer flex justify-center"
-                        : "scale-75 md:scale-85 z-10 hover:scale-80 md:hover:scale-90 hidden md:block md:cursor-pointer"
+                        : "scale-75 md:scale-85 z-10 hover:scale-80 md:hover:scale-90 block md:block md:cursor-pointer"
                     }`}
                     onClick={() => {
                       if (isActive) {
                         handleImageClick();
                       } else {
-                        // Only allow navigation on desktop (this will only execute on desktop due to hidden class on mobile)
                         setCurrentIndex(index);
                         startAutoplay();
                       }
                     }}
                     initial={false}
                     animate={{
-                      filter: isActive ? "blur(0px)" : "blur(2px)",
-                      opacity: isActive ? 1 : 0.6,
-                      y: isActive ? 0 : 20,
+                      // small, fast fade + pop effect
+                      filter: isActive ? "blur(0px)" : "blur(1px)",
+                      opacity: isActive ? 1 : 0.75,
+                      y: isActive ? 0 : 6,
+                      // slight pop on active, subtle shrink on inactive
+                      scale: isActive ? 1.02 : 0.95,
                     }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
                   >
                     {/* Glass Card Container with Silver Accents */}
                     <div
-                      className={`relative backdrop-blur-lg border rounded-3xl overflow-hidden shadow-2xl transition-all duration-700 ${
+                      className={`relative backdrop-blur-lg border rounded-3xl overflow-hidden shadow-2xl transition-all duration-900 ${
                         isActive 
                           ? "bg-gradient-to-br from-neutral-900/30 via-neutral-800/20 to-neutral-900/30 border-silver-400/30 shadow-silver-500/20" 
                           : "bg-gradient-to-br from-neutral-900/20 via-neutral-800/15 to-neutral-900/20 border-neutral-700/30 shadow-black/30"
@@ -485,13 +599,13 @@ export function Hero() {
                       </div>
 
                       {/* Product Info - Only show on active item */}
-                      <AnimatePresence>
+                      <AnimatePresence mode="wait">
                         {isActive && (
                           <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.22 }}
                             className="absolute bottom-0 left-0 right-0 p-6 md:p-8"
                           >
                             <h1 className="mb-3 text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-100 leading-tight drop-shadow-[2px_2px_4px_rgba(0,0,0,0.8)] shadow-black">
