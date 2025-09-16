@@ -30,6 +30,8 @@ export function Hero() {
   });
   const [showContent, setShowContent] = useState(false);
   const intervalRef = useRef();
+  // true: active on right, false: active on left
+  const [tabletActiveRight, setTabletActiveRight] = useState(true);
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
   const touchStartY = useRef(null);
@@ -160,14 +162,31 @@ export function Hero() {
   }, [loading, items.length]);
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
+    // On manual prev, flip the active side and advance index if needed
+    setTabletActiveRight((prev) => !prev);
+    // If flipping to right, advance index
+    setCurrentIndex((prevIndex) => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        return tabletActiveRight ? (prevIndex - 1 + items.length) % items.length : prevIndex;
+      }
+      return (prevIndex - 1 + items.length) % items.length;
+    });
     startAutoplay();
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % items.length);
+    // On manual next, flip the active side and advance index if needed
+    setTabletActiveRight((prev) => !prev);
+    setCurrentIndex((prevIndex) => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        return tabletActiveRight ? prevIndex : (prevIndex + 1) % items.length;
+      }
+      return (prevIndex + 1) % items.length;
+    });
     startAutoplay();
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   const handleImageClick = () => {
     const currentItem = items[currentIndex];
@@ -215,6 +234,8 @@ export function Hero() {
       if (slide && slide.dataset && typeof slide.dataset.index !== 'undefined') {
         const idx = parseInt(slide.dataset.index, 10);
         if (!isNaN(idx)) {
+          // When a slide is chosen via touch, make it the active-right on tablet by default
+          setTabletActiveRight(true);
           setCurrentIndex(idx);
           startAutoplay();
           touchStartX.current = null;
@@ -254,9 +275,19 @@ export function Hero() {
   const startAutoplay = useCallback(() => {
     clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
+      const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+      if (width >= 768 && width < 1280 && items.length >= 2) {
+        setTabletActiveRight((prev) => !prev);
+        setCurrentIndex((prevIndex) => {
+          // If flipping to right, advance index
+          return tabletActiveRight ? (prevIndex + 1) % items.length : prevIndex;
+        });
+      } else {
+        setTabletActiveRight(true);
+        setCurrentIndex((prev) => (prev + 1) % items.length);
+      }
     }, 3500);
-  }, [items.length]);
+  }, [items.length, tabletActiveRight]);
 
   useEffect(() => {
     startAutoplay();
@@ -457,26 +488,37 @@ export function Hero() {
           <div className="relative w-full max-w-7xl mx-auto px-4 md:px-0">
             <div className="flex items-center justify-center md:space-x-8">
               {items.map((item, index) => {
-                const isActive = index === currentIndex;
-                const isPrev = index === (currentIndex - 1 + items.length) % items.length;
-                const isNext = index === (currentIndex + 1) % items.length;
+                // Determine the active index to display. On tablet (2-card) view we may want
+                // the active card to be the left or right one depending on `tabletActiveRight`.
+                let displayActiveIndex = currentIndex;
+                let width = typeof window !== 'undefined' ? window.innerWidth : 1024;
 
-                let isVisible = false;
-                if (typeof window !== 'undefined') {
-                  const width = window.innerWidth;
-                  if (width >= 1280) {
-                    // Desktop/Large screens: show 3 cards
-                    isVisible = isActive || isPrev || isNext;
-                  } else if (width >= 768) {
-                    // Tablets/Small laptops (up to iPad Pro): show 2 cards
-                    // Show previous + active so the active card sits on the right — fixes focus on swipe
-                    isVisible = isActive || isPrev;
+                const isTabletTwoUp = width >= 768 && width < 1280 && items.length >= 2;
+                if (isTabletTwoUp) {
+                  if (tabletActiveRight) {
+                    // active sits on the right (default): displayActiveIndex = currentIndex
+                    displayActiveIndex = currentIndex;
                   } else {
-                    // Mobile: show only active
-                    isVisible = isActive;
+                    // active sits on the left: make the left card the active one
+                    displayActiveIndex = (currentIndex - 1 + items.length) % items.length;
                   }
-                } else {
-                  // SSR fallback: show only active
+                }
+
+                const isActive = index === displayActiveIndex;
+                const isPrev = index === (displayActiveIndex - 1 + items.length) % items.length;
+                const isNext = index === (displayActiveIndex + 1) % items.length;
+
+                // Visibility rules depend on breakpoints:
+                // - Desktop (>=1280): show prev + active + next
+                // - Tablet (>=768 && <1280): show the pair containing the active (either prev+active or active+next)
+                // - Mobile: show only active
+                let isVisible = false;
+                if (isTabletTwoUp) {
+                  // If active is on the right, show prev + active. If active is on the left, show active + next.
+                  isVisible = tabletActiveRight ? (isActive || isPrev) : (isActive || isNext);
+                } else if (width >= 1280) {
+                  isVisible = isActive || isPrev || isNext;
+                } else if (width >= 0) {
                   isVisible = isActive;
                 }
 

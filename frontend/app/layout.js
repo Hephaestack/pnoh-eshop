@@ -64,6 +64,10 @@ export default function RootLayout({ children }) {
       signUpForceRedirectUrl={undefined}
     >
       <html lang="el" data-scroll-behavior="smooth">
+        <head>
+          {/* Use the site logo as the canonical favicon. Removed the duplicate /favicon.ico to avoid conflicts. */}
+          <link rel="icon" href="/logo.webp" type="image/webp" />
+        </head>
         <body className="min-h-screen bg-[#18181b]">
           {/* Clerk Smart CAPTCHA container - required for clerk-captcha initialization */}
           <div id="clerk-captcha" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true" />

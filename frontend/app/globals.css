@@ -137,3 +137,69 @@ a[href],
 [disabled] {
   cursor: not-allowed !important;
 }
+
+/* Animated underline for mega menu labels (loading-like) */
+@keyframes mega-underline-load {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleX(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0.6;
+  }
+}
+
+/* Wrapper utility for the label to position underline */
+.mega-underline {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The animated bar that sits under the text */
+/* Wrapper for the label; we'll size the animated underline to the inline text */
+.mega-underline {
+  position: relative;
+}
+
+/* The text wrapper that we'll size to content width */
+.mega-underline .mega-underline-text {
+  display: inline-block;
+  position: relative;
+}
+
+/* Minimal, subtle underline attached to the inline text only */
+.mega-underline .mega-underline-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px; /* sits just under the text */
+  height: 2px;
+  width: 100%;
+  background: rgba(255,255,255,0.85); /* higher opacity as requested */
+  transform-origin: left center;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+/* One-time animation on hover: animate once when hovering the parent group */
+.group:hover .mega-underline .mega-underline-text::after {
+  animation: mega-underline-load-once 900ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes mega-underline-load-once {
+  0% { transform: scaleX(0); opacity: 0.9; }
+  60% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0.95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mega-underline .mega-underline-text::after {
+    animation: none !important;
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+  }
+}
