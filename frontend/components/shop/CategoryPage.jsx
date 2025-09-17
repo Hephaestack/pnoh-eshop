@@ -38,7 +38,7 @@ const formatThemeLabel = (t, theme) => {
 };
 
 // Product Card Component with image optimization
-const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
+const ProductCard = ({ product, viewMode, categoryTitle, t, category }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { addToCart, cart, isAddingToCart } = useCart();
   const [adding, setAdding] = useState(false);
@@ -128,7 +128,9 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
               {product.name}
             </h3>
             <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
-              {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
+              {product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase()
+                ? `${t(product.theme.replace(/-/g, "_"))} • ${categoryTitle}`
+                : categoryTitle}
             </p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl font-normal text-slate-300">
@@ -201,7 +203,9 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
               {product.name}
             </h3>
             <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 truncate">
-              {t(product.theme.replace(/-/g, "_"))} • {categoryTitle}
+              {product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase()
+                ? `${t(product.theme.replace(/-/g, "_"))} • ${categoryTitle}`
+                : categoryTitle}
             </p>
             <div className="mt-2 font-normal text-slate-300">
               €{product.price}
@@ -810,6 +814,7 @@ function CategoryPageInner({ category }) {
                   viewMode={viewMode}
                   categoryTitle={categoryInfo.title}
                   t={t}
+                  category={category}
                 />
               </Link>
             </motion.div>
