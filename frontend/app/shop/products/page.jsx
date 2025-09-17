@@ -115,7 +115,9 @@ const EnhancedProductCard = ({ product, viewMode }) => {
               {product.name}
             </h3>
             <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
-              {formatThemeLabel(product.theme)} • {t(product.category)}
+              {product.theme && product.theme.toLowerCase() !== (product.category || '').toLowerCase()
+                ? `${formatThemeLabel(product.theme)} • ${t(product.category)}`
+                : t(product.category)}
             </p>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl font-bold text-slate-300">
@@ -186,7 +188,9 @@ const EnhancedProductCard = ({ product, viewMode }) => {
               {product.name}
             </h3>
             <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 truncate">
-              {formatThemeLabel(product.theme)} • {t(product.category)}
+              {product.theme && product.theme.toLowerCase() !== (product.category || '').toLowerCase()
+                ? `${formatThemeLabel(product.theme)} • ${t(product.category)}`
+                : t(product.category)}
             </p>
             <div className="mt-2 font-bold text-slate-300">
               €{product.price}
