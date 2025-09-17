@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, UploadFile, File, Body
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from typing import Optional, List
+from typing import Literal, Optional, List
 from sqlalchemy import or_
 import json
 from pydantic import ValidationError
@@ -18,6 +18,14 @@ from db.schemas.admin import AdminLogin
 from utils.admin_auth import create_access_token, verify_password, get_current_admin
 
 router = APIRouter()
+
+def _ensure_list_of_str(name, val):
+    if val is None: return
+    if not isinstance(val, list):
+        raise HTTPException(422, detail=f"{name} must be a list of strings (URLs)")
+    for i, it in enumerate(val):
+        if not isinstance(it, str):
+            raise HTTPException(422, detail=f"{name}[{i}] must be a string URL")
 
 @router.get("/admin/products/all", response_model=List[ProductSummary], tags=["Admin Products"])
 def admin_get_products(
@@ -131,9 +139,13 @@ async def create_product(
     return new_product
 
 @router.put("/admin/products/{product_id}", response_model=ProductOut, tags=["Admin Products"])
-def update_product(
+async def update_product(
     product_id: UUID,
-    product_data: ProductUpdateRequest,
+    payload: Optional[str] = Form(None, description="JSON string for ProductUpdateRequest"),
+    images: Optional[List[UploadFile]] = File(None),
+    image: Optional[UploadFile] = File(None),
+    image_action: Literal["append", "replace"] = Form("append"),
+    payload_json: Optional[ProductUpdateRequest] = Body(None),
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin)
 ):
@@ -141,9 +153,58 @@ def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found.")
     
-    update_data = product_data.model_dump(exclude_unset = True)
-    for field, value in update_data.items():
-        setattr(product, field, value)
+    if payload_json is not None:
+        data = payload_json
+        incoming_files: List[UploadFile] = []
+        if image: incoming_files.append(image)
+        if images: incoming_files.extend(images or [])
+    elif payload is not None:
+        try:
+            data = ProductUpdateRequest.model_validate_json(payload)
+        except ValidationError as e:
+            raise HTTPException(422, detail=f"Invalid payload JSON: {e}")
+        incoming_files = []
+        if image: incoming_files.append(image)
+        if images: incoming_files.extend(images or [])
+    else:
+        raise HTTPException(422, detail="Provide JSON body or multipart 'payload'")
+
+    upd = data.model_dump(exclude_unset=True)
+    if "image_url" in upd: _ensure_list_of_str("image_url", upd["image_url"])
+    if "big_image_url" in upd: _ensure_list_of_str("big_image_url", upd["big_image_url"])
+
+    for k, v in upd.items():
+        setattr(product, k, v)
+
+    if incoming_files:
+        original_urls: List[str] = []
+        thumb_urls: List[str] = []
+
+        for f in incoming_files:
+            if not f.content_type or not f.content_type.startswith("image/"):
+                raise HTTPException(422, detail=f"Invalid file type: {f.filename}")
+            raw = await f.read()
+            up = upload_image_bytes(
+                content=raw,
+                filename=f.filename or "upload",
+                folder="products",
+                content_type=f.content_type,
+            )
+            th = create_and_upload_thumbnail(
+                image_bytes=raw,
+                size=(400, 400),
+                folder="products/thumbnails",
+                quality=85,
+            )
+            original_urls.append(up["url"])
+            thumb_urls.append(th["url"])
+
+        if image_action == "replace":
+            product.big_image_url = original_urls or None
+            product.image_url = thumb_urls or None
+        else:  # append
+            product.big_image_url = (product.big_image_url or []) + original_urls
+            product.image_url = (product.image_url or []) + thumb_urls
 
     db.commit()
     db.refresh(product)
