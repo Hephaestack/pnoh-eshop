@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../app/cart-context";
 import { useTranslation } from "react-i18next";
@@ -110,13 +111,15 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             {!imgLoaded && (
               <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
             )}
-            <img
+            <Image
               src={product.image}
               alt={product.name}
+              width={480}
+              height={480}
+              sizes="(max-width: 640px) 320px, 480px"
+              quality={75}
               loading="lazy"
-              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
-                imgLoaded ? "" : "opacity-0"
-              }`}
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${imgLoaded ? "" : "opacity-0"}`}
               onLoad={() => setImgLoaded(true)}
             />
           </div>
@@ -180,13 +183,15 @@ const ProductCard = ({ product, viewMode, categoryTitle, t }) => {
             {!imgLoaded && (
               <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
             )}
-            <img
+            <Image
               src={product.image}
               alt={product.name}
+              width={280}
+              height={280}
+              sizes="160px"
+              quality={65}
               loading="lazy"
-              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${
-                imgLoaded ? "" : "opacity-0"
-              }`}
+              className={`object-cover w-full h-full transition-transform duration-200 group-hover:scale-[1.03] ${imgLoaded ? "" : "opacity-0"}`}
               onLoad={() => setImgLoaded(true)}
             />
           </div>

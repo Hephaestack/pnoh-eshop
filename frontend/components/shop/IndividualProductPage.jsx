@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -518,15 +519,33 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
   <div className="space-y-6 lg:col-span-3 md:space-y-8">
           {/* Main image with enhanced container */}
           <div className="relative group">
-            <div 
+              <div 
               className="relative max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in hover:cursor-pointer ring-1 ring-black/5 lg:max-w-none lg:mx-0"
               onClick={() => openEnlarged(currentImageIndex)}
             >
-              <img
-                src={productData.images[currentImageIndex]}
-                alt={`${productData.name} - Image ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.02]"
-              />
+              {(() => {
+                const src = productData.big_images?.[currentImageIndex] || productData.images[currentImageIndex];
+                const hasBig = Boolean(productData.big_images && productData.big_images.length > 0 && productData.big_images[currentImageIndex]);
+                // Frontend selection: no debug logging in production
+                return (
+                  <>
+                    <Image
+                      src={src}
+                      alt={`${productData.name} - Image ${currentImageIndex + 1}`}
+                      fill
+                      sizes="(max-width: 640px) 320px, (max-width: 1024px) 640px, 900px"
+                      quality={hasBig ? 100 : 90}
+                      className="object-cover transition-all duration-500 group-hover:scale-[1.02]"
+                      priority={true}
+                      loading={hasBig ? "eager" : "lazy"}
+                      unoptimized={hasBig}
+                      fetchPriority={hasBig ? "high" : "auto"}
+                      decoding="async"
+                      onError={() => { /* let browser handle fallback */ }}
+                    />
+                  </>
+                );
+              })()}
               
               {/* Enhanced navigation arrows */}
               {productData.images.length > 1 && (
@@ -568,7 +587,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
           {/* Enhanced thumbnail gallery */}
             {productData.images.length > 1 && (
             <div className="flex justify-center gap-4 pb-4 overflow-x-auto lg:justify-start">
-              {productData.images.map((image, index) => (
+                {productData.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
@@ -578,10 +597,17 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                       : 'border-white/20 hover:border-white/40'
                   }`}
                 >
-                  <img
+                  <Image
                     src={image}
                     alt={`${productData.name} - Thumbnail ${index + 1}`}
+                    width={64}
+                    height={64}
+                    sizes="64px"
+                    quality={60}
                     className="object-cover w-full h-full"
+                    loading={index === currentImageIndex ? 'eager' : 'lazy'}
+                    unoptimized={false}
+                    decoding="async"
                   />
                 </button>
               ))}
@@ -728,17 +754,28 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                 onPointerCancel={handlePointerUp}
               >
                 <AnimatePresence mode="wait">
-                  <motion.img
+                  <motion.div
                     key={productData.big_images?.[enlargedImageIndex] || productData.images[enlargedImageIndex]}
-                    src={productData.big_images?.[enlargedImageIndex] || productData.images[enlargedImageIndex]}
-                    alt={`${productData.name} - Enlarged view`}
-                    className="object-contain max-w-full max-h-full rounded-md"
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ duration: 0.28 }}
+                    className="relative max-w-full max-h-full rounded-md flex items-center justify-center"
                     onClick={(e) => e.stopPropagation()}
-                  />
+                  >
+                    <Image
+                      src={productData.big_images?.[enlargedImageIndex] || productData.images[enlargedImageIndex]}
+                      alt={`${productData.name} - Enlarged view`}
+                      width={1200}
+                      height={1200}
+                      quality={100}
+                      className="object-contain max-w-full max-h-full rounded-md"
+                      loading="eager"
+                      unoptimized={Boolean(productData.big_images && productData.big_images.length > 0)}
+                      fetchPriority="high"
+                      decoding="async"
+                    />
+                  </motion.div>
                 </AnimatePresence>
 
                 {/* Close button outside the image but visually near it */}

@@ -82,7 +82,18 @@ export function Hero() {
               // Convert Dropbox URLs to direct image URLs
               let imageUrl = "/images/test2.jpg"; // Default fallback
 
+              // Prefer high-resolution original if available (e.g., big_image_url)
               if (
+                product.big_image_url &&
+                Array.isArray(product.big_image_url) &&
+                product.big_image_url.length > 0
+              ) {
+                let url = product.big_image_url[0];
+                if (url.includes("dropbox.com") && url.includes("dl=0")) {
+                  url = url.replace("dl=0", "raw=1");
+                }
+                imageUrl = url;
+              } else if (
                 product.image_url &&
                 Array.isArray(product.image_url) &&
                 product.image_url.length > 0
@@ -549,8 +560,8 @@ export function Hero() {
                     initial={false}
                     animate={{
                       // small, fast fade + pop effect
-                      filter: isActive ? "blur(0px)" : "blur(1px)",
-                      opacity: isActive ? 1 : 0.75,
+                      // Do not blur inactive slides so their images render at full quality.
+                      opacity: isActive ? 1 : 0.8,
                       y: isActive ? 0 : 6,
                       // slight pop on active, subtle shrink on inactive
                       scale: isActive ? 1.02 : 0.95,
@@ -578,19 +589,27 @@ export function Hero() {
                         {isActive && (
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-silver-400/5 to-transparent animate-pulse"></div>
                         )}
+                        {
+                          /* Balance quality vs performance:
+                             - Active and adjacent slides: high-quality, high-priority, eager loading.
+                             - Other visible slides: medium quality and leave optimization to Next.js to save bandwidth.
+                          */
+                        }
                         <Image
                           src={item.img || "/images/test2.jpg"}
                           alt={item.title || "Product"}
                           fill
-                          sizes="(max-width: 640px) 320px, (max-width: 768px) 384px, (max-width: 1024px) 320px, (max-width: 1280px) 440px, 480px"
-                          quality={100}
+                          sizes="(max-width: 640px) 320px, (max-width: 768px) 384px, (max-width: 1024px) 440px, (max-width: 1280px) 640px, 960px"
+                          quality={isActive ? 100 : (isPrev || isNext ? 95 : 70)}
                           className="object-cover"
-                          priority={true}
-                          loading="eager"
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyLDzLpPQ8t0M5/b7OFnT6t7C4m9BJ2vTw1NJkdNhOwh0u/OImLEggZDEyUWLpV2I0m+LWi1j3hVxOBXhQz/LjKEpz9lCZjH0P6+s4+zE+1s5a1uFQ=="
+                          priority={isActive || isPrev || isNext}
+                          loading={isActive || isPrev || isNext ? "eager" : "lazy"}
+                          // Use unoptimized for the active slide to get the original image fidelity; adjacent slides optionally unoptimized
+                          unoptimized={isActive ? true : (isPrev || isNext ? true : false)}
+                          fetchPriority={isActive || isPrev || isNext ? "high" : "auto"}
+                          decoding="async"
                           onError={(e) => {
-                            e.currentTarget.src = "/images/test2.jpg";
+                            try { e.currentTarget.src = "/images/test2.jpg"; } catch (err) { /* ignore */ }
                           }}
                         />
 
