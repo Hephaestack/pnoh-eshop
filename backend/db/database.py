@@ -1,0 +1,32 @@
+from sqlalchemy import NullPool, create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
+import os
+
+Base = declarative_base()
+
+load_dotenv(override=True)
+
+DATABASE_URL = os.getenv("DB_URL")
+if not DATABASE_URL:
+    raise ValueError("DB_URL not found in .env")
+
+engine = create_engine(
+    DATABASE_URL,
+    poolclass=NullPool,
+    pool_pre_ping=True,
+)
+
+try:
+    with engine.connect() as connection:
+        print("Connection successful!")
+except Exception as e:
+    print(f"Failed to connect: {e}")
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+    bind=engine
+)

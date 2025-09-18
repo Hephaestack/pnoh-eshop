@@ -1,0 +1,205 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* CSS Custom Properties for header heights */
+:root {
+  --top-header-height: 40px;
+  --main-header-height: 80px;
+  --total-header-height: 120px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --main-header-height: 96px;
+    --total-header-height: 136px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --main-header-height: 112px;
+    --total-header-height: 152px;
+  }
+}
+
+/* Header stability improvements */
+header {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  position: sticky;
+  will-change: transform;
+}
+
+/* Top header styles */
+.top-header {
+  height: var(--top-header-height);
+  top: 0;
+  z-index: 60;
+}
+
+/* Main header styles */
+.main-header {
+  height: var(--main-header-height);
+  top: var(--top-header-height);
+  z-index: 40;
+}
+
+/* Prevent layout shifts */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scrollbar and ensure content stays centered */
+  overflow-x: hidden;
+  /* Reserve space for scrollbar to prevent layout shifts */
+  scrollbar-gutter: stable;
+  /* Fallback for browsers that don't support scrollbar-gutter */
+  overflow-y: scroll;
+  /* Ensure no extra margins that could cause off-center layout */
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure html also has proper overflow handling */
+html {
+  /* Ensure no extra margins that could cause off-center layout */
+  margin: 0;
+  padding: 0;
+}
+
+/* Force hardware acceleration for sticky elements */
+.sticky {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Ensure clickable header icons show pointer cursor even if other rules interfere */
+.main-header .size-9,
+.main-header button,
+.main-header a,
+.main-header [data-slot="button"] {
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure mega menu thumbnails are rendered sharp by default */
+.main-header .rounded-2xl img,
+.main-header .rounded-2xl img[decoding],
+.main-header .rounded-2xl img[loading] {
+  filter: none !important;
+  -webkit-filter: none !important;
+  image-rendering: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Stronger rendering hints to avoid soft/blurred thumbnails due to compositing */
+.main-header .rounded-2xl,
+.main-header .rounded-2xl img {
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform, filter !important;
+}
+
+/* Completely disable any blur/backdrop-filter inside the header dropdown menu */
+.main-header [role="menu"] *,
+.main-header [role="menu"] img,
+.main-header [role="menu"] div {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Ensure all buttons show pointer cursor by default unless explicitly disabled */
+button,
+button[type],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  cursor: pointer;
+}
+
+/* Ensure anchor links and elements with role=link or explicit .clickable show pointer */
+a,
+a[href],
+[role="link"],
+.clickable {
+  cursor: pointer;
+}
+
+/* Keep not-allowed when intentionally disabled */
+.cursor-not-allowed,
+.disabled,
+[disabled] {
+  cursor: not-allowed !important;
+}
+
+/* Animated underline for mega menu labels (loading-like) */
+@keyframes mega-underline-load {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleX(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0.6;
+  }
+}
+
+/* Wrapper utility for the label to position underline */
+.mega-underline {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The animated bar that sits under the text */
+/* Wrapper for the label; we'll size the animated underline to the inline text */
+.mega-underline {
+  position: relative;
+}
+
+/* The text wrapper that we'll size to content width */
+.mega-underline .mega-underline-text {
+  display: inline-block;
+  position: relative;
+}
+
+/* Minimal, subtle underline attached to the inline text only */
+.mega-underline .mega-underline-text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px; /* sits just under the text */
+  height: 2px;
+  width: 100%;
+  background: rgba(255,255,255,0.85); /* higher opacity as requested */
+  transform-origin: left center;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+/* One-time animation on hover: animate once when hovering the parent group */
+.group:hover .mega-underline .mega-underline-text::after {
+  animation: mega-underline-load-once 900ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes mega-underline-load-once {
+  0% { transform: scaleX(0); opacity: 0.9; }
+  60% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0.95; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mega-underline .mega-underline-text::after {
+    animation: none !important;
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+  }
+}
