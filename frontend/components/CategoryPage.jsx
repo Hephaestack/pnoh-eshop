@@ -238,7 +238,9 @@ export default function CategoryPage({ category, products }) {
                     {product.name}
                   </h3>
                   <p className="text-[#bcbcbc] text-sm mb-2 capitalize">
-                    {t(product.theme.replace(/-/g, "_"))} • {categoryInfo.title}
+                    {product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase()
+                      ? `${t(product.theme.replace(/-/g, "_"))} • ${categoryInfo.title}`
+                      : categoryInfo.title}
                   </p>
                   <span className="text-[#f8f8f8] font-semibold">
                     €{product.price}
