@@ -4,13 +4,14 @@ import { ClerkProvider } from "@clerk/nextjs";
 import CartProviderWrapper from "@/components/CartProviderWrapper";
 
 export const metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  // Use an environment-provided origin in production; fall back to localhost for dev
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_ORIGIN || process.env.SITE_URL || "http://localhost:3000"),
   title: {
-    default: "Pnoh - Handmade Jewelry & Accessories",
-    template: "%s | Pnoh - Handmade Jewelry",
+    default: "Πνοή - Χειροποίητα Κοσμήματα & Αξεσουάρ",
+    template: "%s | Πνοή - Χειροποίητα Κοσμήματα",
   },
   description:
-    "Pnoh - Handmade, artisanal jewelry crafted with care. Unique necklaces, rings, bracelets and earrings. Shop handmade jewelry in Greek and English.",
+    "Πνοή - Χειροποίητα, καλλιτεχνικά κοσμήματα φτιαγμένα με μεράκι. Μοναδικά κολιέ, δαχτυλίδια, βραχιόλια και σκουλαρίκια.",
   keywords: [
     "handmade jewelry",
     "artisan jewelry",
@@ -21,7 +22,7 @@ export const metadata = {
     "bracelets",
     "handmade",
   ].join(", "),
-  applicationName: "Pnoh E-Shop",
+  applicationName: "Πνοή E-Shop",
   alternates: {
     canonical: "/",
     languages: {
@@ -30,24 +31,24 @@ export const metadata = {
     },
   },
   openGraph: {
-    title: "Pnoh - Handmade Jewelry & Accessories",
+    title: "Πνοή - Χειροποίητα Κοσμήματα & Αξεσουάρ",
     description:
-      "Unique, handmade jewelry. Necklaces, rings, bracelets and earrings crafted in Greece.",
+      "Μοναδικά, χειροποίητα κοσμήματα. Κολιέ, δαχτυλίδια, βραχιόλια και σκουλαρίκια φτιαγμένα στην Ελλάδα.",
     url: "/",
-    siteName: "Pnoh",
+    siteName: "Πνοή",
     images: [
       {
         url: "/logo.webp",
         width: 1200,
         height: 630,
-        alt: "Pnoh - Handmade Jewelry",
+    alt: "Pnoh - Χειροποίητα Κοσμήματα",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pnoh - Handmade Jewelry",
+    title: "Pnoh - Χειροποίητα Κοσμήματα",
   },
   robots: {
     index: true,
