@@ -11,7 +11,7 @@ app.add_middleware(
     allow_origins=[
         "https://pnoh-eshop-admin-panel.onrender.com",
         "https://pnoh-eshop.onrender.com",
-        "https://pnoikosmima.com",
+        "https://www.pnoikosmima.com/",
         "https://admin.pnoikosmima.com"
     ],
     allow_credentials=True,
