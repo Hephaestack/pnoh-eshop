@@ -66,8 +66,12 @@ export default function RootLayout({ children }) {
     >
       <html lang="el" data-scroll-behavior="smooth">
         <head>
-          {/* Use the site logo as the canonical favicon. Removed the duplicate /favicon.ico to avoid conflicts. */}
-          <link rel="icon" href="/logo.webp" type="image/webp" />
+          {/* Use the site logo as the canonical favicon and for PWA */}
+          {/* Add a simple cache-busting query so browsers refetch rather than reuse a cached Vercel icon */}
+          <link rel="icon" href="/logo.webp?v=2" type="image/webp" />
+          <link rel="shortcut icon" href="/logo.webp?v=2" />
+          <link rel="apple-touch-icon" href="/logo.webp?v=2" />
+          <link rel="manifest" href="/manifest.json" />
         </head>
         <body className="min-h-screen bg-[#18181b]">
           {/* Clerk Smart CAPTCHA container - required for clerk-captcha initialization */}

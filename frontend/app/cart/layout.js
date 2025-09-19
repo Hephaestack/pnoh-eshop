@@ -1,5 +1,3 @@
-import { Metadata } from 'next';
-
 export const metadata = {
   metadataBase: new URL("http://localhost:3000"),
   title: 'Καλάθι Αγορών - Πνοή Jewelry',
