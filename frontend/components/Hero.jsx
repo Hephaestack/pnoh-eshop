@@ -32,10 +32,12 @@ export function Hero() {
   const intervalRef = useRef();
   // true: active on right, false: active on left
   const [tabletActiveRight, setTabletActiveRight] = useState(true);
-  const touchStartX = useRef(null);
-  const touchEndX = useRef(null);
-  const touchStartY = useRef(null);
-  const touchEndY = useRef(null);
+  const pointerStartX = useRef(null);
+  const pointerLastX = useRef(null);
+  const pointerStartY = useRef(null);
+  const pointerLastY = useRef(null);
+  const activePointerId = useRef(null);
+  const rafRef = useRef(null);
   const carouselRef = useRef(null);
 
   // Fetch products for hero carousel with caching
@@ -211,76 +213,109 @@ export function Hero() {
     }
   };
 
-  const handleTouchStart = (e) => {
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-    touchStartX.current = touchX;
-    touchEndX.current = touchX;
-    touchStartY.current = touchY;
-    touchEndY.current = touchY;
-    // Pause autoplay during touch interaction
+  // Pointer-based handlers: more reliable across devices and supports pointer capture
+  const handlePointerDown = (e) => {
+    // Only handle touch or pen pointers for swipe
+    if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+
+    activePointerId.current = e.pointerId;
+    pointerStartX.current = e.clientX;
+    pointerLastX.current = e.clientX;
+    pointerStartY.current = e.clientY;
+    pointerLastY.current = e.clientY;
+
+    // Pause autoplay during interaction
     clearInterval(intervalRef.current);
-  };
 
-  const handleTouchMove = (e) => {
-    if (touchStartX.current !== null) {
-      touchEndX.current = e.touches[0].clientX;
-      // Don't call preventDefault - React events are passive
+    // Capture pointer so we continue to receive events even if finger moves outside element
+    try { e.target.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+
+    // Prevent accidental text/image dragging
+    if (e.target && e.target.ownerDocument) {
+      // no-op placeholder to show intent; do not call preventDefault globally
     }
   };
 
-  const handleTouchEnd = (e) => {
-    // Get end touch coords from event if available
-    let endX = touchEndX.current;
-    let endY = touchEndY.current;
-    if (e && e.changedTouches && e.changedTouches[0]) {
-      endX = e.changedTouches[0].clientX;
-      endY = e.changedTouches[0].clientY;
+  const handlePointerMove = (e) => {
+    if (activePointerId.current !== e.pointerId) return;
+
+    // Throttle updates using rAF for smoothness
+    pointerLastX.current = e.clientX;
+    pointerLastY.current = e.clientY;
+
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      // We could add a small drag visual effect here in future
+    });
+  };
+
+  const handlePointerUpOrCancel = (e) => {
+    if (activePointerId.current !== e.pointerId) return;
+
+    // Release capture
+    try { e.target.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+
+    const startX = pointerStartX.current;
+    const endX = pointerLastX.current != null ? pointerLastX.current : e.clientX;
+    const startY = pointerStartY.current;
+    const endY = pointerLastY.current != null ? pointerLastY.current : e.clientY;
+
+    // Reset refs
+    activePointerId.current = null;
+    pointerStartX.current = null;
+    pointerLastX.current = null;
+    pointerStartY.current = null;
+    pointerLastY.current = null;
+
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
 
-    // If there's an element under the finger, focus that slide
-    try {
-      const el = document.elementFromPoint(endX, endY);
-      const slide = el && el.closest && el.closest('[data-index]');
-      if (slide && slide.dataset && typeof slide.dataset.index !== 'undefined') {
-        const idx = parseInt(slide.dataset.index, 10);
-        if (!isNaN(idx)) {
-          // When a slide is chosen via touch, make it the active-right on tablet by default
-          setTabletActiveRight(true);
-          setCurrentIndex(idx);
-          startAutoplay();
-          touchStartX.current = null;
-          touchEndX.current = null;
-          touchStartY.current = null;
-          touchEndY.current = null;
-          return;
-        }
-      }
-    } catch (err) {
-      // ignore DOM errors and fallback to diff logic
+    // If we don't have start coords, nothing to do
+    if (typeof startX !== 'number' || typeof endX !== 'number') {
+      startAutoplay();
+      return;
     }
 
-    // Fallback to directional swipe if no element found
-    if (touchStartX.current !== null && endX !== null) {
-      const diff = touchStartX.current - endX;
-      const minSwipeDistance = 50;
+    const dx = startX - endX;
+    const dy = startY - endY;
 
-      if (Math.abs(diff) > minSwipeDistance) {
-        if (diff > 0) {
-          handleNext(); // Swipe left = next
-        } else {
-          handlePrev(); // Swipe right = previous
-        }
+    // Ignore mostly-vertical drags
+    if (Math.abs(dy) > Math.abs(dx) * 1.2) {
+      startAutoplay();
+      return;
+    }
+
+    const minSwipeDistance = Math.max(40, Math.min(120, window.innerWidth * 0.07));
+
+    if (Math.abs(dx) > minSwipeDistance) {
+      if (dx > 0) {
+        handleNext();
       } else {
-        // If no swipe detected, restart autoplay
-        startAutoplay();
+        handlePrev();
       }
-    }
+    } else {
+      // Try to detect if the user simply tapped a slide: find element under final point
+      try {
+        const el = document.elementFromPoint(endX, endY);
+        const slide = el && el.closest && el.closest('[data-index]');
+        if (slide && slide.dataset && typeof slide.dataset.index !== 'undefined') {
+          const idx = parseInt(slide.dataset.index, 10);
+          if (!isNaN(idx)) {
+            setTabletActiveRight(true);
+            setCurrentIndex(idx);
+            startAutoplay();
+            return;
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
 
-    touchStartX.current = null;
-    touchEndX.current = null;
-    touchStartY.current = null;
-    touchEndY.current = null;
+      startAutoplay();
+    }
   };
 
   const startAutoplay = useCallback(() => {
@@ -304,6 +339,23 @@ export function Hero() {
     startAutoplay();
     return () => clearInterval(intervalRef.current);
   }, [startAutoplay]);
+
+  // Cleanup pointer/raf state on unmount to avoid stuck capture or pending frames
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      // Clear any active pointer state
+      activePointerId.current = null;
+      pointerStartX.current = null;
+      pointerLastX.current = null;
+      pointerStartY.current = null;
+      pointerLastY.current = null;
+      clearInterval(intervalRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -410,9 +462,10 @@ export function Hero() {
         <div
           className="relative flex items-center p-4 md:p-8 touch-pan-y"
           style={{ touchAction: "pan-y", minHeight: "calc(100vh - var(--total-header-height))" }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUpOrCancel}
+          onPointerCancel={handlePointerUpOrCancel}
           onMouseEnter={() => clearInterval(intervalRef.current)}
           onMouseLeave={startAutoplay}
         >
