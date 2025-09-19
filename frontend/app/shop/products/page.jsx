@@ -167,8 +167,8 @@ const EnhancedProductCard = ({ product, viewMode }) => {
           </div>
         </>
       ) : (
-          <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
-          <div className="w-full sm:w-28 h-48 sm:h-28 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+        <div className="flex-col items-start hidden gap-2 p-1 sm:flex sm:flex-row sm:items-center">
+          <div className="w-20 sm:w-24 h-20 sm:h-24 bg-[#18181b] rounded-md flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             {!imgLoaded && (
               <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
             )}
@@ -183,61 +183,59 @@ const EnhancedProductCard = ({ product, viewMode }) => {
             />
           </div>
 
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold truncate text-slate-200">
+          <div className="flex-1 min-w-0 px-2">
+            <h3 className="text-base font-medium text-slate-200 leading-snug">
               {product.name}
             </h3>
-            <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 truncate">
+            <p className="text-slate-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
               {product.theme && product.theme.toLowerCase() !== (product.category || '').toLowerCase()
                 ? `${formatThemeLabel(product.theme)} • ${t(product.category)}`
                 : t(product.category)}
             </p>
-            <div className="mt-2 font-bold text-slate-300">
+            <div className="mt-1 font-normal text-slate-300 text-sm">
               €{product.price}
             </div>
           </div>
 
-          <div className="flex items-center justify-between w-full mt-3 md:justify-end md:mt-0">
-            <div className="flex flex-col md:flex-row items-center gap-2 w-full">
-              <motion.button
-                className={`w-full md:flex-1 px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
-                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
-                }`}
-                whileHover={{
-                  backgroundColor: added
-                    ? "rgb(22 163 74)"
-                    : isAddingToCart
-                    ? "rgb(239 68 68)"
-                    : "rgb(203 213 225)",
-                  color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
-                  transition: { duration: 0.12 },
-                }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAddToCart}
-                disabled={adding || isAddingToCart}
-                style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
-              >
-                {added
-                  ? t("added", "Added!")
-                  : adding
-                  ? t("adding", "Adding...")
+          <div className="flex items-center gap-2 ml-2 shrink-0">
+            <motion.button
+              className={`inline-flex items-center justify-center px-3 py-1 text-slate-200 text-sm font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
+                added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
+              }`}
+              whileHover={{
+                backgroundColor: added
+                  ? "rgb(22 163 74)"
                   : isAddingToCart
-                  ? t("please_wait", "Please wait...")
-                  : t("add_to_cart")}
-                </motion.button>
-                <motion.button
-                  className="w-full md:flex-1 px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border text-center"
-                whileHover={{
-                  backgroundColor: "rgb(203 213 225)",
-                  transition: { duration: 0.12 },
-                }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleBuyNow}
-                disabled={buyingNow}
-              >
-                {buyingNow ? t("buying", "Buying...") : t("buy_now")}
-              </motion.button>
-            </div>
+                  ? "rgb(239 68 68)"
+                  : "rgb(203 213 225)",
+                color: added ? "#fff" : isAddingToCart ? "#fff" : "rgb(0 0 0)",
+                transition: { duration: 0.12 },
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleAddToCart}
+              disabled={adding || isAddingToCart}
+              style={isAddingToCart ? { pointerEvents: 'none', cursor: 'not-allowed' } : {}}
+            >
+              {added
+                ? t("added", "Added!")
+                : adding
+                ? t("adding", "Adding...")
+                : isAddingToCart
+                ? t("please_wait", "Please wait...")
+                : t("add_to_cart")}
+            </motion.button>
+            <motion.button
+              className="inline-flex items-center justify-center px-3 py-1 text-black text-sm font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border"
+              whileHover={{
+                backgroundColor: "rgb(203 213 225)",
+                transition: { duration: 0.12 },
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleBuyNow}
+              disabled={buyingNow}
+            >
+              {buyingNow ? t("buying", "Buying...") : t("buy_now")}
+            </motion.button>
           </div>
         </div>
       )}

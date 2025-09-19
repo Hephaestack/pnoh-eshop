@@ -18,23 +18,22 @@ import {
 } from "lucide-react";
 import EnhancedPaginationBar from "@/components/ui/EnhancedPaginationBar";
 
-// Format theme label: prefer translation, fallback to capitalized words
+// Format theme label: prefer translation, fallback to Capitalize-first-letter (rest lowercase)
 const formatThemeLabel = (t, theme) => {
   if (!theme) return "";
   const key = theme.replace(/-/g, "_");
   const translated = t(key);
   if (
-    !translated ||
-    translated === key ||
-    translated.toLowerCase() === key.toLowerCase()
+    translated && translated !== key && translated.toLowerCase() !== key.toLowerCase()
   ) {
-    return theme
-      .replace(/-/g, " ")
-      .split(" ")
-      .map((s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s))
-      .join(" ");
+    return translated;
   }
-  return translated;
+  // Fallback: capitalize only the first letter of each word and lowercase the rest
+  return theme
+    .replace(/-/g, " ")
+    .split(" ")
+    .map((s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s))
+    .join(" ");
 };
 
 // Product Card Component with image optimization
@@ -129,7 +128,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t, category }) => {
             </h3>
             <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1">
               {product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase()
-                ? `${t(product.theme.replace(/-/g, "_"))} • ${categoryTitle}`
+                ? `${formatThemeLabel(t, product.theme)} • ${categoryTitle}`
                 : categoryTitle}
             </p>
             <div className="flex items-center justify-center gap-2">
@@ -180,8 +179,8 @@ const ProductCard = ({ product, viewMode, categoryTitle, t, category }) => {
           </div>
         </>
       ) : (
-        <div className="flex-col items-start hidden gap-4 p-4 sm:flex sm:flex-row sm:items-center">
-          <div className="w-full sm:w-28 h-48 sm:h-28 bg-[#18181b] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+        <div className="flex-col items-start hidden gap-3 p-2 sm:flex sm:flex-row sm:items-center">
+          <div className="w-20 sm:w-24 h-20 sm:h-24 bg-[#18181b] rounded-md flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             {!imgLoaded && (
               <div className="absolute inset-0 animate-pulse bg-[#232326]/40 z-10" />
             )}
@@ -198,26 +197,30 @@ const ProductCard = ({ product, viewMode, categoryTitle, t, category }) => {
             />
           </div>
 
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-normal truncate text-slate-200">
+          <div className="flex-1 min-w-0 px-2">
+            <h3 className="text-base font-medium text-slate-200 leading-snug">
               {product.name}
             </h3>
-            <p className="text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 truncate">
-              {product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase()
-                ? `${t(product.theme.replace(/-/g, "_"))} • ${categoryTitle}`
-                : categoryTitle}
+            <p className="text-slate-200 text-sm font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] mb-1 whitespace-nowrap">
+              {(() => {
+                const hasTheme = product.theme && product.theme.toLowerCase() !== (category || '').toLowerCase();
+                if (hasTheme) {
+                  return `${formatThemeLabel(t, product.theme)}\u00A0•\u00A0${categoryTitle}`;
+                }
+                return categoryTitle;
+              })()}
             </p>
-            <div className="mt-2 font-normal text-slate-300">
+            <div className="mt-1 font-normal text-slate-300 text-sm">
               €{product.price}
             </div>
           </div>
 
-          <div className="flex items-center justify-between w-full mt-3 md:justify-end md:mt-0">
-            <div className="flex flex-col items-stretch w-full gap-2 md:flex-row">
-              <motion.button
-                className={`w-full md:flex-1 min-w-0 text-center flex items-center justify-center px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
-                  added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
-                }`}
+            <div className="flex items-center justify-end w-full mt-2 md:justify-end md:mt-0">
+              <div className="flex items-center gap-2">
+                <motion.button
+                  className={`inline-flex items-center justify-center px-3 py-1 text-slate-200 text-sm font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] bg-transparent border rounded-md border-slate-300 ${
+                    added ? "bg-green-600 text-white" : isAddingToCart ? "bg-red-500 text-white" : ""
+                  }`}
                 whileHover={{
                   backgroundColor: added
                     ? "rgb(22 163 74)"
@@ -241,7 +244,7 @@ const ProductCard = ({ product, viewMode, categoryTitle, t, category }) => {
                   : t("add_to_cart")}
               </motion.button>
               <motion.button
-                className="w-full md:flex-1 min-w-0 text-center flex items-center justify-center px-3 py-2 text-slate-200 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border"
+                className="inline-flex items-center justify-center px-3 py-1 text-black text-sm font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] rounded-md border-slate-300 bg-slate-200 border"
                 whileHover={{
                   backgroundColor: "rgb(203 213 225)",
                   transition: { duration: 0.12 },
