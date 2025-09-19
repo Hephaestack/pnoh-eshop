@@ -14,6 +14,7 @@ function SuccessPageContent() {
   const [status, setStatus] = useState("loading");
   const { t } = useTranslation();
   const [message, setMessage] = useState("");
+  const isDev = process.env.NODE_ENV !== 'production';
 
   useEffect(() => {
     if (!sessionId) {
@@ -138,20 +139,22 @@ function SuccessPageContent() {
                 to_email: customerEmail || '',
               };
 
-              // Expose the payload and chosen template/service in console for debugging
-              console.info('[EmailJS] prepared templateParams:', {
+              // Expose the payload and chosen template/service in console for debugging (dev only)
+              if (isDev) {
+                console.info('[EmailJS] prepared templateParams:', {
                 serviceId,
                 templateId,
                 publicKey,
                 templateParams,
                 sessionId,
                 rawOrderData: data,
-              });
-              // Print each order object for clarity
-              if (templateParams.orders && Array.isArray(templateParams.orders)) {
-                templateParams.orders.forEach((order, idx) => {
-                  console.info(`[EmailJS] order[${idx}]:`, order);
                 });
+                // Print each order object for clarity
+                if (templateParams.orders && Array.isArray(templateParams.orders)) {
+                  templateParams.orders.forEach((order, idx) => {
+                    console.info(`[EmailJS] order[${idx}]:`, order);
+                  });
+                }
               }
 
               if (serviceId && templateId && publicKey) {
@@ -159,7 +162,7 @@ function SuccessPageContent() {
                 emailjs.send(serviceId, templateId, templateParams, publicKey)
                   .then((resp) => {
                     try { localStorage.setItem(sentKey, '1'); } catch(e) {}
-                    console.log('[EmailJS] send success', resp);
+                    if (isDev) console.log('[EmailJS] send success', resp);
                   })
                   .catch(err => {
                     console.error('[EmailJS] send failed', err);

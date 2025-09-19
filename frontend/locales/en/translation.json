@@ -363,8 +363,7 @@
     "signing_in": "Signing in...",
     "creating_account": "Creating account...",
     "verifying": "Verifying...",
-    "or": "Or",
-    "continue_with_google": "Continue with Google",
+  "or": "Or",
     "forgot_password_link": "Forgot your password?",
     "dont_have_account": "Don't have an account?",
     "already_have_account": "Already have an account?",
@@ -374,6 +373,7 @@
       "title": "Forgot Password",
       "subtitle": "Enter your email address and we'll send you a link to reset your password",
       "button": "Send Reset Link",
+      "sending": "Sending...",
       "check_email": "Check Your Email",
       "email_sent": "We've sent a password reset link to your email",
       "success_message": "Password reset email sent successfully! Check your inbox and follow the instructions.",
@@ -389,9 +389,22 @@
       "password_too_short": "Password must be at least 8 characters",
       "password_pwned": "This password has been found in a data breach. Please choose a different password.",
       "code_incorrect": "Incorrect verification code",
-      "verification_failed": "Verification failed. Please try again.",
-      "google": "Google sign in failed. Please try again."
+      "code_required": "Reset code is required",
+      "passwords_mismatch": "Passwords do not match",
+      "code_expired": "Code expired or invalid",
+  "verification_failed": "Verification failed. Please try again."
     }
+    ,
+    "reset_password": {
+      "title": "Reset Password",
+      "subtitle": "Enter the code you received and choose a new password",
+      "button": "Update Password",
+      "sending": "Updating...",
+      "success": "Password updated — redirecting to sign in..."
+    },
+    "confirm_password": "Confirm Password",
+    "confirm_password_placeholder": "Confirm new password",
+    "have_code": "I have a reset code"
   },
   "account": {
     "title": "My Account",
