@@ -104,22 +104,32 @@ export default function ForgotPasswordPage() {
               {t('auth.forgot_password.success_message') || 'Password reset email sent successfully! Check your inbox and follow the instructions.'}
             </div>
             
-            <div className="text-center space-y-4">
+            <div className="space-y-4">
               <p className="text-sm text-gray-400">
                 {t('auth.forgot_password.didnt_receive') || "Didn't receive the email? Check your spam folder or try again."}
               </p>
-              
-              <Button
-                onClick={() => {
-                  setEmailSent(false)
-                  setEmail('')
-                  setErrors({})
-                }}
-                variant="outline"
-                className="w-full border-[#404040] bg-transparent text-white hover:bg-[#232326] hover:text-white"
-              >
-                {t('auth.forgot_password.try_again') || 'Try Again'}
-              </Button>
+
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    setEmailSent(false)
+                    setEmail('')
+                    setErrors({})
+                  }}
+                  variant="outline"
+                  className="w-full border-[#404040] bg-transparent text-white hover:bg-[#232326] hover:text-white"
+                >
+                  {t('auth.forgot_password.try_again') || 'Try Again'}
+                </Button>
+
+                {/* Link to reset page so users who received a code can enter it */}
+                <Link
+                  href="/auth/reset-password"
+                  className="w-full inline-flex justify-center items-center text-sm border border-transparent bg-white text-black hover:bg-gray-200 py-2 px-3"
+                >
+                  {t('auth.forgot_password.have_code') || 'I have a reset code'}
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -184,3 +194,5 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
+
+
