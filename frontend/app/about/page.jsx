@@ -74,12 +74,7 @@ export default function AboutPage() {
               <p className="text-[#bfc1c6] leading-relaxed font-light">
                 {t('our_story_text')}
               </p>
-              <Button
-                variant="outline"
-                className="border-[#bfc1c6] text-[#bfc1c6] hover:bg-[#23232a] hover:text-white hover:border-white transition-all duration-300 bg-transparent"
-              >
-                {t('learn_more')}
-              </Button>
+              {/* learn_more button removed as requested */}
             </motion.div>
             <motion.div 
               className="relative flex justify-center lg:justify-end"

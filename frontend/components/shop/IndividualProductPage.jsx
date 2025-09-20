@@ -514,15 +514,15 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
       </div>
 
       {/* Main product content with enhanced layout */}
-  <div className="grid gap-12 mb-20 lg:grid-cols-5 lg:gap-16 md:mb-24">
+  <div className="grid grid-cols-1 gap-8 mb-20 md:grid-cols-3 lg:grid-cols-5 lg:gap-16 md:mb-24">
         {/* Image gallery - takes 3 columns */}
   <div className="space-y-6 lg:col-span-3 md:space-y-8">
           {/* Main image with enhanced container */}
           <div className="relative group">
               <div 
-              className="relative max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in hover:cursor-pointer ring-1 ring-black/5 lg:max-w-none lg:mx-0"
-              onClick={() => openEnlarged(currentImageIndex)}
-            >
+                className="relative w-full max-w-md mx-auto overflow-hidden shadow-xl aspect-square rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 cursor-zoom-in hover:cursor-pointer ring-1 ring-black/5 sm:max-w-lg md:max-w-none md:mx-0"
+                onClick={() => openEnlarged(currentImageIndex)}
+              >
               {(() => {
                 const src = productData.big_images?.[currentImageIndex] || productData.images[currentImageIndex];
                 const hasBig = Boolean(productData.big_images && productData.big_images.length > 0 && productData.big_images[currentImageIndex]);
@@ -760,7 +760,7 @@ function IndividualProductPage({ params, category, initialProduct = null }) {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ duration: 0.28 }}
-                    className="relative max-w-full max-h-full rounded-md flex items-center justify-center"
+                    className="relative flex items-center justify-center max-w-full max-h-full rounded-md"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Image
