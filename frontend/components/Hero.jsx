@@ -39,6 +39,8 @@ export function Hero() {
   const activePointerId = useRef(null);
   const rafRef = useRef(null);
   const carouselRef = useRef(null);
+  // Tracks whether current touch gesture is horizontal or vertical: null | 'horizontal' | 'vertical'
+  const touchDirection = useRef(null);
 
   // Fetch products for hero carousel with caching
   useEffect(() => {
@@ -368,7 +370,7 @@ export function Hero() {
 
   return (
     <motion.div 
-      className="relative w-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-black overflow-hidden"
+      className="relative w-full overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black"
       style={{ minHeight: "calc(100vh - var(--total-header-height))" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: showContent ? 1 : 0 }}
@@ -394,7 +396,7 @@ export function Hero() {
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-silver-400/20 rounded-full animate-pulse"
+              className="absolute w-1 h-1 rounded-full bg-silver-400/20 animate-pulse"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -428,8 +430,8 @@ export function Hero() {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - var(--total-header-height))" }}>
-          <div className="p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
-            <div className="w-8 h-8 mx-auto mb-4 border-2 border-neutral-500/40 border-t-neutral-400 rounded-full animate-spin"></div>
+          <div className="p-8 text-center border bg-neutral-900/40 backdrop-blur-lg rounded-2xl border-neutral-700/30">
+            <div className="w-8 h-8 mx-auto mb-4 border-2 rounded-full border-neutral-500/40 border-t-neutral-400 animate-spin"></div>
             <div className="text-lg text-neutral-300">
               {t("hero.loading_products")}
             </div>
@@ -440,7 +442,7 @@ export function Hero() {
       {/* No Products State - Only show after content is ready to prevent flash */}
       {!loading && showContent && items.length === 0 && (
         <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - var(--total-header-height))" }}>
-          <div className="max-w-md p-8 text-center bg-neutral-900/40 backdrop-blur-lg rounded-2xl border border-neutral-700/30">
+          <div className="max-w-md p-8 text-center border bg-neutral-900/40 backdrop-blur-lg rounded-2xl border-neutral-700/30">
             <h2 className="mb-4 text-2xl font-light text-neutral-200">
               {t("hero.no_products")}
             </h2>
@@ -449,7 +451,7 @@ export function Hero() {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-3 text-neutral-200 transition-all duration-300 bg-neutral-800/50 backdrop-blur-sm border border-neutral-600/40 rounded-xl hover:bg-neutral-700/60 hover:scale-105"
+              className="px-6 py-3 transition-all duration-300 border text-neutral-200 bg-neutral-800/50 backdrop-blur-sm border-neutral-600/40 rounded-xl hover:bg-neutral-700/60 hover:scale-105"
             >
               {t("hero.retry")}
             </button>
@@ -466,6 +468,41 @@ export function Hero() {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUpOrCancel}
           onPointerCancel={handlePointerUpOrCancel}
+          onTouchStart={(e) => {
+            // Only handle single-touch gestures here
+            if (!(e.touches && e.touches.length === 1)) return;
+            const t = e.touches[0];
+            touchDirection.current = null; // unknown yet
+            // Forward to pointer down logic
+            handlePointerDown({ pointerType: 'touch', pointerId: 1, clientX: t.clientX, clientY: t.clientY, target: e.target, currentTarget: e.currentTarget, setPointerCapture: () => {}, button: 0 });
+          }}
+          onTouchMove={(e) => {
+            if (!(e.touches && e.touches.length === 1)) return;
+            const t = e.touches[0];
+
+            // Determine direction if unknown
+            if (!touchDirection.current && typeof pointerStartX.current === 'number' && typeof pointerStartY.current === 'number') {
+              const dx = Math.abs(t.clientX - pointerStartX.current);
+              const dy = Math.abs(t.clientY - pointerStartY.current);
+              // Consider gesture horizontal when dx significantly exceeds dy
+              touchDirection.current = dx > dy * 1.2 ? 'horizontal' : 'vertical';
+            }
+
+            // If it's horizontal, prevent page from scrolling
+            if (touchDirection.current === 'horizontal') {
+              e.preventDefault();
+            }
+
+            // Forward to pointer move logic
+            handlePointerMove({ pointerType: 'touch', pointerId: 1, clientX: t.clientX, clientY: t.clientY });
+          }}
+          onTouchEnd={(e) => {
+            // Use changedTouches to get the last touch point
+            const t = e.changedTouches && e.changedTouches[0];
+            handlePointerUpOrCancel({ pointerType: 'touch', pointerId: 1, clientX: t ? t.clientX : undefined, clientY: t ? t.clientY : undefined, target: e.target, currentTarget: e.currentTarget, releasePointerCapture: () => {} });
+            // reset direction
+            touchDirection.current = null;
+          }}
           onMouseEnter={() => clearInterval(intervalRef.current)}
           onMouseLeave={startAutoplay}
         >
@@ -480,7 +517,7 @@ export function Hero() {
                 repeat: 2,
                 repeatType: "reverse",
               }}
-              className="flex items-center text-sm text-neutral-400 bg-neutral-900/30 backdrop-blur-lg px-4 py-2 rounded-full border border-neutral-700/30"
+              className="flex items-center px-4 py-2 text-sm border rounded-full text-neutral-400 bg-neutral-900/30 backdrop-blur-lg border-neutral-700/30"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -510,7 +547,7 @@ export function Hero() {
           `}</style>
           <button
             onClick={handlePrev}
-            className="hero-arrow-btn absolute z-30 left-4 md:left-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="absolute z-30 items-center justify-center hidden p-3 transition-all duration-300 border rounded-full shadow-xl cursor-pointer hero-arrow-btn left-4 md:left-8 md:p-4 text-neutral-300 bg-neutral-900/30 backdrop-blur-lg border-neutral-700/30 hover:bg-neutral-800/50 hover:scale-110 group md:flex"
             aria-label="Previous product"
           >
             <svg
@@ -530,7 +567,7 @@ export function Hero() {
 
           <button
             onClick={handleNext}
-            className="hero-arrow-btn absolute z-30 right-4 md:right-8 p-3 md:p-4 text-neutral-300 transition-all duration-300 bg-neutral-900/30 backdrop-blur-lg border border-neutral-700/30 rounded-full hover:bg-neutral-800/50 hover:scale-110 group shadow-xl hidden md:flex items-center justify-center cursor-pointer"
+            className="absolute z-30 items-center justify-center hidden p-3 transition-all duration-300 border rounded-full shadow-xl cursor-pointer hero-arrow-btn right-4 md:right-8 md:p-4 text-neutral-300 bg-neutral-900/30 backdrop-blur-lg border-neutral-700/30 hover:bg-neutral-800/50 hover:scale-110 group md:flex"
             aria-label="Next product"
           >
             <svg
@@ -549,7 +586,7 @@ export function Hero() {
           </button>
 
           {/* Horizontal Carousel */}
-          <div className="relative w-full max-w-7xl mx-auto px-4 md:px-0">
+          <div className="relative w-full px-4 mx-auto max-w-7xl md:px-0">
             <div className="flex items-center justify-center md:space-x-8">
               {items.map((item, index) => {
                 // Determine the active index to display. On tablet (2-card) view we may want
@@ -713,7 +750,7 @@ export function Hero() {
 
                       {/* Active Item Glow Effect */}
                       {isActive && (
-                        <div className="absolute inset-0 rounded-3xl pointer-events-none">
+                        <div className="absolute inset-0 pointer-events-none rounded-3xl">
                           <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-neutral-500/10 via-transparent to-neutral-500/10 animate-pulse"></div>
                         </div>
                       )}

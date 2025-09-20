@@ -11,6 +11,7 @@ app.add_middleware(
     allow_origins=[
         "https://pnoh-eshop-admin-panel.onrender.com",
         "https://pnoh-eshop.onrender.com",
+        "http://localhost:3000",
 
     ],
     allow_credentials=True,
